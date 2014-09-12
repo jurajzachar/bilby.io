@@ -1,0 +1,20 @@
+@()
+
+@main("Obývačka - Home", "/") {
+	  
+        <div class="row">
+          <div class="col-lg-offset-2 col-lg-8 inner_body">
+          <div class="outer_body">
+              <div class="home_header">
+  				<h1>Obývačka</h1>
+			  </div>
+              <p class="lead"><strong>Vitajte v obývačke</strong>, kinematografickom útočišti, ktoré je hneď za rohom kuchyne. 
+              Portál, pre priaznivcov filmov, pohodlia a zmysluplného escapismu.
+              </p>
+              <p class="lead"><strong>Vitajte</strong> v mojom svete obyvačkových <u><a href="recenzie/" "><strong>filmov...</strong></u>.</a></p>
+            	
+            </div>
+        </div>
+      </div>
+
+    }

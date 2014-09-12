@@ -1,0 +1,30 @@
+@()
+@utilsScripts = { <script src="routes.Assets.at("javascripts/utils.js")"></script>}
+@main("Obyvacka - Manifesto", "/shut-up-manifesto", utilsScripts) {
+
+<div class="row">
+        <div class=home_header>
+        <div class="col-lg-offset-2 col-lg-8 inner_body">
+        <div class="outer_body">
+        	<h1>Drž	Hubu! Manifesto</h1>
+        	<h4>(orig. "The Shut-Up Manifesto")</h4>
+       
+        <p>Ak chcete niečo zmenit vo svojom živote, tak prvé čo musíte spraviť je <u>držat hubu ked hovoríte.</u>.</p>
+
+        <p>Keď:</p>
+
+        <ul>
+            <li><em>...<u>poviete, že nemáte čas</u></em>:	Držte hubu! Je to len zámienka. Ralita je taká, 
+            	že si nechcete nájsť čas. Predpokladajte to.</li>
+            <li><em>...<u>poviete, že niečo nemôžete spraviť</u></em>:	Držte hubu! Radšej povedzte, že ste sa rozhodli nepokúsiť sa, Váš výrok bude mať bližšie k pravde.</li>
+            <li><em>...<u>začnete ohovárat a klebetiť</u></em>:	Držte hubu! Čím viac budete klebetiť a ohovárať, tým viac si vytvoríte na svet negatívny pohľad.</li>
+            <li><em>...<u>poviete iným ľuďom, že niečo je nemožné</u></em>:	Držte hubu! Nekazte cudzie sny, ktoré sa vy ani neodvážite mať.</li>
+            <li><em>...<u>sa necháte prehlušiť negatívnym hlasom vo svojom vnutri</u></em>:	Zahlušte tento hlas! Racionalne neuvažovať a vždy si predstavovať len to najhoršie ešte nikdy nikomu nepomohlo. Nikdy.</li>
+        </ul>
+
+        <p>Takže prosím Vás, <u>držte hubu</u>, a hlavne si vždy povedzte svoj názor, večný vesmír sa Vám poďakuje.</p>
+        </div>
+        </div>
+    </div>
+</div>
+}

@@ -1,0 +1,27 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index()
+
+# Signup
+GET     /user/account/signup        controllers.SignUp.form
+GET     /user/account/edit		    controllers.SignUp.editForm
+POST    /user/account          		controllers.SignUp.submit
+
+# Reviews
+
+#GET     /recenzie/                  controllers.Application.reviews()
+
+#GET     /recenzie/:slug/            controllers.Application.display(slug)
+
+# Default pages
+#GET     /:page/                     controllers.Application.show(page)
+
+
+# Serve images 
+#GET /img/:name  controllers.Application.picture(name: String)
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)

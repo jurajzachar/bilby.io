@@ -1,0 +1,45 @@
+@(user: model.User)
+
+@main(if(user.edited) Html("Account edited!") else Html("Account created!"), nav = "signup") {
+    
+    <h2>Your account:</h2>
+    
+    <h6>Username</h6>
+    
+    <p>
+        @user.username
+    </p>
+    
+    <h6>Email</h6>
+    
+    <p>
+        @user.email
+    </p>
+    
+    <h6>Password (hash)</h6>
+    
+    <p>
+        @user.password
+    </p>
+    
+    <h2>Additional information:</h2>
+    
+    <h6>Country</h6>
+    
+    <p>
+        @user.profile.country
+    </p>
+    
+    <h6>City</h6>
+    
+    <p>
+        @user.profile.city.getOrElse { <em>Not specified</em> } 
+    </p>
+    
+    <h6>Age</h6>
+    
+    <p>
+        @user.profile.age.getOrElse { <em>Not specified</em> } 
+    </p>
+    
+}

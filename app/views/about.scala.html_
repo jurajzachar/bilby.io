@@ -1,0 +1,31 @@
+@()
+
+@main("About", "/about") {
+
+    <div class="row">
+     <div class="col-lg-offset-2 col-lg-8 inner_body">
+     		<div class="outer_body-default outer_body">
+            <div class="home_header">
+            <h1>About</h1>
+            </div>
+            <p>
+            Moje meno je <strong>Janko</strong>, </p>
+            <p> som filmový fanúšik - a samozvaný kritik. Po namáhavom dni, večer rád trávim vo svojej obývačke. 
+            Keďže nemálo času venujem aj práci s počítačom, rozhodol som sa, že tieto dve záľuby spolu spojím. 
+            Pozeranie a písanie. A niekedy písanie a pozeranie. No a keď už žijeme vo svete prepojených informácií,
+            tak by som sa rád na tejto stranke s Vami podelil o svoje:</p>
+            <ul>
+                <li>Nové a staré filmové zážitky napísané v mini recenziach.</li>
+                <li>Diskusiou a odkazmi k daným filmovým titulom.</li>
+                <li><sttrong>Titulky</strong> a iné užitočné veci, ktoré Vám možno spríjemnia Váš čas strávený v 
+                obývačke...</li>
+            </ul>
+        </div>
+        </div>
+    </div>
+    
+   <div class="col-lg-offset-2 col-lg-8 footer">
+  			@debug()
+   </div> 
+
+}

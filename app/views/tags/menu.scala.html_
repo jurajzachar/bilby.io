@@ -1,0 +1,18 @@
+@(parent: String, pages: List[(String, String)] = 
+	List(
+		("Prihlásiť sa","signup"),
+		("Filmové recenzie","recenzie"),
+		("Manifesto","shut-up-manifesto"), 
+		("About","about")))
+
+@current(route: String) = { @{if(parent == route || (parent + "/") == route || (parent.startsWith(route) && route != "/")) "class='current'" }}
+
+<ul class="nav navbar-nav">
+    @for((name,route) <- pages) {
+        @if(!route.startsWith("http")) {
+            <li@current(controllers.routes.Application.show(route).toString)><a href="@controllers.routes.Application.show(route)">@name</a></li>
+        } else {
+            <li><a href="@route">@name</a></li>
+        }
+    }
+</ul>
