@@ -1,26 +1,36 @@
-@(title: Html, nav: String = "")(content: Html)
+@(title: Html, nav: String = "", userName: String)(content: Html)
 
 <!DOCTYPE html>
 
 <html>
     <head>
-        <title>Pages that work (kinda)</title>
+        <title>Pages that work (kind of under development)</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/bootstrap.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <script src="@routes.Assets.at("js/jquery-1.10.2.min.js")" type="text/javascript"></script>
     </head>
     <body>
-        
         <div class="topbar">
             <div class="fill">
                 <div class="container">
-                    <a class="brand" href="@routes.Application.index()">Forms</a>
+                    <a class="brand" href="@routes.Application.index()">Bilby</a>
                     <ul class="nav">
+                        <!--  
                         <li class="@("active".when(nav == "signup"))">
                             <a href="@routes.SignUp.form">Sign up</a>
                         </li>
+                        -->
+                        <li class="@("active".when(nav == "login"))">
+                            <a href="@routes.Application.login">Enter your burrow...</a>
+                        </li>
                     </ul>
+                    
+                	<li><span>@userName</span></li>
+                	<li>
+                    	<a href="@routes.Application.logout()">Logout</a>
+                	</li>
+            	</dl>
                 </div>
             </div>
         </div>
@@ -43,7 +53,9 @@
 
             <footer>
                 <p>
-                    <a href="http://www.obyvacka.org">www.obyvacka.org</a>
+                The Artistic License 2.0,
+           		Copyright (c) 2014 Doppelsoldner
+                    <a href="http://www.bilby.io">www.bilby.io</a>
                 </p>
             </footer>
 

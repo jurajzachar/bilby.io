@@ -2,26 +2,117 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import common.AppEnv
-import java.io.FileOutputStream
+import play.api._
+import play.api.mvc._
+import play.api.data._
+import play.api.data.Forms._
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
-import model.ObyvackaDB
-import model.Visitor
+import model.BilbyDB
+import model.{User,Visitor}
 import views._
+import common.AppEnv
+import model.UserProfile
 
 object Application extends Controller {
 
-  val logger: Logger = LoggerFactory.getLogger("Obyvacka_Application")
+  val logger: Logger = LoggerFactory.getLogger("Bilby_Application")
 
   protected val env = new AppEnv(Play.unsafeApplication.configuration)
 
-    
   def index = Action {
-    Ok(html.index());
+    email => Ok(html.index(email.toString));
   }
-  
-/*  
+
+  // -- Authentication
+
+  val loginForm = Form(
+    tuple(
+      "email" -> text,
+      "password" -> text) verifying ("Invalid email address or password", result => result match {
+        case (email, password) => User.authenticate(email, password).isDefined
+      }))
+
+  /**
+   * Login page.
+   */
+  def login = Action { implicit request =>
+    Ok(html.authenticate.login(loginForm))
+  }
+
+  /**
+   * Handle login form submission.
+   */
+  def authenticate = Action { implicit request =>
+    loginForm.bindFromRequest.fold(
+      formWithErrors => BadRequest(html.authenticate.login(formWithErrors)),
+      valid => {
+        val user: User = User.authenticate(valid._1, valid._2).get
+        val userProfile: UserProfile = UserProfile.findById(user.userprofile_id).get 
+        user.profile = userProfile
+        logger.debug("Welcome back user " + user.username + "!")
+        Redirect(routes.Application.index).withSession("email" -> user.email)
+      })
+  }
+
+
+  /**
+   * Logout and clean the session.
+   */
+  def logout = Action {
+    Redirect(routes.Application.login).withNewSession.flashing(
+      "success" -> "You've been logged out")
+  }
+
+  /**
+   * Provide security features
+   */
+  trait Secured {
+
+    /**
+     * Retrieve the connected user email.
+     */
+    private def username(request: RequestHeader) = request.session.get("email")
+
+    /**
+     * Redirect to login if the user in not authorized.
+     */
+    private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
+
+    // --
+
+    /**
+     * Action for authenticated users.
+     */
+    def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) { user =>
+      Action(request => f(user)(request))
+    }
+
+    /**
+     * Check if the connected user is a member of this project.
+     */
+    //  def IsMemberOf(project: Long)(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
+    //    if(Project.isMember(project, user)) {
+    //      f(user)(request)
+    //    } else {
+    //      Results.Forbidden
+    //    }
+    //  }
+    //
+    //  /**
+    //   * Check if the connected user is a owner of this task.
+    //   */
+    //  def IsOwnerOf(task: Long)(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
+    //    if(Task.isOwner(task, user)) {
+    //      f(user)(request)
+    //    } else {
+    //      Results.Forbidden
+    //    }
+    //  }
+
+  }
+
+  /*  
   def show(page: String) = {
 
     import views.html._
@@ -70,5 +161,5 @@ object Application extends Controller {
   
   def getALlVisitors: Int = Visitor.findAll.size
 */
-  
+
 }

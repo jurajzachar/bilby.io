@@ -1,6 +1,6 @@
 @(user: model.User)
 
-@main(if(user.edited) Html("Account edited!") else Html("Account created!"), nav = "signup") {
+@main(if(user.edited) Html("Account edited!") else Html("Account created!"), nav = "signup", user.email) {
     
     <h2>Your account:</h2>
     
@@ -16,12 +16,14 @@
         @user.email
     </p>
     
+<!--  
     <h6>Password (hash)</h6>
     
     <p>
         @user.password
     </p>
-    
+-->
+
     <h2>Additional information:</h2>
     
     <h6>Country</h6>

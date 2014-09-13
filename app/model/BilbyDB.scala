@@ -8,11 +8,11 @@ import org.squeryl.KeyedEntity
 
 // The root object of the schema. Inheriting KeyedEntity[T] is not mandatory
 // it just makes primary key methods available (delete and lookup) on tables.
-class ObyvackaDBObject extends KeyedEntity[Long] {
+class BilbyDBObject extends KeyedEntity[Long] {
   var id: Long = 0
 }
 
-object ObyvackaDB extends Schema {
+object BilbyDB extends Schema {
 
   val visitorTable: Table[Visitor] =
     table[Visitor]("visitor")

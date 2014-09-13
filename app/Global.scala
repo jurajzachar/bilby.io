@@ -6,7 +6,7 @@ import play.api.db.DB
 object Global extends GlobalSettings {
   override def onStart(app: Application) {
     SessionFactory.concreteFactory = Some( () =>
-      Session.create(DB.getConnection("obyvacka_db", true)(app), new org.squeryl.adapters.PostgreSqlAdapter) )
+      Session.create(DB.getConnection("bilby_db", true)(app), new org.squeryl.adapters.PostgreSqlAdapter) )
   }
 
 }

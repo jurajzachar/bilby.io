@@ -7,7 +7,7 @@ import collection.Iterable
 
 //DAO that defines Visitor
 object Visitor {
-  import ObyvackaDB._
+  import BilbyDB._
   import scala.language.postfixOps
 
   val allQuery: Query[Visitor] = from(visitorTable) {

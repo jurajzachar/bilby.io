@@ -7,28 +7,29 @@ import org.squeryl.dsl.OneToMany
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.squeryl.annotations.Transient
+import org.mindrot.jbcrypt.BCrypt
 
 case class User(
-    username: String,
-    password: String,
-    email: String,
-    var userprofile_id: Long,
-    var profile: UserProfile) extends ObyvackaDBObject {
+  username: String,
+  password: String,
+  email: String,
+  var userprofile_id: Long,
+  var profile: UserProfile) extends BilbyDBObject {
 
   @Transient var edited: Boolean = false
 }
 
 case class UserProfile(
-    country: String,
-    city: Option[String],
-    age: Option[Int]) extends ObyvackaDBObject {
+  country: String,
+  city: Option[String],
+  age: Option[Int]) extends BilbyDBObject {
 
-  lazy val users: OneToMany[User] = ObyvackaDB.userProfileToUsers.left(this)
+  lazy val users: OneToMany[User] = BilbyDB.userProfileToUsers.left(this)
 }
 
 object User {
 
-  import ObyvackaDB._
+  import BilbyDB._
   import scala.language.postfixOps
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass())
@@ -40,7 +41,7 @@ object User {
   def findAll: Iterable[User] = inTransaction {
     allQuery.toList
   }
-  
+
   def findByCriteria(username: String, email: String, userprofile_id: Long): Query[User] = {
     from(userTable) {
       user =>
@@ -50,7 +51,7 @@ object User {
             (user.userprofile_id === userprofile_id)).select(user)
     }
   }
-    
+
   def insert(user: User): User = inTransaction {
     userTable.insert(user)
   }
@@ -58,11 +59,11 @@ object User {
     val up = user.profile
     val _user = processUserProfile(up, user)
     //find user id to update
-    
-    inTransaction { 
+
+    inTransaction {
       val idQuery = findByCriteria(_user.username, _user.email, _user.userprofile_id)
       _user.id = idQuery.toList.head.id
-      userTable.update(_user) 
+      userTable.update(_user)
     }
   }
 
@@ -85,16 +86,28 @@ object User {
       case x :: Nil =>
         u.userprofile_id = x.id; u
       case x :: xs => {
-        logger.warn("More than one user profile matched! Pikcing the first one...")
+        logger.warn("More than one user profile matched! Picking the first one...")
         u.userprofile_id = x.id; u
       }
     }
   }
+
+  def authenticate(email: String, password: String): Option[User] = {
+    val candidate = inTransaction {
+      from(userTable) {
+        candidate_user =>
+          where(candidate_user.email === email).select(candidate_user)
+      }
+        .toList.head
+    }
+    if (BCrypt.checkpw(password, candidate.password)) Some(candidate) else None
+  }
+
 }
 
 object UserProfile {
 
-  import ObyvackaDB._
+  import BilbyDB._
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass())
 
@@ -107,9 +120,9 @@ object UserProfile {
       userProfile =>
         where((userProfile.id === id)).select(userProfile)
     }.toList match {
-      case Nil      => None
+      case Nil => None
       case x :: Nil => Some(x)
-      case x :: xs  => logger.error("Eeek! Inconsistent database!"); None
+      case x :: xs => logger.error("Eeek! Inconsistent database!"); None
     }
   }
 

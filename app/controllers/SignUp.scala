@@ -8,6 +8,7 @@ import model.{ User, UserProfile }
 import views._
 import org.slf4j.{ LoggerFactory, Logger }
 import org.mindrot.jbcrypt.BCrypt
+import model.Reserved
 
 object SignUp extends Controller {
 
@@ -56,7 +57,8 @@ object SignUp extends Controller {
         // Add an additional constraint: The username must not be taken (you could do an SQL request here)
         "This username is not available.",
         user => if (!user.edited)
-          !User.findAll.map(user => user.username).toSeq.contains(user.username)
+          !User.findAll.map(user => user.username).toSeq.contains(user.username) &&
+          !Reserved.usernames.contains(user.username.toLowerCase)
         else true)) //end of form
 
   /**
@@ -81,30 +83,40 @@ object SignUp extends Controller {
    */
   def submit = Action { implicit request =>
     {
-      request.body.asFormUrlEncoded.getOrElse(Map()).exists(_ == "edited" -> true) match {
+      val map_post = request.body.asFormUrlEncoded.getOrElse(Map())
+      logger.debug("POST: " + map_post)
+      map_post.keySet.exists(_ == "edited") match {
         //user is being edited   
-        case true =>
+        case true => {
+          signupForm.bindFromRequest.fold(
+            errors => {
+              logger.debug("Editing user returned with errors: " + errors)
+              BadRequest(html.signup.edit_user(errors))
+            },
+            user => {
+              logger.debug("Editing user: " + user.username)
+              User.update(user)
+              Ok(html.signup.summary(user))
+            })
+        }
+        //user is signing up
+        case false =>
           {
             signupForm.bindFromRequest.fold(
               // Form has errors, redisplay it
-              errors => BadRequest(html.signup.edit_user(errors)),
+              errors => {
+                logger.debug("Signing up user returned with errors: " + errors)
+                BadRequest(html.signup.form(errors))
+              },
               // We got a valid User value, display the summary
               user => {
+                logger.debug("Creating a new user: " + user.username)
                 User.registerNewUser(user)
                 Ok(html.signup.summary(user))
 
               })
           }
 
-        case false => {
-          signupForm.bindFromRequest.fold(
-            errors => BadRequest(html.signup.form(errors)),
-            user => {
-              if (user.edited)
-                User.update(user)
-              Ok(html.signup.summary(user))
-            })
-        }
       }
     }
   }

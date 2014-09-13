@@ -1,0 +1,53 @@
+@(loginForm: Form[(String,String)])(implicit flash: Flash)
+
+@import helper._
+@import helper.twitterBootstrap._
+
+@title = {
+    Log in <small><a href="@routes.SignUp.form">or Sign Up now!</a></small>
+}
+
+<html>
+    <head>
+        <title>Bilby</title>
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/login.css")">
+    </head>
+    <body>
+        
+@main(title, nav = "login", "") {
+	        
+        @helper.form(action = routes.Application.authenticate) {
+            
+            @loginForm.globalError.map { error =>
+                <p class="error">
+                    @error.message
+                </p>
+            }
+            
+            @flash.get("success").map { message =>
+                <p class="success">
+                    @message
+                </p>
+            }
+            
+              <div class="actions">
+          		<p>
+                	<input type="email" name="email" placeholder="Email" id="email" value="@loginForm("email").value">
+                </p>
+                <p>
+                	<input type="password" name="password" id="password" placeholder="Password">
+            	</p>
+                	<input type="submit" class="btn primary" value="Login">
+            		<a href="@routes.Application.index" class="btn">Cancel</a>
+              	<p class="note">
+            		Forgot <em>username</em> or <em>password</em>?
+        		</p>
+              </div>
+            </p>
+            
+        }
+}
+          
+    </body>
+</html>
