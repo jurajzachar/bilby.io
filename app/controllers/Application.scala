@@ -20,8 +20,19 @@ object Application extends Controller {
 
   protected val env = new AppEnv(Play.unsafeApplication.configuration)
 
-  def index = Action {
-    email => Ok(html.index(email.toString));
+  /*
+   * def index = Action { request =>
+  		request.session.get("connected").map { user =>
+    	Ok("Hello " + user)
+  	}.getOrElse {
+    	Unauthorized("Oops, you are not connected")
+  		}
+	}
+   */
+  def index = Action { request =>
+    request.session.get("email").map {
+      email => Ok(html.index(email))
+    }.getOrElse(Ok(html.index("")))
   }
 
   // -- Authentication
@@ -50,7 +61,7 @@ object Application extends Controller {
         val user: User = User.authenticate(valid._1, valid._2).get
         val userProfile: UserProfile = UserProfile.findById(user.userprofile_id).get 
         user.profile = userProfile
-        logger.debug("Welcome back user " + user.username + "!")
+        logger.debug("Welcome back user " + user.username + "/" + user.email + "!")
         Redirect(routes.Application.index).withSession("email" -> user.email)
       })
   }

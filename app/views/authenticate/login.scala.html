@@ -31,20 +31,19 @@
                 </p>
             }
             
-              <div class="actions">
-          		<p>
-                	<input type="email" name="email" placeholder="Email" id="email" value="@loginForm("email").value">
-                </p>
-                <p>
-                	<input type="password" name="password" id="password" placeholder="Password">
-            	</p>
+              <div class="login_diag">
+              		<span>
+                		<input type="email" name="email" placeholder="Email" id="email" value="@loginForm("email").value">
+                	</span>
+                	<span>
+                		<input type="password" name="password" id="password" placeholder="Password">
+            		</span>
+            	</div>
                 	<input type="submit" class="btn primary" value="Login">
             		<a href="@routes.Application.index" class="btn">Cancel</a>
               	<p class="note">
             		Forgot <em>username</em> or <em>password</em>?
         		</p>
-              </div>
-            </p>
             
         }
 }

@@ -25,12 +25,15 @@
                             <a href="@routes.Application.login">Enter your burrow...</a>
                         </li>
                     </ul>
-                    
-                	<li><span>@userName</span></li>
-                	<li>
-                    	<a href="@routes.Application.logout()">Logout</a>
+                    <span class="@("none".when(userName == ""))">
+            	 	<li>
+                		<a href="@routes.Application.logout()">Logout</a>
                 	</li>
-            	</dl>
+                	<li>
+                		 @userName
+                	</li>
+                	</span>
+            		</div>
                 </div>
             </div>
         </div>
