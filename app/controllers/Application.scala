@@ -20,15 +20,7 @@ object Application extends Controller {
 
   protected val env = new AppEnv(Play.unsafeApplication.configuration)
 
-  /*
-   * def index = Action { request =>
-  		request.session.get("connected").map { user =>
-    	Ok("Hello " + user)
-  	}.getOrElse {
-    	Unauthorized("Oops, you are not connected")
-  		}
-	}
-   */
+  
   def index = Action { request =>
     request.session.get("email").map {
       email => Ok(html.index(email))
@@ -36,7 +28,6 @@ object Application extends Controller {
   }
 
   // -- Authentication
-
   val loginForm = Form(
     tuple(
       "email" -> text,
@@ -145,32 +136,6 @@ object Application extends Controller {
         }
     }
   }
-
-  def index() = Action {
-
-    Ok(views.html.index())
-
-  }
-
-  def picture(name: String) = Action {
-    Ok.sendFile(new java.io.File(name)) // the name should contains the image extensions
-  }
-
-  def reviews() = Action {
-    implicit request =>
-      Ok(views.html.reviews.list(env.reviewService.reviewList(Some(env.dataReviewDirectory))))
-  }
-
-  def display(slug: String) = Action {
-
-    implicit request =>
-      env.reviewService.findReviewBySlug(slug, Some(env.dataReviewDirectory)) match {
-        case Some(p) => Ok(views.html.reviews.review(p))
-        case None    => NotFound(views.html.error404())
-      }
-  }
+ */
   
-  def getALlVisitors: Int = Visitor.findAll.size
-*/
-
 }

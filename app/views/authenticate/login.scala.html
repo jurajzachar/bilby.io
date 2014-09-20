@@ -17,35 +17,42 @@
         
 @main(title, nav = "login", "") {
 	        
-        @helper.form(action = routes.Application.authenticate) {
+        @helper.form(action = routes.Application.authenticate, 'class->"form-responsive form-login") {
             
             @loginForm.globalError.map { error =>
-                <p class="error">
-                    @error.message
+                <p class="alert alert-dismissable alert-danger">
+                   <button type="button" class="close" data-dismiss="alert">×</button>
+                   @error.message
                 </p>
             }
             
             @flash.get("success").map { message =>
-                <p class="success">
-                    @message
-                </p>
+                <div class="alert alert-dismissable alert-success">
+  					<button type="button" class="close" data-dismiss="alert">×</button>
+  					        @message
+				</div>
+  
             }
-            
-              <div class="login_diag">
-              		<span>
-                		<input type="email" name="email" placeholder="Email" id="email" value="@loginForm("email").value">
-                	</span>
-                	<span>
-                		<input type="password" name="password" id="password" placeholder="Password">
-            		</span>
+              <div class="form-group">
+              		<p>
+              			<span>
+                			<input type="email" name="email" placeholder="Email" id="email" value="@loginForm("email").value">
+                		</span>
+                	</p>
+                	<p>
+                		<span>
+                			<input type="password" name="password" id="password" placeholder="Password">
+            			</span>
+            		</p>
             	</div>
                 	<input type="submit" class="btn primary" value="Login">
-            		<a href="@routes.Application.index" class="btn">Cancel</a>
+            		<a href="@routes.Application.index" class="btn btn-default">Cancel</a>
               	<p class="note">
-            		Forgot <em>username</em> or <em>password</em>?
+            		Forgot <span class="btn-link">username</span> or <span class="btn-link">password</span>?
         		</p>
             
-        }
+        
+   }
 }
           
     </body>

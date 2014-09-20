@@ -2,46 +2,41 @@
 
 @main(if(user.edited) Html("Account edited!") else Html("Account created!"), nav = "signup", user.email) {
     
-    <h2>Your account:</h2>
-    
-    <h6>Username</h6>
-    
-    <p>
-        @user.username
-    </p>
-    
-    <h6>Email</h6>
-    
-    <p>
-        @user.email
-    </p>
-    
-<!--  
-    <h6>Password (hash)</h6>
-    
-    <p>
-        @user.password
-    </p>
--->
+    <form class="form-horizontal">	
+   	<fieldset>
+    	<legend>Account Summary</legend>
+    	<div class="form-group">
+      		<label for="userName" class="col-lg-2 control-label">Username</label>
+      		<div class="col-lg-10">
+        		<input class="form-control summary" id="userName" readonly="true" placeholder=@user.username />
+      		</div>
+    	</div>
+    	<div class="form-group">
+      		<label for="email" class="col-lg-2 control-label">Email</label>
+      		<div class="col-lg-10">
+        		<input class="form-control summary" id="email" readonly="true" placeholder=@user.email />
+      		</div>
+    	</div>
+    	<div class="form-group">
+      		<label for="country" class="col-lg-2 control-label">Country</label>
+      		<div class="col-lg-10">
+        		<input class="form-control summary" id="country" readonly="true" placeholder=@user.profile.country />
+      		</div>
+    	</div>
+    	<div class="form-group">
+      		<label for="city" class="col-lg-2 control-label">City</label>
+      		<div class="col-lg-10">
+        		<input class="form-control summary" id="city" readonly="true" placeholder=@user.profile.city />
+      		</div>
+    	</div>
+    	<div class="form-group">
+      		<label for="age" class="col-lg-2 control-label">Age</label>
+      		<div class="col-lg-10">
+        		<input class="form-control summary" id="age" readonly="true" placeholder=@user.profile.age />
+      		</div>
+    	</div>
+    </fieldset>
+    </form>
+  
 
-    <h2>Additional information:</h2>
-    
-    <h6>Country</h6>
-    
-    <p>
-        @user.profile.country
-    </p>
-    
-    <h6>City</h6>
-    
-    <p>
-        @user.profile.city.getOrElse { <em>Not specified</em> } 
-    </p>
-    
-    <h6>Age</h6>
-    
-    <p>
-        @user.profile.age.getOrElse { <em>Not specified</em> } 
-    </p>
-    
 }

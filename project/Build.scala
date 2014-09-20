@@ -16,7 +16,7 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     jdbc, cache,
     "org.scalaz" %% "scalaz-core" % "6.0.4",
-    "com.twitter" % "util-core" % "1.12.4",
+    "com.twitter" % "util-core_2.10" % "6.20.0",
     "org.pegdown" % "pegdown" % "1.4.1",
     "eu.henkelmann" % "actuarius_2.10.0" % "0.2.6",
     "org.squeryl" % "squeryl_2.10" % "0.9.5-6",
@@ -29,6 +29,10 @@ object ApplicationBuild extends Build {
       "twitter.com" at "http://maven.twttr.com/",
       "sonatype" at "http://oss.sonatype.org/content/repositories/releases"),
 
-    scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-encoding", "UTF-8"))
+    scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-encoding", "UTF-8")
+    
+    // to compile main.less and nothing else
+    //lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "main.less")
+    )
 
 }
