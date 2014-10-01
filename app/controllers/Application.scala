@@ -11,16 +11,12 @@ import org.slf4j.Logger
 import model.BilbyDB
 import model.{User,Visitor}
 import views._
-import common.AppEnv
 import model.UserProfile
 
 object Application extends Controller {
 
   val logger: Logger = LoggerFactory.getLogger("Bilby_Application")
 
-  protected val env = new AppEnv(Play.unsafeApplication.configuration)
-
-  
   def index = Action { request =>
     request.session.get("email").map {
       email => Ok(html.index(email))

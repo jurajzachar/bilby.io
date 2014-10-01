@@ -1,9 +1,0 @@
-@()(implicit lang: Lang)
-@import play.api.Play.current
-<footer class="footer">
-  <div class="inner_body">
-  site hits : @controllers.Application.getALlVisitors,
-  date : @(new java.util.Date().format("yyyy-MM-dd HH:mm")),
-  contact : obyvacka.webmaster@@gmail.com
-  </div>
-</footer>

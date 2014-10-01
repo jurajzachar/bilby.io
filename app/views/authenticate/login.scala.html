@@ -7,14 +7,6 @@
     Log in <small><a href="@routes.SignUp.form">or Sign Up now!</a></small>
 }
 
-<html>
-    <head>
-        <title>Bilby</title>
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/login.css")">
-    </head>
-    <body>
-        
 @main(title, nav = "login", "") {
 	        
         @helper.form(action = routes.Application.authenticate, 'class->"form-responsive form-login") {
@@ -45,7 +37,7 @@
             			</span>
             		</p>
             	</div>
-                	<input type="submit" class="btn primary" value="Login">
+                	<input type="submit" class="btn btn-primary" value="Login">
             		<a href="@routes.Application.index" class="btn btn-default">Cancel</a>
               	<p class="note">
             		Forgot <span class="btn-link">username</span> or <span class="btn-link">password</span>?

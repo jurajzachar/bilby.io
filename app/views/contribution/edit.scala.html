@@ -1,0 +1,57 @@
+@(contribution: model.Contribution)(implicit userName: String)
+
+<!-- 
+@title = {
+    <div style="text-align: center">
+    	Editor
+    </div> 
+}
+ -->
+
+@main(title, nav = "/contribution/edit", userName) {
+
+<div class="grid-editor">
+ 	<div id="epiceditor">Foo Bar</div> 
+ 	<script src="@routes.Assets.at("js/epiceditor.js")" type="text/javascript" cahrset="utf8"></script>
+    
+	<script>
+    	var opts = {
+    			  container: 'epiceditor',
+    			  textarea: null,
+    			  basePath: '../assets/js/epiceditor',
+    			  clientSideStorage: true,
+    			  localStorageName: 'epiceditor',
+    			  useNativeFullscreen: false,
+    			  parser: marked,
+    			  file: {
+    			    name: 'epiceditor',
+    			    defaultContent: '',
+    			    autoSave: 100
+    			  },
+    			  theme: {
+    			    base: '/themes/base/epiceditor.css',
+    			    preview: '/themes/preview/bartik.css',
+    			    editor: '/themes/editor/epic-light.css'
+    			  },
+    			  button: {
+    			    preview: true,
+    			    fullscreen: true,
+    			    bar: "auto"
+    			  },
+    			  focusOnLoad: false,
+    			  shortcut: {
+    			    modifier: 18,
+    			    fullscreen: 70,
+    			    preview: 80
+    			  },
+    			  string: {
+    			    togglePreview: 'Toggle Preview Mode',
+    			    toggleEdit: 'Toggle Edit Mode',
+    			    toggleFullscreen: 'Enter Fullscreen'
+    			  },
+    			  autogrow: true
+    			}
+    	var editor = new EpicEditor(opts).load();
+	</script>
+</div>	
+}(false, 100)
