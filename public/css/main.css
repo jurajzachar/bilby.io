@@ -16,7 +16,7 @@ body {
 
 .container { 
  	width: 80%;
- 	padding: 5px;
+ 	padding: 2px;
  }
 
 .container>footer p {
@@ -28,23 +28,23 @@ body {
 }
 
 .container-80 {
-	/*     width: 820px; downsize our container to make the 
-	content feel a bit tighter and more cohesive. 
-	NOTE: this removes two full columns from the grid, meaning you only go to 14 columns and not 16. */
 	width: 80%;
 }
 
+.container-60 {
+	width: 60%;
+}
 /* The white background content wrapper */
 .content {
 	background-color: #fff;
-	padding: 10px;
+	padding: 2px;
 	/* negative indent the amount of the padding to maintain the grid system */
 	-webkit-border-radius: 0 0 6px 6px;
 	-moz-border-radius: 0 0 6px 6px;
 	border-radius: 0 0 6px 6px;
 	-webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
 	-moz-box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+	box-shadow: 0 2px 2px rgba(0, 0, 0, .15);
 	min-height: 10px;
 }
 
@@ -92,27 +92,3 @@ body {
 	height: 30px;
 }
 
-#editor {
-	font: 12px "Monaco","Menlo","Ubuntu;
-	overflow: hidden;
-	direction: ltr; 
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
-}
-
-.grid-editor{
-	display: inline-block;
-	width: 100%;
-}
-
-.contrib-pane-l {
-	width: 49%;
-	float: left;
-}
-
-.contrib-pane-r {
-	width: 49%;
-	float: right;
-}

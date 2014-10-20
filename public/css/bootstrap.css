@@ -2144,11 +2144,11 @@ footer {
 .btn:hover {
 	color: #333;
 	text-decoration: none;
-	border: 1px solid grey;
+/* 	border: 1px solid grey; */
 }
 
 .btn:focus {
-	outline: 1px dotted #666;
+/* 	outline: 1px dotted #666; */
 }
 
 .btn.primary {

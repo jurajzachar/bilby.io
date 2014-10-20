@@ -1,10 +1,5 @@
-# -- !Downs
-drop table if exists userprofile cascade;
-drop table if exists user cascade;
-drop table if exists visitor cascade;
-
-# --- !Ups
-CREATE TABLE userprofile
+-- !Ups
+CREATE TABLE "userprofile"
 (
   id serial NOT NULL,
   country character varying,
@@ -37,7 +32,7 @@ WITH (
 ALTER TABLE "user"
   OWNER TO play;
   
-CREATE TABLE visitor
+CREATE TABLE "visitor"
 (
   host character varying,
   "timestamp" bigint,
@@ -49,4 +44,9 @@ WITH (
 );
 ALTER TABLE visitor
   OWNER TO play;
+  
+-- !Downs
+drop table if exists "userprofile" cascade;
+drop table if exists "user" cascade;
+drop table if exists "visitor" cascade;
   

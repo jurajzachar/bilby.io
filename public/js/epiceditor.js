@@ -552,8 +552,8 @@
     _HtmlTemplates = {
       // This is wrapping iframe element. It contains the other two iframes and the utilbar
       chrome:   '<div id="epiceditor-wrapper" class="epiceditor-edit-mode">' +
-                  '<iframe frameborder="0" id="epiceditor-editor-frame"></iframe>' +
-                  '<iframe frameborder="0" id="epiceditor-previewer-frame"></iframe>' +
+                  '<iframe frameborder="1" id="epiceditor-editor-frame"></iframe>' +
+                  '<iframe frameborder="1" id="epiceditor-previewer-frame"></iframe>' +
                   '<div id="epiceditor-utilbar">' +
                     (self._previewEnabled ? '<button title="' + this.settings.string.togglePreview + '" class="epiceditor-toggle-btn epiceditor-toggle-preview-btn"></button> ' : '') +
                     (self._editEnabled ? '<button title="' + this.settings.string.toggleEdit + '" class="epiceditor-toggle-btn epiceditor-toggle-edit-btn"></button> ' : '') +
@@ -714,10 +714,10 @@
       self._eeState.preview = true;
 
       // Cache calculations
-      var windowInnerWidth = window.innerWidth
-        , windowInnerHeight = window.innerHeight
-        , windowOuterWidth = window.outerWidth
-        , windowOuterHeight = window.outerHeight;
+      var windowInnerWidth = window.innerWidth * 0.495
+        , windowInnerHeight = window.innerHeight * 0.855
+        , windowOuterWidth = window.outerWidth * 0.495
+        , windowOuterHeight = window.outerHeight * 0.855;
 
       // Without this the scrollbars will get hidden when scrolled to the bottom in faux fullscreen (see #66)
       if (!nativeFs) {
@@ -727,7 +727,7 @@
       // This MUST come first because the editor is 100% width so if we change the width of the iframe or wrapper
       // the editor's width wont be the same as before
       _elementStates.editorIframe = _saveStyleState(self.editorIframe, 'save', {
-        'width': 50 + '%'
+        'width': 49.5 + '%'
       , 'height': windowOuterHeight + 'px'
       , 'float': 'left' // Most browsers
       , 'cssFloat': 'left' // FF
@@ -739,7 +739,7 @@
 
       // the previewer
       _elementStates.previewerIframe = _saveStyleState(self.previewerIframe, 'save', {
-        'width': 50 + '%'
+        'width': 49.5 + '%'
       , 'height': windowOuterHeight + 'px'
       , 'float': 'right' // Most browsers
       , 'cssFloat': 'right' // FF
@@ -751,13 +751,13 @@
 
       // Setup the containing element CSS for fullscreen
       _elementStates.element = _saveStyleState(self.element, 'save', {
-        'position': 'realtive'
+        'position': 'relative'
       , 'top': '0'
       , 'left': '0'
       , 'width': '100%'
-      , 'z-index': '9999' // Most browsers
-      , 'zIndex': '9999' // Firefox
-      , 'border': 'none'
+ //     , 'z-index': '9999' // Most browsers
+ //     , 'zIndex': '9999' // Firefox
+ //     , 'border': 'none'
       , 'margin': '0'
       // Should use the base styles background!
       , 'background': _getStyle(self.editor, 'background-color') // Try to hide the site below
@@ -771,7 +771,7 @@
       });
 
       // ...Oh, and hide the buttons and prevent scrolling
-//      utilBtns.style.visibility = 'hidden';
+     utilBtns.style.visibility = 'hidden';
 
       if (!nativeFs) {
         document.body.style.overflow = 'hidden';
@@ -798,7 +798,7 @@
       self.element.style.width = self._eeState.reflowWidth ? self._eeState.reflowWidth : '';
       self.element.style.height = self._eeState.reflowHeight ? self._eeState.reflowHeight : '';
 
-      utilBtns.style.visibility = 'visible';
+      utilBtns.style.visibility = 'hidden';
 
       // Put the editor back in the right state
       // TODO: This is ugly... how do we make this nicer?
@@ -1040,28 +1040,32 @@
       // we don't care about webkit because you can't resize in webkit's fullscreen
       if (self.is('fullscreen')) {
         _applyStyles(self.iframeElement, {
-          'width': window.outerWidth + 'px'
-        , 'height': window.innerHeight + 'px'
+          //'width': window.outerWidth + 'px'
+          'width': 100 + '%'
+        , 'height': 100 + '%'
         });
 
         _applyStyles(self.element, {
-          'height': window.innerHeight + 'px'
+          'height': (window.innerHeight * 0.855) + 'px'
         });
 
         _applyStyles(self.previewerIframe, {
-          'width': window.outerWidth / 2 + 'px'
-        , 'height': window.innerHeight + 'px'
+        	'width': 49.5 + '%',
+        	'height': 85.5 + '%'
         });
 
         _applyStyles(self.editorIframe, {
-          'width': window.outerWidth / 2 + 'px'
-        , 'height': window.innerHeight + 'px'
+        	'width': 49.5 + '%',
+        	'height': 85.5 + '%'
         });
       }
       // Makes the editor support fluid width when not in fullscreen mode
-      else if (!self.is('fullscreen')) {
-        self.reflow();
-      }
+      //else if (!self.is('fullscreen')) {
+      //  self.reflow();
+      //}
+      
+      self.reflow();
+      
     });
 
     // Set states before flipping edit and preview modes
@@ -1243,11 +1247,12 @@
     var self = this
       , widthDiff = _outerWidth(self.element) - self.element.offsetWidth
       , heightDiff = _outerHeight(self.element) - self.element.offsetHeight
-      , elements = [self.iframeElement, self.editorIframe, self.previewerIframe]
+      //, elements = [self.iframeElement, self.editorIframe, self.previewerIframe]
+      , children = [self.editorIframe, self.previewerIframe]
       , eventData = {}
       , newWidth
       , newHeight;
-
+    
     if (typeof kind == 'function') {
       callback = kind;
       kind = null;
@@ -1257,21 +1262,33 @@
       callback = function () {};
     }
 
-    for (var x = 0; x < elements.length; x++) {
+    //now maintain the relative dimensions of the parent iframe
+    var parent = self.iframeElement, parentWidth, parentHeight;
+    
+    parentWidth = self.element.offsetWidth - widthDiff + 'px';
+    parentHeight = window.innerHeight * 0.855;
+    self._eeState.reflowWidth = parentWidth;
+    eventData.width = parentWidth;
+    self._eeState.reflowHeight = parentHeight;
+    eventData.height = parentHeight;
+    
+    for (var x = 0; x < children.length; x++) {
       if (!kind || kind == 'width') {
-        newWidth = self.element.offsetWidth - widthDiff + 'px';
-        elements[x].style.width = newWidth;
+        //newWidth = self.element.offsetWidth - widthDiff + 'px';
+        newWidth = parentWidth * 0.490;
+    	children[x].style.width = newWidth;
         self._eeState.reflowWidth = newWidth;
         eventData.width = newWidth;
       }
       if (!kind || kind == 'height') {
-        newHeight = self.element.offsetHeight - heightDiff + 'px';
-        elements[x].style.height = newHeight;
-        self._eeState.reflowHeight = newHeight
+        //newHeight = self.element.offsetHeight - heightDiff + 'px';
+         newHeight = parentHeight * 0.855;
+    	 children[x].style.height = newHeight;
+        self._eeState.reflowHeight = newHeight;
         eventData.height = newHeight;
       }
     }
-
+    
     self.emit('reflow', eventData);
     callback.call(this, eventData);
     return self;
@@ -1772,6 +1789,7 @@
 
     //autogrow in fullscreen is nonsensical
     if (!this.is('fullscreen')) {
+    	
       if (this.is('edit')) {
         el = this.getElement('editor').documentElement;
       }
@@ -1818,6 +1836,8 @@
         }
         this.oldHeight = newHeight;
       }
+      
+      
     }
   }
 

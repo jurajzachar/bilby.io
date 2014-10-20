@@ -7,7 +7,7 @@
     Log in <small><a href="@routes.SignUp.form">or Sign Up now!</a></small>
 }
 
-@main(title, nav = "login", "") {
+@main(Some(title), nav = "login", "") {
 	        
         @helper.form(action = routes.Application.authenticate, 'class->"form-responsive form-login") {
             
@@ -37,12 +37,14 @@
             			</span>
             		</p>
             	</div>
+            	<div>
                 	<input type="submit" class="btn btn-primary" value="Login">
+            		<span id="gutter" style="margin: 5px;"></span>
             		<a href="@routes.Application.index" class="btn btn-default">Cancel</a>
-              	<p class="note">
-            		Forgot <span class="btn-link">username</span> or <span class="btn-link">password</span>?
-        		</p>
-            
+              		<p class="note">
+            			Forgot <span class="btn-link">username</span> or <span class="btn-link">password</span>?
+        			</p>
+            	</div>
         
    }
 }

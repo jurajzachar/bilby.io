@@ -68,3 +68,21 @@ only screen and (                min-resolution: 2dppx) {
 .epiceditor-preview-mode #epiceditor-utilbar button.epiceditor-toggle-preview-btn {
   display:none;
 }
+
+#epiceditor-editor-frame {
+	background-color: #f9f9f9;
+	border: 1px dotted;
+	border-radius: 3px;
+	border-color: #BBBBC2;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+#epiceditor-previewer-frame {
+	background-color: #f9f9f9;
+	border: 1px solid;
+	border-radius: 3px;
+	border-color: #BBBBC2;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+}

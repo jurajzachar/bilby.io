@@ -7,7 +7,7 @@
     Sign Up <small><a href="@routes.SignUp.editForm">Or edit an existing user</a></small>
 }
 
-@main(title, nav = "user/account/signup", userName = "") {
+@main(Some(title), nav = "user/account/signup", userName = "") {
     
     @helper.form(action = routes.SignUp.submit, 'id -> "submitForm") {
         

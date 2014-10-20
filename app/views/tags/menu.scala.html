@@ -1,7 +1,7 @@
-@(title: Html, userName: String, nav: String)
+@(title: Option[Html], userName: String, nav: String)
 
 <div class="navbar navbar-default navbar-fixed-top">
- 		<div class="container">
+ 		<div class="container container-60">
 	 		  <div class="navbar-header">
 				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
 	               <span class="icon-bar"></span>
@@ -13,44 +13,11 @@
 	                  <img style="width:48px;height:48px" src="@routes.Assets.at("imgs/bilby.png")" type="image/png"/>
 	               </a>
 			  </div>
-	 		 <ul class="nav navbar-nav navbar-right">
-       		   <form class="navbar-form navbar-left">
-						<input class="form-control col-lg-8" placeholder="Search" type="text"/>
-			   </form>
-			 </ul>	
-			<!--       	
-             	<ul class="nav navbar-nav navbar-right">
-             		   <form class="navbar-form navbar-left">
-      						<input class="form-control col-lg-8" placeholder="Search" type="text">
-    					</form>
-					<div class="@("none".when(userName != ""))">
-               		<span class="@("btn-xs".when(nav == "login"))">
-                       	<a href="@routes.Application.login">Enter your burrow...</a>
-                  		</span>
-                  	</div>
-                  	
- 					<div class="@("none".when(userName == ""))">
- 					 <li class="dropdown">
-   					<a href="#" class="dropdown-toggle btn-xs" data-toggle="dropdown">
-   						@userName <b class="caret"></b>
-   					</a>
-   					<ul class="dropdown-menu">
-     						<li><a href="#">New Contribution</a></li>
-     						<li><a href="#">My Contributions</a></li>
-     						<li><a href="#">Sharing Preferences</a></li>
-     						<li class="divider"></li>
-     						<li><a href="#">Account Settings</a></li>
-     						<li><a href="#">Help</a></li>
-     						<li><a href="@routes.Application.logout()">Logout</a></li>
-   					</ul>
- 					 </li>
- 					</div>
-				</ul>
-			-->
-				
-				 
-				  <span class="welcome-pills @("none".when(userName != ""))">
+	 		 <ul class="nav navbar-nav">
+       		   
+       		   	  <span class="welcome-pills @("none".when(userName != ""))">
 				  	 <ul class="nav nav-pills">
+				  	 	<li class="@("active".when(nav == "home"))"><a href="@routes.Application.index">Home</a></li>
 				  	 	<li class="@("active".when(nav == "login"))"><a href="@routes.Application.login">Enter the burrows...</a></li>
 				  	 </ul>
 				  </span>
@@ -75,7 +42,13 @@
 						  </li>
 					  </ul>
 				  </span>
-				</ul>
-		</div>
+				  
+       		   <form class="navbar-form navbar-left">
+						<input class="form-control col-lg-8" placeholder="Search" type="text"/>
+			   </form>
+			 </ul>	
+				  
+		</ul>
+	  </div>
 	</div>
  </div>

@@ -1,4 +1,4 @@
-@(title: Html, nav: String = "", userName: String)(content: Html)(implicit footer: Boolean = true, width: Int = 80)
+@(title: Option[Html], nav: String = "", userName: String)(content: Html)(implicit footer: Boolean = true, width: Int = 60)
 
 @import tags.menu
  
@@ -27,12 +27,13 @@
 
 			<div class="content">
 				
-				<div class="page-header">
+				<div class="page-header @("none".when(title == None))"">
 					<h1>@title</h1>
 				</div>
 				 
 				<div class="row">
 					<div class="col-lg-12">
+						
 						<div class="well">
 							@content
 						</div>
