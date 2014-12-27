@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfter
 
 class PostgresUserDaoSpec extends FlatSpec with PostgresSpec with MustMatchers with BeforeAndAfter {
 
-  import models.db.common.Schema._
+  import example.db.common.Schema._
 
   before {
     database withSession {

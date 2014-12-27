@@ -1,9 +1,8 @@
-package models.db.common
+package example.db.common
 
-import models.db.common.Schema.profile.simple._
 import play.api.db.DB
 import play.api.Play.current
-//import scala.slick.driver.H2Driver.simple._
+import scala.slick.driver.H2Driver.simple._
 
 abstract class AbstractDao {
   

@@ -1,5 +1,7 @@
 package controllers
 
+import scala.slick.codegen.SourceCodeGenerator
+
 object SlickGenerator extends App {
 
   val slickDriver = "scala.slick.driver.PostgresDriver"
@@ -8,7 +10,7 @@ object SlickGenerator extends App {
   val outputFolder = "app"
   val pkg = "models.db.common"
   
-  scala.slick.model.codegen.SourceCodeGenerator.main(
+  SourceCodeGenerator.main(
   Array(slickDriver, jdbcDriver, url, outputFolder, pkg)
   )
 

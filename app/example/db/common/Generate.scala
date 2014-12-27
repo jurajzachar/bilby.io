@@ -1,4 +1,4 @@
-package models.db.common
+package example.db.common
 
 import scala.slick.driver.JdbcDriver
 import scala.slick.jdbc.meta.{ MTable, createModel }
