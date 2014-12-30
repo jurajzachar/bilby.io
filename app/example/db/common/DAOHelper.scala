@@ -4,8 +4,8 @@ package example.db.common
   * but in a DAO-independent way.
   */
 class DAOHelper(val dao: DAO) {
-  import dao.driver.simple._
+  //import daodriver.simple._
 
-  def restrictKey[C[_]](s: String, q: Query[DAO#Props, _, C]) =
-    q.filter(_.key === s)
+//  def restrictKey[C[_]](s: String, q: Query[DAO#Props, _, C]) =
+//    q.filter(_.key === s)
 }

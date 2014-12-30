@@ -1,10 +1,13 @@
 package example.db.common
 
+import scala.slick.driver.JdbcProfile
+import scala.slick.profile.BasicDriver
+
 // AUTO-GENERATED Slick data model
 /** Stand-alone Slick data model for immediate use */
-object Schema extends {
-  val profile = scala.slick.driver.PostgresDriver
+case class Schema(val profile: JdbcProfile) extends {
 } with Tables
+
 
 /** Slick data model trait for extension, choice of backend or usage in the cake pattern. (Make sure to initialize this late.) */
 trait Tables {
