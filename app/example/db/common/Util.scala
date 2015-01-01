@@ -6,7 +6,15 @@ import scala.slick.codegen.SourceCodeGenerator
 import org.h2.tools.Server
 
 object Util {
-  /** A helper function to unload all JDBC drivers so we don't leak memory */
+  
+  /** A helper function to load all JDBC drivers before the test */
+  def loadDrivers {
+    DriverManager.getDrivers.asScala.foreach { d =>
+      DriverManager.registerDriver(d)
+    }
+  }
+
+  /** A helper function to unload all JDBC drivers after the test */
   def unloadDrivers {
     DriverManager.getDrivers.asScala.foreach { d =>
       DriverManager.deregisterDriver(d)
@@ -24,5 +32,5 @@ object SlickGenerator extends App {
 
   SourceCodeGenerator.main(
     Array(slickDriver, jdbcDriver, url, outputFolder, pkg))
-  
+
 }

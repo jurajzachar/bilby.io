@@ -18,3 +18,11 @@ libraryDependencies ++= Seq(
   cache,
   ws
 )
+
+javaOptions in Test ++= Seq( "-Dconfig.file=conf/dev.conf" )
+
+logBuffered in Test := false
+
+Keys.fork in Test := false
+
+parallelExecution in Test := false
