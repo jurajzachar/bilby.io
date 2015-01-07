@@ -1,5 +1,6 @@
 package models
 import io.strongtyped.active.slick.models.Identifiable
+import java.util.Date
 
 //Visitor Entity
 case class Visitor(
@@ -11,6 +12,11 @@ case class Visitor(
   override def withId(id: Id): Visitor = copy(id = Option(id))
   lazy val users = Nil
 
+  override def toString(): String = {
+    val date = new Date(timestamp)
+    s"\thost: $host\n" +
+    s"\ttimestamp: $date\n" 
+  }
 }
     
 

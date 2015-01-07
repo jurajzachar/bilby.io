@@ -1,23 +1,46 @@
 package models
 
+import scala.language.implicitConversions
 import io.strongtyped.active.slick.models.Identifiable
+import java.sql.Blob
+import javax.sql.rowset.serial.SerialBlob
 
 case class User(
   firstName: Option[String],
   lastName: Option[String],
-  username: String,
-  password: String,
-  email: String,
+  userName: String,
+  email: Option[String],
+  password: Option[String],
+  avatarUrl: String,
+  authMethod: String,
+  oAuth1Info: Option[String],
+  oAuth2Info: Option[String],
+  passwordInfo: Option[String], 
   userprofile_id: Option[Long] = None, //no profile defined
   visitor_id: Option[Long] = None, //no visitor defined
   id: Option[Long] = None) extends Identifiable[User] {
 
   /** signifies that the user is being edited **/
   var mutates: Boolean = false
-  val userProfile: Option[UserProfile] = None
-  val visitor: Option[Visitor] = None
+
+  var visitor: Visitor = _
+  var userProfile: UserProfile = _
+
   override type Id = Long
   override def withId(id: Id): User = copy(id = Option(id))
+
+  override def toString(): String = {
+    "--USER--\n" +
+      s"first name: $firstName\n" +
+      s"last name: $lastName\n" +
+      s"username: $userName\n" +
+      s"email: $email\n" +
+      s"password: $password\n" +
+      s"avatarUrl: $avatarUrl\n" +
+      s"user profile:\n$userProfile\n" +
+      s"visitor:\n$visitor\n" +
+      "------"
+  }
 }
 
 case class UserProfile(
@@ -30,5 +53,10 @@ case class UserProfile(
   override type Id = Long
   override def withId(id: Id): UserProfile = copy(id = Option(id))
 
+  override def toString(): String = {
+    s"\tcountry: $country\n" +
+      s"\tplace of residence: $placeOfResidence\n" +
+      s"\tage: $age\n"
+  }
 }
 

@@ -13,13 +13,13 @@ import org.scalatest.BeforeAndAfterAll
 import components.ActiveSlickCake
 
 trait PostgresSpec extends Suite with BeforeAndAfterAll {
-  
+
   private val dbname = "play_dev"
   private val driver = "org.postgresql.Driver"
 
   //db
   lazy val database = Database.forURL(s"jdbc:postgresql:$dbname", driver = driver)
-  
+
 }
 
 object PostgresSpec {

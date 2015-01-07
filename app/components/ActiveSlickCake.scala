@@ -4,13 +4,15 @@ import play.api.db.slick.Config
 import io.strongtyped.active.slick.ActiveSlick
 import scala.slick.driver.JdbcDriver
 import org.slf4j.LoggerFactory
+import models._
 
 class ActiveSlickCake(override val jdbcDriver: JdbcDriver)
   extends ActiveSlick with Schema with SchemaExtensions {
 
   import jdbcDriver.simple._
-  
+
   val logger = LoggerFactory.getLogger(this.getClass)
+
   def createSchema(implicit session: Session) = {
     ddl.createStatements.foreach(println(_))
     ddl.create
