@@ -60,29 +60,29 @@ class ActiveSlickRecordSpec extends FlatSpec with PostgresSpec with MustMatchers
     val followers = for (i <- (1 until 1001)) yield Follower(i, Set(1L to random.nextInt(MOCK_SIZE).toLong: _*))
   }
 
-  "save" should " persist players in players table" in new Case {
-    database withTransaction { implicit session =>
-      threePlayers.foreach(_.save)
-      val persistedPlayers = Players.fetchAll
-      persistedPlayers.size must be(3)
-    }
-  }
-
-  "save" should " persist visitor in visitors table" in new Case {
-    //1st round --> visitor
-    database withTransaction { implicit session =>
-      visitors.foreach(_.save)
-      Visitors.count must be(1000)
-    }
-  }
-
-  "save" should " persist user profile in user profiles table" in new Case {
-    database withTransaction { implicit session =>
-      userProfiles.size must be(MOCK_SIZE)
-      userProfiles.foreach(_.save)
-      UserProfiles.count must be(1000)
-    }
-  }
+  //  "save" should " persist players in players table" in new Case {
+  //    database withTransaction { implicit session =>
+  //      threePlayers.foreach(_.save)
+  //      val persistedPlayers = Players.fetchAll
+  //      persistedPlayers.size must be(3)
+  //    }
+  //  }
+  //
+  //  "save" should " persist visitor in visitors table" in new Case {
+  //    //1st round --> visitor
+  //    database withTransaction { implicit session =>
+  //      visitors.foreach(_.save)
+  //      Visitors.count must be(1000)
+  //    }
+  //  }
+  //
+  //  "save" should " persist user profile in user profiles table" in new Case {
+  //    database withTransaction { implicit session =>
+  //      userProfiles.size must be(MOCK_SIZE)
+  //      userProfiles.foreach(_.save)
+  //      UserProfiles.count must be(1000)
+  //    }
+  //  }
 
   "save" should " persist user and follower in users and followers tables" in new Case {
     import jdbcDriver.simple._
@@ -106,16 +106,19 @@ class ActiveSlickRecordSpec extends FlatSpec with PostgresSpec with MustMatchers
           println(x)
       }
     }
-    //Followers
+    //Followers (non-active record)
     database withTransaction { implicit session =>
-      followers.foreach(_.save)
-      Followers.count must be(1000)
-      Followers.fetchAll.foreach { 
-        x => {
-          val user = Users.findById(x.userId)
-          val leads:Set[User] = for (id <- x.fids) yield Users.findById(id)
-          println(s"user ${user.userName} follows:[${leads.map(x => x.userName).mkString(",")}]")
-        }
+      followers.foreach(Followers += _)
+    }
+    database withTransaction { implicit session =>
+      Followers.length.run must be(1000)
+      Followers.list.foreach {
+        x =>
+          {
+            val user = Users.findById(x.id)
+            val leads: Set[User] = for (id <- x.fids) yield Users.findById(id)
+            println(s"user ${user.userName} follows:[${leads.map(x => x.userName).mkString(",")}]")
+          }
       }
     }
   }

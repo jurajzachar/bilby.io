@@ -147,7 +147,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
   lazy val UsersTable = new TableQuery(tag => new UsersTable(tag))
 
   /** Table description of table user. */
-  class FollowersTable(tag: Tag) extends EntityTable[Follower](tag, "follower") {
+  class FollowersTable(tag: Tag) extends Table[Follower](tag, "follower") {
     /** Database column id AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("id", O.PrimaryKey)
     val fids: Column[Array[Byte]] = column[Array[Byte]]("fids", O.NotNull)
@@ -163,7 +163,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
       }, {
         (f: Follower) =>
           Some {
-            (f.userId, Json.stringify(Json.toJson(f.fids)).getBytes)
+            (f.id, Json.stringify(Json.toJson(f.fids)).getBytes)
           }
       })
     }

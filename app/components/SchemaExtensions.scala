@@ -17,7 +17,7 @@ trait SchemaExtensions {
 
   lazy val Players = EntityTableQuery[Player, PlayersTable](tag => new PlayersTable(tag))
   lazy val Visitors = EntityTableQuery[Visitor, VisitorsTable](tag => new VisitorsTable(tag))
-  lazy val Followers = EntityTableQuery[Follower, FollowersTable](tag => new FollowersTable(tag))
+  lazy val Followers = FollowersTable
   lazy val Users = EntityTableQuery[User, UsersTable](tag => new UsersTable(tag))
   lazy val UserProfiles = EntityTableQuery[UserProfile, UserProfilesTable](tag => new UserProfilesTable(tag))
 
@@ -37,10 +37,6 @@ trait SchemaExtensions {
 
   implicit class UserProfilesExtensions(val model: UserProfile) extends ActiveRecord[UserProfile] {
     override def table = UserProfiles
-  }
-
-  implicit class FollowersExtensions(val model: Follower) extends ActiveRecord[Follower] {
-    override def table = Followers
   }
 
   implicit val userReads: Reads[User] = (
