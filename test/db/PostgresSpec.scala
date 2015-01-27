@@ -11,15 +11,22 @@ import org.slf4j.LoggerFactory
 import org.scalatest.Suite
 import org.scalatest.BeforeAndAfterAll
 import components.ActiveSlickCake
+import java.net.InetAddress
 
 trait PostgresSpec extends Suite with BeforeAndAfterAll {
 
   private val dbname = "play_dev"
   private val driver = "org.postgresql.Driver"
+  private val remote = "jupiter"
 
-  //db
-  lazy val database = Database.forURL(s"jdbc:postgresql:$dbname", driver = driver)
+  //db stuff 
+  lazy val database = {
 
+    if (InetAddress.getByName(remote).isReachable(3000))
+      Database.forURL(s"jdbc:postgresql://$remote/$dbname", driver = driver)
+    else   
+      Database.forURL(s"jdbc:postgresql:$dbname", driver = driver)
+  }
 }
 
 object PostgresSpec {

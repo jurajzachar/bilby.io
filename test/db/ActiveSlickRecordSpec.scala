@@ -7,6 +7,8 @@ import play.api.libs.json._
 import scala.slick.jdbc.JdbcBackend.{ Database, Session }
 import models._
 import scala.util.Random
+import org.slf4j.LoggerFactory
+import java.net.URL
 
 class ActiveSlickRecordSpec extends FlatSpec with PostgresSpec with MustMatchers with BeforeAndAfter {
 
@@ -22,7 +24,6 @@ class ActiveSlickRecordSpec extends FlatSpec with PostgresSpec with MustMatchers
           case t: Throwable => println(t.getMessage) // TODO: handle error
         }
     }
-
   }
 
   after {
@@ -39,7 +40,6 @@ class ActiveSlickRecordSpec extends FlatSpec with PostgresSpec with MustMatchers
   trait Case {
     val MOCK_SIZE = 1000;
     val random = new Random(System.nanoTime())
-    val threePlayers = Player("Pelé") :: Player("Maradona") :: Player("Zico") :: Nil
     //read mock data from fs
     val users = Json.parse(scala.io.Source.fromFile("resources/MOCK_DATA_USER.json").mkString).validate[Seq[User]].get
     val connectedUsers = for (u <- users) yield new User(
@@ -58,33 +58,23 @@ class ActiveSlickRecordSpec extends FlatSpec with PostgresSpec with MustMatchers
     val userProfiles = Json.parse(scala.io.Source.fromFile("resources/MOCK_DATA_USERPROFILE.json").mkString).validate[Seq[UserProfile]].get
     val visitors = Json.parse(scala.io.Source.fromFile("resources/MOCK_DATA_VISITOR.json").mkString).validate[Seq[Visitor]].get
     val followers = for (i <- (1 until 1001)) yield Follower(i, Set(1L to random.nextInt(MOCK_SIZE).toLong: _*))
+    val headerSeq = scala.io.Source.fromFile("resources/sample_piece.md").getLines.take(5).toIndexedSeq
+    println(headerSeq)
+    val pieceHeader: PieceHeader = PieceHeader(
+        headerSeq(0), 
+        headerSeq(4), 
+        new URL(headerSeq(3)), 
+        java.lang.Long.parseLong(headerSeq(1)), 
+        1, 
+        Set(HashTag("#test")), 
+        java.lang.Double.parseDouble(headerSeq(2)))
+  
+    val pieceSeq = scala.io.Source.fromFile("resources/sample_piece.md").getLines.dropWhile(x => x.contains("---"))
+    val piece = Piece(None, pieceHeader, pieceSeq.mkString)
+    println(Json.toJson(piece))
   }
-
-    "save" should " persist players in players table" in new Case {
-      database withTransaction { implicit session =>
-        threePlayers.foreach(_.save)
-        val persistedPlayers = Players.fetchAll
-        persistedPlayers.size must be(3)
-      }
-    }
   
-    "save" should " persist visitor in visitors table" in new Case {
-      //1st round --> visitor
-      database withTransaction { implicit session =>
-        visitors.foreach(_.save)
-        Visitors.count must be(1000)
-      }
-    }
-  
-    "save" should " persist user profile in user profiles table" in new Case {
-      database withTransaction { implicit session =>
-        userProfiles.size must be(MOCK_SIZE)
-        userProfiles.foreach(_.save)
-        UserProfiles.count must be(1000)
-      }
-    }
-
-  "save" should " persist user and follower in users and followers tables" in new Case {
+  "save" should " persist records in their respective tables" in new Case {
     import jdbcDriver.simple._
     //Vistors
     database withTransaction { implicit session =>
@@ -103,7 +93,7 @@ class ActiveSlickRecordSpec extends FlatSpec with PostgresSpec with MustMatchers
         x =>
           x.userProfile = UserProfiles.findById(x.userprofile_id.getOrElse(-1))
           x.visitor = Visitors.findById(x.visitor_id.getOrElse(-1))
-          println(x)
+          println(x.toString)
       }
     }
     //Followers (non-active record)
@@ -117,7 +107,8 @@ class ActiveSlickRecordSpec extends FlatSpec with PostgresSpec with MustMatchers
           {
             val user = Users.findById(x.id)
             val leads: Set[User] = for (id <- x.fids) yield Users.findById(id)
-            println(s"user ${user.userName} follows:[${leads.map(x => x.userName).mkString(",")}]")
+            //println(s"user ${user.userName} follows:[${leads.map(x => x.userName).mkString(",")}]")
+            println(s"user ${user.userName} follows: ${leads.size} other users.")
           }
       }
     }

@@ -8,6 +8,7 @@ import scala.util.Try
 import models._
 import java.sql.Blob
 import javax.sql.rowset.serial.SerialBlob
+import java.net.URL
 
 trait SchemaExtensions {
 
@@ -15,17 +16,13 @@ trait SchemaExtensions {
 
   import jdbcDriver.simple._
 
-  lazy val Players = EntityTableQuery[Player, PlayersTable](tag => new PlayersTable(tag))
   lazy val Visitors = EntityTableQuery[Visitor, VisitorsTable](tag => new VisitorsTable(tag))
   lazy val Followers = FollowersTable
   lazy val Users = EntityTableQuery[User, UsersTable](tag => new UsersTable(tag))
   lazy val UserProfiles = EntityTableQuery[UserProfile, UserProfilesTable](tag => new UserProfilesTable(tag))
+  lazy val Pieces = EntityTableQuery[Piece, PiecesTable](tag => new PiecesTable(tag))
 
-  val ddl = Players.ddl ++ Visitors.ddl ++ UserProfiles.ddl ++ Users.ddl ++ Followers.ddl
-
-  implicit class PlayersExtensions(val model: Player) extends ActiveRecord[Player] {
-    override def table = Players
-  }
+  val ddl = Visitors.ddl ++ UserProfiles.ddl ++ Users.ddl ++ Followers.ddl ++ Pieces.ddl
 
   implicit class VisitorExtenstions(val model: Visitor) extends ActiveRecord[Visitor] {
     override def table = Visitors
@@ -38,6 +35,41 @@ trait SchemaExtensions {
   implicit class UserProfilesExtensions(val model: UserProfile) extends ActiveRecord[UserProfile] {
     override def table = UserProfiles
   }
+
+  implicit class PiecesExtensions(val model: Piece) extends ActiveRecord[Piece] {
+    override def table = Pieces
+  }
+
+  // to-do: get functional and fix me!   
+  implicit val tagWrite: Writes[HashTag] = Writes {
+    (tag: HashTag) => JsString(tag.xs)
+  }
+  implicit val urlWrite: Writes[URL] = Writes {
+    (url: URL) => JsString(url.toString)
+  }
+
+  implicit val pieceHeaderReads: Reads[PieceHeader] = (
+    (JsPath \ "title").read[String] and
+    (JsPath \ "shortSummary").read[String] and
+    (JsPath \ "titleCover").read[String].map(new URL(_)) and
+    (JsPath \ "published").read[Long] and
+    (JsPath \ "authorId").read[Long] and
+    (JsPath \ "tags").read[Set[String]].map(x => x.map(HashTag(_))) and
+    (JsPath \ "rating").read[Double])(PieceHeader.apply _)
+
+  implicit val pieceHeaderWrites: Writes[PieceHeader] = (
+    (JsPath \ "title").write[String] and
+    (JsPath \ "shortSummary").write[String] and
+    (JsPath \ "titleCover").write[URL] and
+    (JsPath \ "published").write[Long] and
+    (JsPath \ "authorId").write[Long] and
+    (JsPath \ "tags").write[Set[HashTag]] and
+    (JsPath \ "rating").write[Double])(unlift(PieceHeader.unapply))
+
+  implicit val pieceWrites: Writes[Piece] = (
+    (JsPath \ "id").writeNullable[Long] and
+    (JsPath \ "header").write[PieceHeader] and
+    (JsPath \ "source").write[String])(unlift(Piece.unapply))
 
   implicit val userReads: Reads[User] = (
     (JsPath \ "firstName").readNullable[String] and

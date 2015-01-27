@@ -21,7 +21,8 @@ case class User(
   id: Option[Long] = None) extends Identifiable[User] {
 
   /** signifies that the user is being edited **/
-  var mutates: Boolean = false
+  /* fix-me: use account registration token */
+  var verified: Boolean = false
 
   var visitor: Visitor = _
   var userProfile: UserProfile = _

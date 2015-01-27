@@ -1,26 +1,75 @@
 package components
 
-import io.strongtyped.active.slick.{ TableQueries, Tables, Profile }
 import scala.slick.lifted.ProvenShape
-import play.api.libs.json._
-import models._
+import scala.slick.lifted.ProvenShape.proveShapeOf
+
+import io.strongtyped.active.slick.Profile
+import io.strongtyped.active.slick.TableQueries
+import io.strongtyped.active.slick.Tables
+import models.{Follower, Piece, User, UserProfile, Visitor}
+import play.api.libs.json.Json
 
 trait Schema { this: Tables with TableQueries with Profile =>
 
   import jdbcDriver.simple._
 
-  class PlayersTable(tag: Tag) extends EntityTable[Player](tag, "player") {
+  class PiecesTable(tag: Tag) extends EntityTable[Piece](tag, "piece") {
+    
+    /** Database column id AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    //title: String, shortSummary: Seq[String], published: Long, author: Long, tags: Set[HashTag], source: Seq[String]
+    /** database column for title */
+    val title: Column[String] = column[String]("title")
+    /** database column for short summary (should be limited in length --> 600 characters) **/
+    val shortSummary: Column[Array[Byte]] = column[Array[Byte]]("short_summary")
+    /** titleCoverUrl **/
+    val titleCover: Column[Array[Byte]] = column[Array[Byte]]("title_cover")
+    /** database column for publishing timestamp **/
+    val published: Column[Long] = column[Long]("published")
+    val authorId: Column[Long] = column[Long]("author_id")
+    val tags: Column[Array[Byte]] = column[Array[Byte]]("tags")
+    val rating: Column[Double] = column[Double]("rating")
+    val source: Column[Array[Byte]] = column[Array[Byte]]("source")
 
-    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-    def name = column[String]("player_name")
+    def * : ProvenShape[Piece] = {
+      val shapedValue = (id.?, title, shortSummary, titleCover, published, authorId, tags, rating, source).shaped
+      shapedValue.<>({
+        tuple =>
+          Piece.flattenedPiece(
+            tuple._1,
+            tuple._2,
+            new String(tuple._3).map(_.toChar),
+            new String(tuple._4).map(_.toChar),
+            tuple._5,
+            tuple._6,
+            Json.parse(new String(tuple._7).map(_.toChar)).as[Set[String]],
+            tuple._8,
+            new String(tuple._9).map(_.toChar))
+      }, {
+        (p: Piece) =>
+          Some {
+            (p.id,
+              p.header.title,
+              p.header.shortSummary.getBytes,
+              p.header.titleCover.toString().getBytes,
+              p.header.published,
+              p.header.authorId,
+              Json.stringify(Json.toJson(Piece.hashTags2Strings(p.header.tags))).getBytes,
+              p.header.rating,
+              p.source.getBytes)
+          }
+      })
+    }
 
-    def * = (name, id.?) <> (Player.tupled, Player.unapply)
-
+    /** Foreign key referencing Userprofile (database name userprofile_id) */
+    lazy val authorIdFk = foreignKey("author_id", authorId, UsersTable)(u => u.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
   }
+  lazy val PiecesTable = new TableQuery(tag => new PiecesTable(tag))
 
   /** Table description of Visitor. */
   class VisitorsTable(tag: Tag) extends EntityTable[Visitor](tag, "visitor") {
 
+    /** Database column id AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
     /** Database column host */
     val host: Column[Option[String]] = column[Option[String]]("host")
@@ -84,7 +133,8 @@ trait Schema { this: Tables with TableQueries with Profile =>
     val visitorId: Column[Long] = column[Long]("visitor_id")
 
     /** Uniqueness Index over (username) (database name unique_username) */
-    val index1 = index("unique_username", userName, unique = true)
+    val index1 = index("unique_id", id, unique = true)
+    val index2 = index("unique_username", userName, unique = true)
 
     /** Foreign key referencing Userprofile (database name userprofile_id) */
     lazy val userprofileFk = foreignKey("userprofile_id", userprofileId, UserProfilesTable)(r => r.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
@@ -168,6 +218,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
       })
     }
   }
-    /** Collection-like TableQuery object for table User */
+  /** Collection-like TableQuery object for table User */
   lazy val FollowersTable = new TableQuery(tag => new FollowersTable(tag))
+
 }

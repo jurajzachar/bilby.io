@@ -35,7 +35,7 @@ object Countries {
     "Portugal",
     "Romania",
     "Russia",
-    "Slovak (Republic)",
+    "Slovakia",
     "Slovenia",
     "Spain",
     "Sweden",
