@@ -68,9 +68,9 @@ class ComponentSpec extends PlaySpec
   "calling signUpNewUser on mock users" must {
     "return a seq of registered user" in new MockCase {
       val registeredUsers = for {
-        v <- visitors.slice(0, 10)
-        uprofile <- userProfiles.slice(0, 10)
-        u <- users.slice(0, 10)
+        v <- visitors
+        uprofile <- userProfiles
+        u <- users
       } yield {
         log.info(s"Signing up user: ${u.userName}")
         UserComponent.signUpNewUser(u, uprofile, v)

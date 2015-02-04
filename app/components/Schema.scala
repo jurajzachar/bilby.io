@@ -6,7 +6,11 @@ import scala.slick.lifted.ProvenShape.proveShapeOf
 import io.strongtyped.active.slick.Profile
 import io.strongtyped.active.slick.TableQueries
 import io.strongtyped.active.slick.Tables
-import models.{ Follower, Piece, User, UserProfile, Visitor }
+import models.Follower
+import models.Piece
+import models.User
+import models.UserProfile
+import models.Visitor
 import play.api.libs.json.Json
 
 trait Schema { this: Tables with TableQueries with Profile =>
@@ -222,18 +226,4 @@ trait Schema { this: Tables with TableQueries with Profile =>
   /** Collection-like TableQuery object for table User */
   lazy val FollowersTable = new TableQuery(tag => new FollowersTable(tag))
 
-  /** Compiled Queries **/
-//  def idByUserName(userName: Rep[String]) = 
-//    for {
-//      u <- UsersTable if u.userName.toString().equals(userName)
-//    } yield u.id
-//
-//  def idByEmail(email: Rep[Option[String]]) = 
-//    for {
-//      u <- UsersTable if u.email.toString.equals(email)
-//    } yield u.id
-//
-//  val userIdByUserNameCompiled = Compiled(idByUserName _)
-//  val userIdByEmailCompiled = Compiled(idByEmail _)
-  
 }

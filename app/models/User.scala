@@ -23,7 +23,6 @@ case class User(
   /** signifies that the user is being edited **/
   /* fix-me: use account registration token */
   var verified: Boolean = false
-
   override type Id = Long
   override def withId(id: Id): User = copy(id = Option(id))
 

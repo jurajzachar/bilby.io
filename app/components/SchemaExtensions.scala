@@ -2,10 +2,14 @@
 package components
 
 import io.strongtyped.active.slick.ActiveSlick
-import models.Piece
-import models.User
-import models.UserProfile
-import models.Visitor
+
+import scala.slick.jdbc.JdbcBackend
+import scala.util.Try
+import models._
+import java.sql.Blob
+import javax.sql.rowset.serial.SerialBlob
+import java.net.URL
+
 
 trait SchemaExtensions {
 
