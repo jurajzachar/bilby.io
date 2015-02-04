@@ -1,0 +1,102 @@
+@(signupForm: Form[model.User])
+
+@import helper._
+@import helper.twitterBootstrap._
+
+@title = {
+    Edit an existing account <small><a href="@routes.SignUp.form">Or create a new one</a></small>
+}
+
+@main(Some(title), nav = "user/account/edit", userName="") {
+    
+    @helper.form(action = routes.SignUp.submit) {
+        
+        <fieldset>
+            <legend>Account information</legend>
+			
+			<span id="check_ctrl" >
+			   @checkbox(
+                signupForm("edited"), 
+                '_label -> "Change my username", 
+                '_text -> None,
+                '_showConstraints -> false
+            	)
+            </span>
+            
+             <span id="username_ro">
+              @inputText(
+                signupForm("username"), 
+                '_label -> "Username", 
+                '_error -> signupForm.globalError
+               )
+            </span>
+
+			 <script>
+                $('#check_ctrl').hide();
+                $('#username_ro :input').attr('readonly', true);
+            </script>
+            
+            @inputText(
+                signupForm("email"), 
+                '_label -> "Email",
+                '_help -> "Enter a valid email address."
+            )
+        
+            @inputPassword(
+                signupForm("password.main"), 
+                '_label -> "Password",
+                '_help -> "A password must be at least 6 characters. "
+            )
+            
+            @inputPassword(
+                signupForm("password.confirm"), 
+                '_label -> "Repeat password",
+                '_help -> "Please repeat your password again.",
+                '_error -> signupForm.error("password")
+            )
+            
+        </fieldset>
+        
+        <fieldset>
+            
+            <legend>Contact information</legend>
+            
+            @select(
+                signupForm("profile.country"), 
+                options = options(model.Countries.list),
+                '_default -> "--- Choose a country ---",
+                '_label -> "Country",
+                '_error -> signupForm("profile.country").error.map(_.withMessage("Please select your country"))
+            )
+            
+            @inputText(
+                signupForm("profile.city"), 
+                '_label -> "City"
+            )
+            
+            @inputText(
+                signupForm("profile.age"), 
+                '_label -> "Age", 'class -> "mini",
+                '_showConstraints -> false
+            )
+              
+        </fieldset>
+        
+        <fieldset>
+            
+            @checkbox(
+                signupForm("accept"), 
+                '_label -> None, '_text -> "You agree to the terms and conditions",
+                '_showConstraints -> false
+            )
+            
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" class="btn primary" value="Save Changes">
+            <a href="@routes.Application.index" class="btn">Cancel</a>
+        </div>
+        
+    }
+    
+}

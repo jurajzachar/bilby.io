@@ -11,7 +11,7 @@ scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 libraryDependencies ++= Seq(
   jdbc,
   "org.postgresql" 		 % "postgresql" 		% "9.3-1101-jdbc41" withSources() withJavadoc(),
-  "com.typesafe.play"  	%% "play-slick" 		% "0.8.0",
+  "com.typesafe.play"  	%% "play-slick" 		% "0.8.1",
   "com.typesafe.slick" 	%% "slick" 				% "2.1.0" withSources() withJavadoc(),
   "com.typesafe.slick" 	%% "slick-codegen" 		% "2.1.0",
   "io.strongtyped"		%% "active-slick"		% "0.2.2",
@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
   ws
 )
 
-javaOptions in Test ++= Seq( "-Dconfig.file=conf/dev.conf" )
+javaOptions in Test ++= Seq( "-Dconfig.resource=fake.conf" )
 
 logBuffered in Test := false
 

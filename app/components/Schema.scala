@@ -1,31 +1,81 @@
 package components
 
-import io.strongtyped.active.slick.{ TableQueries, Tables, Profile }
 import scala.slick.lifted.ProvenShape
-import play.api.libs.json._
-import models._
+import scala.slick.lifted.ProvenShape.proveShapeOf
+
+import io.strongtyped.active.slick.Profile
+import io.strongtyped.active.slick.TableQueries
+import io.strongtyped.active.slick.Tables
+import models.{ Follower, Piece, User, UserProfile, Visitor }
+import play.api.libs.json.Json
 
 trait Schema { this: Tables with TableQueries with Profile =>
 
   import jdbcDriver.simple._
 
-  class PlayersTable(tag: Tag) extends EntityTable[Player](tag, "player") {
+  class PiecesTable(tag: Tag) extends EntityTable[Piece](tag, "piece") {
 
-    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-    def name = column[String]("player_name")
+    /** Database column id AutoInc, PrimaryKey */
+    val id = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    //title: String, shortSummary: Seq[String], published: Long, author: Long, tags: Set[HashTag], source: Seq[String]
+    /** database column for title */
+    val title = column[String]("title")
+    /** database column for short summary (should be limited in length --> 600 characters) **/
+    val shortSummary = column[Array[Byte]]("short_summary")
+    /** titleCoverUrl **/
+    val titleCover = column[Array[Byte]]("title_cover")
+    /** database column for publishing timestamp **/
+    val published = column[Long]("published")
+    val authorId = column[Long]("author_id")
+    val tags = column[Array[Byte]]("tags")
+    val rating = column[Double]("rating")
+    val source = column[Array[Byte]]("source")
 
-    def * = (name, id.?) <> (Player.tupled, Player.unapply)
+    def * : ProvenShape[Piece] = {
+      val shapedValue = (id.?, title, shortSummary, titleCover, published, authorId, tags, rating, source).shaped
+      shapedValue.<>({
+        tuple =>
+          Piece.flattenedPiece(
+            tuple._1,
+            tuple._2,
+            new String(tuple._3).map(_.toChar),
+            new String(tuple._4).map(_.toChar),
+            tuple._5,
+            tuple._6,
+            Json.parse(new String(tuple._7).map(_.toChar)).as[Set[String]],
+            tuple._8,
+            new String(tuple._9).map(_.toChar))
+      }, {
+        (p: Piece) =>
+          Some {
+            (p.id,
+              p.header.title,
+              p.header.shortSummary.getBytes,
+              p.header.titleCover.toString().getBytes,
+              p.header.published,
+              p.header.authorId,
+              Json.stringify(Json.toJson(Piece.hashTags2Strings(p.header.tags))).getBytes,
+              p.header.rating,
+              p.source.getBytes)
+          }
+      })
+    }
 
+  /** Foreign key referencing Userprofile (database name userprofile_id) */
+  lazy val authorIdFk = foreignKey("author_id", authorId, UsersTable)(u => u.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
   }
+  
+  lazy val PiecesTable = new TableQuery(tag => new PiecesTable(tag))
 
   /** Table description of Visitor. */
   class VisitorsTable(tag: Tag) extends EntityTable[Visitor](tag, "visitor") {
 
-    val id: Column[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    /** Database column id AutoInc, PrimaryKey */
+    val id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     /** Database column host */
-    val host: Column[Option[String]] = column[Option[String]]("host")
+    val host = column[Option[String]]("host")
     /** Database column timestamp */
-    val timestamp: Column[Long] = column[Long]("timestamp")
+    val timestamp = column[Long]("timestamp")
     /** Database column id AutoInc, PrimaryKey */
 
     def * = (host, timestamp, id.?) <> (Visitor.tupled, Visitor.unapply)
@@ -38,13 +88,13 @@ trait Schema { this: Tables with TableQueries with Profile =>
   class UserProfilesTable(tag: Tag) extends EntityTable[UserProfile](tag, "userprofile") {
 
     /** Database column id AutoInc, PrimaryKey */
-    val id: Column[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    val id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     /** Database column country  */
-    val country: Column[Option[String]] = column[Option[String]]("country")
+    val country = column[Option[String]]("country")
     /** Database column place of residence  */
-    val placeOfResidence: Column[Option[String]] = column[Option[String]]("place_of_res")
+    val placeOfResidence = column[Option[String]]("place_of_res")
     /** Database column age  */
-    val age: Column[Option[Short]] = column[Option[Short]]("age")
+    val age = column[Option[Short]]("age")
 
     def * = (country, placeOfResidence, age, id.?) <> (UserProfile.tupled, UserProfile.unapply)
 
@@ -56,35 +106,36 @@ trait Schema { this: Tables with TableQueries with Profile =>
   class UsersTable(tag: Tag) extends EntityTable[User](tag, "user") {
 
     /** Database column id AutoInc, PrimaryKey */
-    val id: Column[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    val id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     /** Database column first name optional **/
-    val firstName: Column[Option[String]] = column[Option[String]]("first_name")
+    val firstName = column[Option[String]]("first_name")
     /** Database column last name optional **/
-    val lastName: Column[Option[String]] = column[Option[String]]("last_name")
+    val lastName = column[Option[String]]("last_name")
     /** Database column username  */
-    val userName: Column[String] = column[String]("user_name")
+    val userName = column[String]("user_name")
     /** Database column email  */
-    val email: Column[Option[String]] = column[Option[String]]("email")
+    val email = column[String]("email")
     /** Database column password (encrypted) */
-    val password: Column[Option[String]] = column[Option[String]]("password")
+    val password = column[String]("password")
     /** Database column avatar url **/
-    val avatarUrl: Column[Array[Byte]] = column[Array[Byte]]("avatar_url")
+    val avatarUrl = column[Array[Byte]]("avatar_url")
     /** Database column authentication method. **/
-    val authMethod: Column[String] = column[String]("auth_method")
+    val authMethod = column[String]("auth_method")
     /** Database column oAuth1Info */
-    val oauth1: Column[Option[String]] = column[Option[String]]("oauth1")
+    val oauth1 = column[Option[String]]("oauth1")
     /** Database column oAuth2Info */
-    val oauth2: Column[Option[String]] = column[Option[String]]("oauth2")
+    val oauth2 = column[Option[String]]("oauth2")
     /** Database column PasswordInfo */
-    val passwordInfo: Column[Option[String]] = column[Option[String]]("passwordInfo")
+    val passwordInfo = column[Option[String]]("passwordInfo")
 
     /** Database column userprofile_id  */
-    val userprofileId: Column[Long] = column[Long]("userprofile_id")
+    val userprofileId = column[Long]("userprofile_id")
     /** Database column visitor_id **/
-    val visitorId: Column[Long] = column[Long]("visitor_id")
+    val visitorId = column[Long]("visitor_id")
 
     /** Uniqueness Index over (username) (database name unique_username) */
-    val index1 = index("unique_username", userName, unique = true)
+    val index1 = index("unique_id", id, unique = true)
+    val index2 = index("unique_username", userName, unique = true)
 
     /** Foreign key referencing Userprofile (database name userprofile_id) */
     lazy val userprofileFk = foreignKey("userprofile_id", userprofileId, UserProfilesTable)(r => r.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
@@ -149,8 +200,8 @@ trait Schema { this: Tables with TableQueries with Profile =>
   /** Table description of table user. */
   class FollowersTable(tag: Tag) extends Table[Follower](tag, "follower") {
     /** Database column id AutoInc, PrimaryKey */
-    val id: Column[Long] = column[Long]("id", O.PrimaryKey)
-    val fids: Column[Array[Byte]] = column[Array[Byte]]("fids", O.NotNull)
+    val id = column[Long]("id", O.PrimaryKey)
+    val fids = column[Array[Byte]]("fids", O.NotNull)
 
     /** Foreign key referencing User (database name userprofile_id) */
     lazy val userFk = foreignKey("id", id, UsersTable)(r => r.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
@@ -168,6 +219,21 @@ trait Schema { this: Tables with TableQueries with Profile =>
       })
     }
   }
-    /** Collection-like TableQuery object for table User */
+  /** Collection-like TableQuery object for table User */
   lazy val FollowersTable = new TableQuery(tag => new FollowersTable(tag))
+
+  /** Compiled Queries **/
+//  def idByUserName(userName: Rep[String]) = 
+//    for {
+//      u <- UsersTable if u.userName.toString().equals(userName)
+//    } yield u.id
+//
+//  def idByEmail(email: Rep[Option[String]]) = 
+//    for {
+//      u <- UsersTable if u.email.toString.equals(email)
+//    } yield u.id
+//
+//  val userIdByUserNameCompiled = Compiled(idByUserName _)
+//  val userIdByEmailCompiled = Compiled(idByEmail _)
+  
 }

@@ -9,8 +9,8 @@ case class User(
   firstName: Option[String],
   lastName: Option[String],
   userName: String,
-  email: Option[String],
-  password: Option[String],
+  email: String,
+  password: String,
   avatarUrl: String,
   authMethod: String,
   oAuth1Info: Option[String],
@@ -21,10 +21,8 @@ case class User(
   id: Option[Long] = None) extends Identifiable[User] {
 
   /** signifies that the user is being edited **/
-  var mutates: Boolean = false
-
-  var visitor: Visitor = _
-  var userProfile: UserProfile = _
+  /* fix-me: use account registration token */
+  var verified: Boolean = false
 
   override type Id = Long
   override def withId(id: Id): User = copy(id = Option(id))
@@ -37,8 +35,6 @@ case class User(
       s"email: $email\n" +
       s"password: $password\n" +
       s"avatarUrl: $avatarUrl\n" +
-      s"user profile:\n$userProfile\n" +
-      s"visitor:\n$visitor\n" +
       "------"
   }
 }
