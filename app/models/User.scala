@@ -20,6 +20,8 @@ case class User(
   visitor_id: Option[Long] = None, //no visitor defined
   id: Option[Long] = None) extends Identifiable[User] {
 
+  type WrappedUser = ((Visitor, UserProfile), User)
+  
   /** signifies that the user is being edited **/
   /* fix-me: use account registration token */
   var verified: Boolean = false
@@ -28,8 +30,8 @@ case class User(
 
   override def toString(): String = {
     "--USER--\n" +
-      s"first name: $firstName\n" +
-      s"last name: $lastName\n" +
+      s"first name: ${firstName getOrElse None}\n" +
+      s"last name: ${lastName getOrElse None}\n" +
       s"username: $userName\n" +
       s"email: $email\n" +
       s"password: $password\n" +
@@ -49,9 +51,9 @@ case class UserProfile(
   override def withId(id: Id): UserProfile = copy(id = Option(id))
 
   override def toString(): String = {
-    s"\tcountry: $country\n" +
-      s"\tplace of residence: $placeOfResidence\n" +
-      s"\tage: $age\n"
+    s"\tcountry: ${country getOrElse None}\n" +
+      s"\tplace of residence: ${placeOfResidence getOrElse None}\n" +
+      s"\tage: ${age getOrElse None}\n"
   }
 }
 

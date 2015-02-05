@@ -23,7 +23,9 @@ trait UserComponent {
     import cake._
 
     val log = LoggerFactory.getLogger(this.getClass)
-
+    
+    type Candidate = ((Visitor, UserProfile), User)
+    
     def getIdByUserName(userName: String): Option[User#Id] = {
       DB.withSession {
         implicit session: Session =>
@@ -56,28 +58,28 @@ trait UserComponent {
       }
     }
 
-    def signUpNewUser(user: User, userProfile: UserProfile, visitor: Visitor): Option[User] = {
-      getIdByUserName(user.userName) match {
+    def signUpNewUser(uw: User#WrappedUser): Option[User] = {
+      getIdByUserName(uw._2.userName) match {
         case Some(id) =>
-          println(s"${user.userName} is taken!"); None //username taken
+          println(s"${uw._2.userName} is taken!"); None //username taken
         case None => {
           //unique username registers...  
           DB.withSession {
             implicit session: Session =>
               Option {
                 User(
-                  user.firstName,
-                  user.lastName,
-                  user.userName.toLowerCase,
-                  user.email.toLowerCase,
-                  user.password,
-                  user.avatarUrl,
-                  user.authMethod,
-                  user.oAuth1Info,
-                  user.oAuth2Info,
-                  user.passwordInfo,
-                  { if (userProfile == null) None else handleUserProfile(userProfile) },
-                  { if (visitor == null) None else handleVisitor(visitor) } //visitor_id
+                  uw._2.firstName,
+                  uw._2.lastName,
+                  uw._2.userName.toLowerCase,
+                  uw._2.email.toLowerCase,
+                  uw._2.password,
+                  uw._2.avatarUrl,
+                  uw._2.authMethod,
+                  uw._2.oAuth1Info,
+                  uw._2.oAuth2Info,
+                  uw._2.passwordInfo,
+                  { if (uw._1._2 == null) None else handleUserProfile(uw._1._2) },
+                  { if (uw._1._1 == null) None else handleVisitor(uw._1._1) } //visitor_id
                   ).save
               }
           }

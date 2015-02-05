@@ -14,7 +14,7 @@ case class Visitor(
 
   override def toString(): String = {
     val date = new Date(timestamp)
-    s"\thost: $host\n" +
+    s"\thost: ${host getOrElse None}\n" +
     s"\ttimestamp: $date\n" 
   }
 }

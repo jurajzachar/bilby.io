@@ -13,6 +13,8 @@ import play.api.Play
 import play.api.db.slick.DB
 import play.api.test.FakeApplication
 import org.scalatestplus.play.OneAppPerSuite
+import scala.language.postfixOps
+import models.User
 
 class ComponentSpec extends PlaySpec
   with OneAppPerSuite
@@ -68,14 +70,13 @@ class ComponentSpec extends PlaySpec
   "calling signUpNewUser on mock users" must {
     "return a seq of registered user" in new MockCase {
       val registeredUsers = for {
-        v <- visitors
-        uprofile <- userProfiles
-        u <- users
+        wrapped: User#WrappedUser <- (visitors zip userProfiles) zip users
       } yield {
-        log.info(s"Signing up user: ${u.userName}")
-        UserComponent.signUpNewUser(u, uprofile, v)
+        log.info(s"Signing up user:\n${wrapped}")
+        UserComponent.signUpNewUser(wrapped)
       }
-      registeredUsers.map(_.isDefined).size must be(MOCK_SIZE);
+      log.info("number of registration hits:" + registeredUsers.size)
+      registeredUsers.map(_.isDefined).size must be(MOCK_SIZE)
     }
   }
 }
