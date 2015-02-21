@@ -3,12 +3,25 @@
 # ~~~~
 
 # Home page
-#GET     /			                          controllers.PlayerController.api
-#GET     /player		                          controllers.PlayerController.list
-#GET     /player/:id                           controllers.PlayerController.get(id:Int)
-#POST    /player                           	  controllers.PlayerController.create
-#PUT     /player/:id                           controllers.PlayerController.update(id:Int)
-#DELETE  /player/:id                           controllers.PlayerController.delete(id:Int)
+GET		/									  controllers.Application.index					 	 
+GET		/about								  controllers.Application.about			 	 
+GET		/login								  controllers.Auth.login				 	 
+GET		/logout								  controllers.Auth.logout			 	 
+POST	/login								  controllers.Auth.authenticate
 
+# Signup
+GET		/signup							      controllers.Signup.init
+POST    /signup         				  	  controllers.Signup.submit
+
+# Account
+GET		/user/:id							  controllers.Accounter.user(id:String)
+GET     /user/change		   			  	  controllers.Accounter.change
+POST 	/user/change						  controllers.Accounter.submit
+	 	 
+# Piece
+GET 	/piece/:id							  controllers.PieceKeeper.render(id: Long)
+GET 	/piece/:id/edit					  	  controllers.PieceKeeper.edit(id: Long)
+POST	/piece/:id/save						  controllers.PieceKeeper.save(id: Long)	
+				  	 	 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

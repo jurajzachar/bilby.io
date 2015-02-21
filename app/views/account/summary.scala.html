@@ -1,0 +1,49 @@
+@(user: models.User, profile: Option[models.UserProfile])
+
+@main(Some(Html("Account Summary")), nav = "account", user.username) {
+    
+    <form class="form-horizontal">	
+   	<fieldset>
+    	<div class="form-group">
+      		<label for="userName" class="col-lg-2 control-label">Username</label>
+      		<div class="col-lg-10">
+        		<input class="form-control summary" id="userName" readonly="true" placeholder=@user.username />
+      		</div>
+    	</div>
+    	<div class="form-group">
+      		<label for="email" class="col-lg-2 control-label">Email</label>
+      		<div class="col-lg-10">
+        		<input class="form-control summary" id="email" readonly="true" placeholder=@user.email />
+      		</div>
+    	</div>
+    		@if(profile.isDefined) {
+    			@if(profile.get.country.isDefined) {
+		    	<div class="form-group">
+		      		<label for="country" class="col-lg-2 control-label">Country</label>
+		      		<div class="col-lg-10">
+		        		<input class="form-control summary" id="country" readonly="true" placeholder=@profile.get.country />
+		      		</div>
+	    		</div>
+	    	 	}
+	    		@if(profile.get.placeOfResidence.isDefined) {
+		    	<div class="form-group">
+		      		<label for="city" class="col-lg-2 control-label">City</label>
+		      		<div class="col-lg-10">
+		        		<input class="form-control summary" id="city" readonly="true" placeholder=@profile.get.placeOfResidence />
+		      		</div>
+		    	</div>
+		    	}
+		    	@if(profile.get.age.isDefined) {
+		    	<div class="form-group">
+		      		<label for="age" class="col-lg-2 control-label">Age</label>
+		      		<div class="col-lg-10">
+		        		<input class="form-control summary" id="age" readonly="true" placeholder=@profile.get.age />
+		      		</div>
+		    	</div>
+		    	}
+	    	}
+    </fieldset>
+    </form>
+  
+
+}

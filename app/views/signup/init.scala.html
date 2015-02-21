@@ -1,0 +1,111 @@
+@import models.{User,UserProfile}
+@(signupForm: Form[(User, UserProfile)])(implicit token: play.filters.csrf.CSRF.Token)
+
+@import helper._
+@import helper.twitterBootstrap._ 
+
+@title = {
+    Sign Up!
+}
+
+@main(Some(title), nav = "user/account/signup", username = "") {
+    
+    @helper.form(action = routes.Signup.submit, 'id -> "form-signup", 'class -> "form-signup") {
+    	@CSRF.formField
+        <fieldset>
+            <legend>Account information</legend>
+            @inputText(
+                signupForm("username"), 
+                '_label -> "Username", 
+                '_help -> "Pick a username.",
+                '_error -> signupForm.globalError
+            )
+            @inputText(
+                signupForm("email"), 
+                '_label -> "Email",
+                '_help -> "Enter a valid email address.",
+                '_error -> signupForm.error("email")
+            )
+            
+            @inputPassword(
+                signupForm("password.main"), 
+                '_label -> "Password",
+                '_help -> "Your password must be at least 8 characters long. "
+            )
+            
+            @inputPassword(
+                signupForm("password.confirm"), 
+                '_label -> "Repeat Password",
+                '_help -> "Please repeat your password again.",
+                '_error -> signupForm.error("password")
+            )
+            
+        </fieldset>
+
+  		
+		<div class="accordion" id="accordion-optional">
+		
+		  <div class="accordion-group">
+		    <div class="accordion-heading">
+		      <a class="accordion-toggle accordion-legend" data-toggle="collapse" data-parent="#accordion-optional" href="#optional-stuff">
+		         Tell us more about you (optional)
+		      </a>
+		    </div>
+		    <div id="optional-stuff" class="accordion-body collapse">
+		      <div class="accordion-inner">
+		        
+				  <fieldset>
+		           @inputText(
+		                signupForm("user.firstName"), 
+		                '_label -> "First Name"
+		            )
+		            
+		            @inputText(
+		                signupForm("user.lastName"), 
+		                '_label -> "Last Name"
+		            )
+		            
+		            @select(
+		                signupForm("profile.country"), 
+		                options = options(models.Countries.list),
+		                '_default -> "--- What is your country? ---",
+		                '_label -> "Country",
+		                '_error -> signupForm("profile.country").error.map(_.withMessage("Please select your country"))
+		            )
+		            
+		            @inputText(
+		                signupForm("profile.city"), 
+		                '_label -> "City"
+		            )
+		            
+		            @inputText(
+		                signupForm("profile.age"), 
+		                '_label -> "Age", 'class -> "mini",
+		                '_showConstraints -> false
+		            )
+		              
+		        </fieldset>
+        
+		      </div>
+		    </div>
+		  </div>
+
+		</div>
+		
+        <fieldset>
+            
+            @checkbox(
+                signupForm("accept"), 
+                '_label -> None, '_text -> "You agree to the terms and conditions",
+                '_showConstraints -> false
+            )
+            
+        </fieldset>
+        
+      	<div class="actions">
+       		<input type="submit" class="btn btn-primary" value="Sign Up">
+       		<a href="@routes.Application.index" class="btn btn-default">Cancel</a>
+  		</div>
+    }
+    
+}

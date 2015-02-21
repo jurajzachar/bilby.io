@@ -144,7 +144,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
     /** Foreign key referencing Userprofile (database name userprofile_id) */
     lazy val userprofileFk = foreignKey("userprofile_id", userprofileId, UserProfilesTable)(r => r.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
     /** Foreign key referencing Userprofile (database name userprofile_id) */
-    lazy val visitorFk = foreignKey("visitor_id", userprofileId, VisitorsTable)(r => r.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
+    lazy val visitorFk = foreignKey("visitor_id", visitorId, VisitorsTable)(r => r.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
 
     def * : ProvenShape[User] = {
       val shapedValue = (
@@ -182,7 +182,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
           Some {
             (u.firstName,
               u.lastName,
-              u.userName,
+              u.username,
               u.email,
               u.password,
               u.avatarUrl.getBytes,

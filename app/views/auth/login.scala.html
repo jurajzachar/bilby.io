@@ -1,0 +1,52 @@
+@(loginForm: Form[(String,String)])(implicit flash: Flash, token: play.filters.csrf.CSRF.Token)
+
+@import BootstrapHelper._
+
+@import helper._
+@import helper.twitterBootstrap._ 
+
+@title = {
+    Sign in <small><a href="@routes.Signup.init">or register a new account...</a></small>
+} @main(Some(title), nav = "login", "") { 
+	@helper.form(action = routes.Auth.authenticate, 'class->"form-responsive form-login") {
+
+	@CSRF.formField
+	@loginForm.globalError.map { error =>
+		<div class="alert alert-dismissable alert-danger">
+			<button type="button" class="close" data-dismiss="alert">×</button>
+			@error.message
+		</div>
+	} 
+	@flash.get("success").map { message =>
+		<div class="alert alert-dismissable alert-success">
+			<button type="button" class="close" data-dismiss="alert">×</button>
+			@message
+		</div>
+
+}
+<div class="form-group">
+	<p>
+		<span> <input type="text" name="id" id="id" placeholder="Username (or Email)"
+			value="@loginForm("id").value">
+		</span>
+	</p>
+	<p>
+		<span> <input type="password" name="password" id="password" 
+			placeholder="Password" value="@loginForm("password").value">
+		</span>
+	</p>
+</div>
+<div>
+	<input type="submit" class="btn btn-primary" value="Login"> <span
+		id="gutter" style="margin: 5px;"></span> <a href=
+		"@routes.Application.index" class="btn btn-default">Cancel</a>
+	<p class="note">
+		Forgot <a href="@routes.Signup.init">username</a> or <a href="@routes.Signup.init">password</a>?
+	</p>
+</div>
+
+}
+}
+          
+    </body>
+</html>

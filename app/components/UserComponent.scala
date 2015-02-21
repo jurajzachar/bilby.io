@@ -3,37 +3,84 @@ package components
 import scala.language.implicitConversions
 import scala.slick.jdbc.StaticQuery.interpolation
 import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
-
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.LoggerFactory
-
 import models.User
 import models.UserProfile
 import models.Visitor
 import play.api.Play.current
 import play.api.db.slick.DB
 import play.api.db.slick.Session
+import scala.slick.jdbc.StaticQuery
+import scala.slick.jdbc.SQLInterpolation
 
 trait UserComponent {
 
-  def InitUserComponent(cake: ActiveSlickCake) = new UserComponent(cake)
+  val emailRe = """(\w+)@([\w\.]+)""".r
 
+  def initComponent(cake: ActiveSlickCake = ActiveSlickCake.cake) = new UserComponent(cake)
+
+  lazy val dal = initComponent()
+
+  /**
+   * @author juri
+   * Data access layer functions for User
+   */
   class UserComponent(val cake: ActiveSlickCake) {
 
     import cake._
 
     val log = LoggerFactory.getLogger(this.getClass)
-    
-    type Candidate = ((Visitor, UserProfile), User)
-    
-    def getIdByUserName(userName: String): Option[User#Id] = {
-      DB.withSession {
-        implicit session: Session =>
-          val idByUserName = sql"""select ID from "user" where USER_NAME = $userName""".as[Long]
-          idByUserName.list.headOption
+    val emailTaken = "This email address (%s) address is already taken"
+    val usernameTaken = "This username (%s) is already taken"
+    val invalidLogin = "Wrong combination of username/email address and password"
+
+    type RejectReason = (String, String) //format, arg
+    type SignUpResult = Either[User, RejectReason]
+
+    /**
+     * @param key
+     * @return
+     */
+    def getIdByEmail(key: String): Option[User#Id] = {
+      emailRe findFirstIn key match {
+        case Some(email) => {
+          DB.withSession {
+            implicit session: Session =>
+              sql"""select ID from "user" where EMAIL = $key""".as[Long].list.headOption
+          }
+        }
+        case None => None
       }
     }
 
+    /**
+     * @param key
+     * @return
+     */
+    def getIdByUsername(key: String): Option[User#Id] = {
+      DB.withSession {
+        implicit session: Session =>
+          sql"""select ID from "user" where USER_NAME = $key""".as[Long].list.headOption
+      }
+    }
+
+    /**
+     * @param key
+     * @return
+     */
+    def getIdByUniqueKey(key: String): Option[User#Id] = {
+      (getIdByEmail(key), getIdByUsername(key)) match {
+        case (Some(id), None) => Some(id)
+        case (None, Some(id)) => Some(id)
+        case (_, _)           => None
+      }
+    }
+
+    /**
+     * @param visitor
+     * @return
+     */
     def handleVisitor(visitor: Visitor): Option[Visitor#Id] = {
       Visitors.extractId(visitor) match {
         case None => {
@@ -46,6 +93,10 @@ trait UserComponent {
       }
     }
 
+    /**
+     * @param userProfile
+     * @return
+     */
     def handleUserProfile(userProfile: UserProfile): Option[UserProfile#Id] = {
       UserProfiles.extractId(userProfile) match {
         case None => {
@@ -58,37 +109,47 @@ trait UserComponent {
       }
     }
 
-    def signUpNewUser(uw: User#WrappedUser): Option[User] = {
-      getIdByUserName(uw._2.userName) match {
-        case Some(id) =>
-          println(s"${uw._2.userName} is taken!"); None //username taken
-        case None => {
+    /**
+     * @param wrapped
+     * @return
+     */
+    def signUpNewUser(wrapped: User#Wrapped): SignUpResult = {
+      (getIdByUsername(wrapped._3.username), getIdByUsername(wrapped._3.email)) match {
+        case (Some(id), _) =>
+          Right(usernameTaken, wrapped._3.username) //username taken
+        case (_, Some(id)) => Right(emailTaken, wrapped._3.email) //username taken
+        case (None, None) => {
           //unique username registers...  
           DB.withSession {
             implicit session: Session =>
-              Option {
+              Left(
                 User(
-                  uw._2.firstName,
-                  uw._2.lastName,
-                  uw._2.userName.toLowerCase,
-                  uw._2.email.toLowerCase,
-                  uw._2.password,
-                  uw._2.avatarUrl,
-                  uw._2.authMethod,
-                  uw._2.oAuth1Info,
-                  uw._2.oAuth2Info,
-                  uw._2.passwordInfo,
-                  { if (uw._1._2 == null) None else handleUserProfile(uw._1._2) },
-                  { if (uw._1._1 == null) None else handleVisitor(uw._1._1) } //visitor_id
-                  ).save
-              }
+                  wrapped._3.firstName,
+                  wrapped._3.lastName,
+                  wrapped._3.username.toLowerCase,
+                  wrapped._3.email.toLowerCase,
+                  wrapped._3.password,
+                  wrapped._3.avatarUrl,
+                  wrapped._3.authMethod,
+                  wrapped._3.oAuth1Info,
+                  wrapped._3.oAuth2Info,
+                  wrapped._3.passwordInfo,
+                  { if (wrapped._2 == null) None else handleUserProfile(wrapped._2) },
+                  { if (wrapped._1 == null) None else handleVisitor(wrapped._1) } //visitor_id
+                  ).save)
           }
         }
       }
     }
 
-    def authenticate(userName: String, password: String): Option[User] = {
-      getIdByUserName(userName) match {
+    /**
+     * Authentication call before session is built.
+     * @param key
+     * @param password
+     * @return
+     */
+    def authenticate(key: String, password: String): Option[User] = {
+      getIdByUniqueKey(key) match {
         case Some(id) => {
           DB.withSession {
             implicit session: Session =>
@@ -98,6 +159,78 @@ trait UserComponent {
           }
         }
         case _ => None
+      }
+    }
+
+    /**
+     * Internal call when username is known and call is Secured.
+     * @param key
+     * @return
+     */
+    /**
+     * @param key
+     * @return
+     */
+    def findUserById(key: String): Option[User] = {
+      getIdByUniqueKey(key) match {
+        case Some(id) => {
+          DB.withSession {
+            implicit session: Session =>
+              Some(Users.findById(id))
+          }
+        }
+        case _ => None
+      }
+    }
+
+    /**
+     * @param user
+     * @return
+     */
+    def findUserProfile(user: User): Option[UserProfile] = {
+      user.userprofile_id match {
+        case Some(id) => {
+          DB.withSession {
+            implicit session: Session =>
+              Some(UserProfiles.findById(id))
+          }
+        }
+        case _ => None
+      }
+    }
+
+    /**
+     * @param user
+     * @return
+     */
+    def findVisitor(user: User): Option[Visitor] = {
+      user.userprofile_id match {
+        case Some(id) => {
+          DB.withSession {
+            implicit session: Session =>
+              Some(Visitors.findById(id))
+          }
+        }
+        case _ => None
+      }
+    }
+
+    def updateVisitor(userId: String, visitor: Visitor) {
+      DB.withSession {
+        implicit session: Session =>
+          findUserById(userId) match {
+            case Some(user) => {
+              if (user.visitor_id.isDefined) Visitors.update(Visitor(visitor.host, visitor.timestamp, user.visitor_id))
+              else {
+                val visitor_id = Visitors.save(visitor).id
+                DB.withSession {
+                  implicit session: Session =>
+                    sqlu"""update "user" SET visitor_id = $visitor_id WHERE id=${user.id.get}""".first
+                }
+              }
+            }
+            case None => //eeek!
+          }
       }
     }
   }
