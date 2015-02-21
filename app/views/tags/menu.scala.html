@@ -1,0 +1,67 @@
+@(title: Option[Html], username: String, nav: String)
+
+<div class="navbar navbar-default navbar-fixed-top">
+	<div class="container container-60">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle" data-toggle="collapse"
+				data-target=".navbar-responsive-collapse">
+				<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+					class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="@routes.Application.index"> Bilby
+				<img style="width: 48px; height: 48px" src="
+				@routes.Assets.at("imgs/bilby.png")" type="image/png" />
+			</a>
+		</div>
+		<ul class="nav navbar-nav">
+
+			<span class="welcome-pills @("none".when(username != ""))">
+				<ul class="nav nav-pills">
+					<li class="@("active".when(nav == "home"))"><a href="
+						@routes.Application.index">Home</a></li>
+					<li class="@("active".when(nav == "login"))"><a href="
+						@routes.Auth.login">Enter the burrows...</a></li>
+					<li class="@("active".when(nav == "about"))"><a href="
+						@routes.Application.about">About</a></li>	
+				</ul>
+			</span>
+
+			<span class="restricted-pills @("none".when(username == ""))">
+				<ul class="nav nav-pills">
+					<li class="@("active".when(nav == "home"))">
+						<a href="@routes.Application.index">Home</a>
+					</li>
+					<li class="dropdown"><a class="dropdown-toggle"
+						data-toggle="dropdown" href="#">
+						 <img style="width: 18x; height: 18px" src="
+						 @routes.Assets.at("imgs/avatar.png")" type="image/png" />
+						 @username 
+						 <span class="caret"></span>
+					</a>
+						<ul class="dropdown-menu">
+							<li>
+								<a href="@routes.PieceKeeper.edit(0)">Create..</a>
+							</li>
+							<li><a href="#">My Pieces</a></li>
+							<li><a href="#">Sharing Preferences</a></li>
+							<li class="divider"></li>
+							<li class="@("active".when(nav == "account"))">
+								<a href="@routes.Accounter.user(username)">Account</a>
+							</li>
+							<li class="@("active".when(nav == "about"))">
+								<a href="@routes.Application.about">About</a>
+							</li>	
+							<li><a href="@routes.Auth.logout">Logout</a></li>
+						</ul></li>
+				</ul>
+			</span>
+
+			<form class="navbar-form navbar-left">
+				<input class="form-control col-lg-8" placeholder="Search"
+					type="text" />
+			</form>
+		</ul>
+		</ul>
+	</div>
+</div>
+</div>

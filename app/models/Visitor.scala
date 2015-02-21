@@ -2,7 +2,9 @@ package models
 import io.strongtyped.active.slick.models.Identifiable
 import java.util.Date
 
-//Visitor Entity
+/**
+ * @author juri
+ */
 case class Visitor(
   host: Option[String] = Some("unknownHost"),
   timestamp: Long = System.currentTimeMillis(),

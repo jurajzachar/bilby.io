@@ -9,7 +9,8 @@ object Piece {
   implicit def strings2HashTags(xs: Set[String]) = for (tag <- xs) yield HashTag(tag)
   implicit def hashTags2Strings(xs: Set[HashTag]) = for (tag <- xs) yield tag.toString
 
-  implicit def flattenedPiece(id: Option[Long] = None, 
+  implicit def flattenedPiece(
+      id: Option[Long] = None, 
       title: String, 
       shortSummary: String, 
       titleCover: String,
@@ -18,14 +19,13 @@ object Piece {
       tags: Set[String], 
       rating: Double, 
       source: String): Piece = {
-    Piece(id, PieceHeader(title, shortSummary, new URL(titleCover), published, author, tags, rating), source)
+    Piece(PieceHeader(title, shortSummary, new URL(titleCover), published, author, tags, rating), source, id)
   }
 }
 case class Piece(
-  id: Option[Long] = None,
   header: PieceHeader,
-  source: String) extends Identifiable[Piece] {
-
+  source: String,
+  id: Option[Long] = None) extends Identifiable[Piece] {
   override type Id = Long
   override def withId(id: Id): Piece = copy(id = Option(id))
   override def equals(other: Any) = other match {
@@ -56,7 +56,6 @@ case class PieceHeader(
 //}
 
 case class HashTag(xs: String) {
-
-  override def toString() = xs
+   override def toString() = xs
 }
 

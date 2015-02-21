@@ -4,9 +4,9 @@ import models._
 import scala.util.Random
 import java.net.URL
 import play.api.libs.json._
+import components.JsonConversions._
 
 trait MockCase {
-  import JsonConversions._
   val MOCK_SIZE = 1000;
   val random = new Random(System.nanoTime())
   //read mock data from fs
@@ -14,7 +14,7 @@ trait MockCase {
   val connectedUsers = for (u <- users) yield new User(
     u.firstName,
     u.lastName,
-    u.userName,
+    u.username,
     u.email,
     u.password,
     u.avatarUrl,

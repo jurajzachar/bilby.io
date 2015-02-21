@@ -1,19 +1,14 @@
 import play.api._
 import play.api.Play.current
 import components.ActiveSlickCake.cake._
+import play.filters.csrf._
+import play.api.mvc.WithFilters
 
-object Global extends GlobalSettings {
-
+object Global extends WithFilters(CSRFFilter()) with GlobalSettings {
 
   override def onStart(app: Application): Unit = {
     super.onStart(app)
-
-//  override def onStart(app: Application): Unit = {
-//    super.onStart(app)
-//    play.api.db.slick.DB.withTransaction { implicit session =>
-//      // adding some players
-//      val players = Player("Pelé") :: Player("Maradona") :: Player("Zico") :: Nil
-//      players.foreach(_.save)
-    }
+    //TODO generate diag report  
+  }
  
 }

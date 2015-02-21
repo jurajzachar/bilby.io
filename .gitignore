@@ -20,3 +20,6 @@ project/plugins/project/
 .cache
 .classpath
 .settings
+
+#OS-X specific
+.DS_Store

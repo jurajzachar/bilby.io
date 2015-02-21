@@ -1,0 +1,21 @@
+html { padding:10px; }
+
+body {
+  border:0;
+  background:#479BE7;
+  font-family:monospace;
+  font-size:14px;
+  padding:10px;
+  color:#ffffff;
+  line-height:1.35em;
+  margin:0;
+  padding:0;
+  
+}
+
+::selection {
+  background: #e18728; /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+  background: #e18728; /* Gecko Browsers */
+}
