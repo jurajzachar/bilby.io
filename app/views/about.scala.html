@@ -1,10 +1,11 @@
 @(userName: String)
-@main(Some(Html("About Bilby")), "about", userName) {
-    
-    <h2>Bilby.io is under construction!</h2>
+@title = {
+	 <h1>Bilby.io is under construction!</h1>
+}
+@main(Some(title), "about", userName) {
     
     <p>
-    	<a href="https://github.com/jurajzachar/bilby.io">Bilby.io</a> - a micro-bloggin platform which is meant to serve as a general dumping place for writers, bloggers and creative minds.
+    	<a href="https://github.com/jurajzachar/bilby.io">Bilby.io</a> - a micro-blogging platform which serves as a general dumping place for writers, bloggers and creative minds.
     </p>
     
 }

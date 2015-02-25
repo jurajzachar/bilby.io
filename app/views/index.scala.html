@@ -1,4 +1,7 @@
 @(username: String)
-@main(Some(Html("Hello " + username + "!")), "home", username) {
+@title ={
+	<small>Hello @username!</small>
+}
+@main(Some(title), "home", username) {
     
 }

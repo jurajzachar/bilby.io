@@ -1,3 +1,5 @@
+#app-specific
+logs
 *.class
 *.log
 
@@ -23,3 +25,4 @@ project/plugins/project/
 
 #OS-X specific
 .DS_Store
+.history

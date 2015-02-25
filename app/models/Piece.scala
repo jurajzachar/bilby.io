@@ -10,41 +10,44 @@ object Piece {
   implicit def hashTags2Strings(xs: Set[HashTag]) = for (tag <- xs) yield tag.toString
 
   implicit def flattenedPiece(
-      id: Option[Long] = None, 
-      title: String, 
-      shortSummary: String, 
-      titleCover: String,
-      published: Long, 
-      author: Long, 
-      tags: Set[String], 
-      rating: Double, 
-      source: String): Piece = {
-    Piece(PieceHeader(title, shortSummary, new URL(titleCover), published, author, tags, rating), source, id)
+    id: Option[Long] = None,
+    title: String,
+    shortSummary: String,
+    titleCover: String,
+    published: Option[Long],
+    author: Long,
+    tags: Set[String],
+    rating: Double,
+    source: String): Piece = {
+    Piece(PieceFormInfo(title, shortSummary, new URL(titleCover), tags, source), published, author, rating, id)
   }
 }
 case class Piece(
-  header: PieceHeader,
-  source: String,
+  header: PieceFormInfo,
+  published: Option[Long],
+  authorId: Long,
+  rating: Double,
   id: Option[Long] = None) extends Identifiable[Piece] {
+  require(rating >= 0.0 || rating <= 1.0)
+  def isDraft: Boolean = published.isDefined
   override type Id = Long
   override def withId(id: Id): Piece = copy(id = Option(id))
+
+  /* plagiaristic content */
   override def equals(other: Any) = other match {
-    case that: Piece => this.id == that.id || (this.header.equals(that.header) && this.source.equals(that.source))
+    case that: Piece => this.id == that.id || (this.header.equals(that.header) && this.header.equals(that.header.source))
     case _           => false
   }
 }
 
-case class PieceHeader(
+case class PieceFormInfo(
   title: String,
   shortSummary: String,
-  titleCover: URL, 
-  published: Long,
-  authorId: Long,
-  tags: Set[HashTag],
-  rating: Double) {
-  require(rating >= 0.0 || rating <= 1.0)
+  titleCoverUrl: URL,
+  tags: Set[String],
+  source: String) {
   override def equals(other: Any) = other match {
-    case that: PieceHeader => this.title.equals(that.title) && this.shortSummary.equals(that.shortSummary)
+    case that: PieceFormInfo => this.title.equals(that.title) && this.shortSummary.equals(that.shortSummary)
     case _                 => false
   }
 }
@@ -56,6 +59,6 @@ case class PieceHeader(
 //}
 
 case class HashTag(xs: String) {
-   override def toString() = xs
+  override def toString() = xs
 }
 

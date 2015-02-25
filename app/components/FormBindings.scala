@@ -5,10 +5,49 @@ import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
 import models.{ User, UserProfile, Reserved }
+import models.Piece
+import java.net.URL
+import models.PieceFormInfo
 
 trait FormBindings[M] {
-  val form: Form[M]
+  def form: Form[M]
 }
+
+trait PieceBindings extends FormBindings[Piece] with PieceComponent {
+
+  def posting: Form[PieceFormInfo] =
+    Form(
+      mapping(
+        "title" -> text(minLength = 1, maxLength = 100),
+        "shortSummary" -> text(maxLength = 300),
+        "titleCoverUrl" -> optional(text),
+        "tags" -> optional(text), //TODO
+        "source" -> text(minLength = 150))
+        (bindFormInfo)(unbindFormInfo))
+
+  def bindFormInfo(
+      title: String, 
+      shortSummary: String, 
+      titleCoverUrl: Option[String], 
+      tags: Option[String], 
+      source: String): PieceFormInfo = {
+    PieceFormInfo(
+      title,
+      shortSummary,
+      new URL(dal.processURL(titleCoverUrl.getOrElse(""))),
+      tags.getOrElse("").split(",").toSet,
+      source)
+  }
+
+  def unbindFormInfo(
+     title: String,
+      shortSummary: String,
+    titleCoverUrl: URL,
+  tags: Set[String],
+  source: String): Option[(String, String, Option[String], String)] = {
+    Option((title, Some(shorSummary), Some(titleCoverUrl.toString()), tags.toList.mkString(","), source))  
+  
+  }
 
 trait UserBindings extends FormBindings[(User, UserProfile)] with UserComponent {
 
@@ -16,21 +55,21 @@ trait UserBindings extends FormBindings[(User, UserProfile)] with UserComponent 
   type UserCombo = (User, UserProfile)
   type OptionalStuff = (Option[String], Option[String], UserProfile)
 
-  override val form: Form[(User, UserProfile)] = Form(
+  override def form: Form[(User, UserProfile)] = Form(
 
     // Define a mapping that will handle User values
     mapping(
       "username" -> text(minLength = 6),
       "email" -> email.verifying(
-          "This email address is already registered.",
-          email =>
-            play.api.db.slick.DB.withTransaction {
-              implicit session =>
-                dal.getIdByEmail(email) match {
-                  case Some(id) => false
-                  case None     => true
-                }
-            }),
+        "This email address is already registered.",
+        email =>
+          play.api.db.slick.DB.withTransaction {
+            implicit session =>
+              dal.getIdByEmail(email) match {
+                case Some(id) => false
+                case None     => true
+              }
+          }),
       // Create a tuple mapping for the password/confirm
       "password" -> tuple(
         "main" -> text(minLength = 8),

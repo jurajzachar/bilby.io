@@ -1,58 +1,87 @@
-@(piece: models.Piece)(implicit username: String)
+@(headerForm: Form[models.PieceHeader], source: String)(implicit username: String, token: play.filters.csrf.CSRF.Token)
 
 @title = {
-  @** <div style="text-align: center">Editor</div> **@
-  <span>Editor</span>
-  <div style="float: right; margin-right: 20px;">
-  <input type="submit" class="btn btn-xs btn-primary" value="Save">
-  <span id="gutter" style="margin: 5px;"></span>
-  <a href="@routes.Application.index" class="btn btn-xs btn-default">Back</a>
- </div>
+	<div class="panel panel-default">
+  		<div class="panel-heading">Panel heading</div>
+  			<div class="panel-body">
+  				
+			@helper.form(action = routes.PieceKeeper.submit, 'id -> "form-signup", 'class -> "form-signup") {
+ 				@CSRF.formField
+         		@inputText(
+             		headerForm("username"), 
+             		'_label -> "Username", 
+             		'_help -> "Pick a username.",
+             		'_error -> signupForm.globalError
+         		)
+         		
+         		@inputText(
+             		headerForm("email"), 
+             		'_label -> "Email",
+             		'_help -> "Enter a valid email address.",
+             		'_error -> signupForm.error("email")
+         		)
+         
+         		@inputPassword(
+             		headerForm("password.main"), 
+             		'_label -> "Password",
+             		'_help -> "Your password must be at least 8 characters long. "
+         		)
+         
+         		@inputPassword(
+             		headerForm("password.confirm"), 
+             		'_label -> "Repeat Password",
+             		'_help -> "Please repeat your password again.",
+             		'_error -> signupForm.error("password")
+         		)
+            
+  			}
+  		 </div>
+	</div>
 }
 
 @main(Some(title), nav = "/contribution/edit", username) { 
 
- 	<div id="epiceditor">@piece.header.title</div> 
+ 	<div id="epiceditor"></div> 
  	<script src="@routes.Assets.at("js/epiceditor.js")" type="text/javascript" charset="utf8"></script>
     
 	<script>
-    	var opts = {
-    			  container: 'epiceditor',
-    			  textarea: null,
-    			  basePath: '../../assets/js/epiceditor', //context root is /piece
-    			  clientSideStorage: true,
-    			  localStorageName: 'epiceditor',
-    			  useNativeFullscreen: false,
-    			  parser: marked,
-    			  file: {
-    			    name: 'epiceditor',
-    			    defaultContent: '',
-    			    autoSave: 100
-    			  },
-    			  theme: {
-    			    base: '/themes/base/epiceditor.css',
-    			    preview: '/themes/preview/bartik.css',
-    			    editor: '/themes/editor/epic-blue.css'
-    			  },
-    			  button: {
-    			    preview: true,
-    			    fullscreen: true,
-    			    bar: "auto"
-    			  },
-    			  focusOnLoad: false,
-    			  shortcut: {
-    			    modifier: 18,
-    			    fullscreen: 70,
-    			    preview: 80
-    			  },
-    			  string: {
-    			    togglePreview: 'Toggle Preview Mode',
-    			    toggleEdit: 'Toggle Edit Mode',
-    			    toggleFullscreen: 'Enter Fullscreen'
-    			  },
-    			  autogrow: true
-    			}
-    	var editor = new EpicEditor(opts).load();
-    	editor.enterFullscreen();
+		var opts = {
+			container : 'epiceditor',
+			textarea : null,
+			basePath : '../../assets/js/epiceditor', //context root is /piece
+			clientSideStorage : true,
+			localStorageName : 'epiceditor',
+			useNativeFullscreen : false,
+			parser : marked,
+			file : {
+				name : 'epiceditor',
+				defaultContent : '',
+				autoSave : 100
+			},
+			theme : {
+				base : '/themes/base/epiceditor.css',
+				preview : '/themes/preview/bartik.css',
+				editor : '/themes/editor/epic-blue.css'
+			},
+			button : {
+				preview : true,
+				fullscreen : true,
+				bar : "auto"
+			},
+			focusOnLoad : false,
+			shortcut : {
+				modifier : 18,
+				fullscreen : 70,
+				preview : 80
+			},
+			string : {
+				togglePreview : 'Toggle Preview Mode',
+				toggleEdit : 'Toggle Edit Mode',
+				toggleFullscreen : 'Enter Fullscreen'
+			},
+			autogrow : true
+		}
+		var editor = new EpicEditor(opts).load();
+		editor.enterFullscreen();
 	</script>
 }(false, 100)

@@ -29,7 +29,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
     /** titleCoverUrl **/
     val titleCover = column[Array[Byte]]("title_cover")
     /** database column for publishing timestamp **/
-    val published = column[Long]("published")
+    val published = column[Option[Long]]("published")
     val authorId = column[Long]("author_id")
     val tags = column[Array[Byte]]("tags")
     val rating = column[Double]("rating")
@@ -55,20 +55,20 @@ trait Schema { this: Tables with TableQueries with Profile =>
             (p.id,
               p.header.title,
               p.header.shortSummary.getBytes,
-              p.header.titleCover.toString().getBytes,
-              p.header.published,
-              p.header.authorId,
-              Json.stringify(Json.toJson(Piece.hashTags2Strings(p.header.tags))).getBytes,
-              p.header.rating,
-              p.source.getBytes)
+              p.header.titleCoverUrl.toString().getBytes,
+              p.published,
+              p.authorId,
+              Json.stringify(Json.toJson(p.header.tags)).getBytes,
+              p.rating,
+              p.header.source.getBytes)
           }
       })
     }
 
-  /** Foreign key referencing Userprofile (database name userprofile_id) */
-  lazy val authorIdFk = foreignKey("author_id", authorId, UsersTable)(u => u.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
+    /** Foreign key referencing Userprofile (database name userprofile_id) */
+    lazy val authorIdFk = foreignKey("author_id", authorId, UsersTable)(u => u.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
   }
-  
+
   lazy val PiecesTable = new TableQuery(tag => new PiecesTable(tag))
 
   /** Table description of Visitor. */

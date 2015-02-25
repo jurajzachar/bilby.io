@@ -15,6 +15,7 @@ import models.PieceHeader
 import models.User
 import models.UserProfile
 import models.Visitor
+import models.PieceFormInfo
 
 object JsonConversions extends JsonReadWrite
 
@@ -32,23 +33,23 @@ trait JsonReadWrite {
     (JsPath \ "title").read[String] and
     (JsPath \ "shortSummary").read[String] and
     (JsPath \ "titleCover").read[String].map(new URL(_)) and
-    (JsPath \ "published").read[Long] and
+    (JsPath \ "published").readNullable[Long] and
     (JsPath \ "authorId").read[Long] and
     (JsPath \ "tags").read[Set[String]].map(x => x.map(HashTag(_))) and
     (JsPath \ "rating").read[Double])(PieceHeader.apply _)
 
-  implicit val pieceHeaderWrites: Writes[PieceHeader] = (
+  implicit val pieceHeaderWrites: Writes[PieceFormInfo] = (
     (JsPath \ "title").write[String] and
     (JsPath \ "shortSummary").write[String] and
     (JsPath \ "titleCover").write[URL] and
-    (JsPath \ "published").write[Long] and
-    (JsPath \ "authorId").write[Long] and
-    (JsPath \ "tags").write[Set[HashTag]] and
-    (JsPath \ "rating").write[Double])(unlift(PieceHeader.unapply))
+    (JsPath \ "tags").write[Set[String]] and
+    (JsPath \ "source").write[String])(unlift(PieceFormInfo.unapply))
 
   implicit val pieceWrites: Writes[Piece] = (
-    (JsPath \ "header").write[PieceHeader] and
-    (JsPath \ "source").write[String] and
+    (JsPath \ "header").write[PieceFormInfo] and
+    (JsPath \ "published").writeNullable[Long] and
+    (JsPath \ "authorId").write[Long] and
+    (JsPath \ "rating").write[Double] and
     (JsPath \ "id").writeNullable[Long])(unlift(Piece.unapply))
 
   implicit val userReads: Reads[User] = (
