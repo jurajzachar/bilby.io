@@ -8,36 +8,58 @@ import play.api.mvc.Results
 import components.PieceComponent
 import play.api.mvc.AnyContent
 import models.Piece
+import components.PieceBindings
+import controllers.Auth.CSFRHelper
 
-object PieceKeeper extends Controller with PieceComponent with Auth.Secured {
+object PieceKeeper extends Controller with PieceBindings with Auth.Secured {
 
   /**
    * Read only rendering of pieces.
    * TODO: setup sharing and privacy traits
    * @return
    */
-  def render(id: Long) = Action {
+  def render(uri: String) = Action {
     request =>
+      //not implemented
       Ok(views.html.index(username(request).getOrElse("")))
   }
+
+  def draft = CSFRHelper.withToken { token => 
+    implicit request =>{
+      Ok(views.html.piece.edit(form,""))
+ 
+    }
+ }
+  
 
   /**
    * Secured editing of pieces.
    * TODO: setup collaboration and and edit permissions.
    * @return
    */
-  def edit(id: Long) = withUser { user =>
-    implicit request =>
-      Ok(views.html.piece.edit(dal.findByPieceId({ if (id == 0) None else Some(id) })
-          (user.id.get))(user.username))
+  def edit(id: Long) = withUser { user => implicit request =>
+      val formInfo = dal.findByPieceId(Some(id), id).header
+      Ok(views.html.piece.edit(form.fill(formInfo), user.username))
+  }
+
+  /**
+   * Secured draft submission of edited pieces.
+   * At this point post is saved but not yet posted.
+   * TODO: setup collaboration and and edit permissions.
+   * @return
+   */
+  def save(id: Long) = Action {
+    request =>
+      Ok(views.html.index(username(request).getOrElse("")))
   }
 
   /**
    * Secured submission of edited pieces.
+   * Submitted piece is posted.
    * TODO: setup collaboration and and edit permissions.
    * @return
    */
-  def save = Action {
+  def post(id: Long) = Action {
     request =>
       Ok(views.html.index(username(request).getOrElse("")))
   }

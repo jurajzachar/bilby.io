@@ -2,17 +2,12 @@ package controllers
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
 import components.UserBindings
-import components.UserComponent
-import models.User
-import models.UserProfile
-import models.Visitor
-import play.api._
-import play.api.data.Form
-import play.api.mvc._
-import play.api.mvc.Controller
-import play.api.mvc.Security
 import controllers.Auth.CSFRHelper
+import models.Visitor
+import play.api.mvc.Action
+import play.api.mvc.Controller
 
 object Signup extends Controller with UserBindings {
 
@@ -21,12 +16,11 @@ object Signup extends Controller with UserBindings {
   /**
    * Display an empty form.
    */
-  def init = CSFRHelper.withToken { implicit request =>
+  def init = CSFRHelper.withToken { token => implicit request =>
     Ok(views.html.signup.init(form));
   }
 
-  def submit = Action {
-    implicit request =>
+  def submit = CSFRHelper.withToken { token => implicit request =>
       form.bindFromRequest.fold(
         // Form has errors, redisplay it
         errors => {

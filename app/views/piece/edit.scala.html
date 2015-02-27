@@ -1,49 +1,71 @@
-@(headerForm: Form[models.PieceHeader], source: String)(implicit username: String, token: play.filters.csrf.CSRF.Token)
+@(pieceForm: Form[models.PieceFormInfo], username: String)(implicit flash: Flash, token: play.filters.csrf.CSRF.Token)
+
+@import helper._
+@import helper.twitterBootstrap._
 
 @title = {
-	<div class="panel panel-default">
-  		<div class="panel-heading">Panel heading</div>
-  			<div class="panel-body">
-  				
-			@helper.form(action = routes.PieceKeeper.submit, 'id -> "form-signup", 'class -> "form-signup") {
- 				@CSRF.formField
-         		@inputText(
-             		headerForm("username"), 
-             		'_label -> "Username", 
-             		'_help -> "Pick a username.",
-             		'_error -> signupForm.globalError
-         		)
-         		
-         		@inputText(
-             		headerForm("email"), 
-             		'_label -> "Email",
-             		'_help -> "Enter a valid email address.",
-             		'_error -> signupForm.error("email")
-         		)
-         
-         		@inputPassword(
-             		headerForm("password.main"), 
-             		'_label -> "Password",
-             		'_help -> "Your password must be at least 8 characters long. "
-         		)
-         
-         		@inputPassword(
-             		headerForm("password.confirm"), 
-             		'_label -> "Repeat Password",
-             		'_help -> "Please repeat your password again.",
-             		'_error -> signupForm.error("password")
-         		)
-            
-  			}
-  		 </div>
-	</div>
+	
+	 @helper.form(action = routes.PieceKeeper.save(0), 'id -> "form-piece", 'class -> "form-inline") {
+	 	 <div id="form-piece-container" class="form-info-header">
+          @textarea(
+              pieceForm("title"), 
+              '_class -> "top form-group",
+              '_label -> "Title",
+              'placeHolder -> "A good title should be short, concise and captivating.",
+              
+              '_error -> pieceForm.error("title")
+              
+            )
+            @textarea(
+              pieceForm("shortSummary"), 
+              '_class -> "top form-group",
+              '_label -> "A short summary",
+              'placeHolder -> "Describe your contribution in a short paragraph by summarazing and hightling key points.",
+              '_error -> pieceForm.error("shortSummary")
+            )
+        <div class="accordion form-info-group" id="accordion-optional">
+          <div class="accordion-group">
+            <div id="optional-stuff" class="accordion-body">
+          		<div class="accordion-inner">
+		         @inputText(
+		             pieceForm("titleCoverUrl"), 
+		             '_class -> "form-info-group",
+		             '_label -> "Title Cover URL",
+		             'placeHolder -> "Provide a link to an image which should be used instead of default title cover."
+		           )
+		     
+		         @textarea(
+		             pieceForm("tags"), 
+		             '_class -> "form-info-group",
+		             '_label -> "Tags",
+		             'placeHolder -> "Comma delimited list of tags which should identify the content of your contribution."
+		           )
+			    </div>
+	          </div>
+	        </div>
+	      </div>    
+			<div id="form-info-header-controls" class="form-group">
+			  <!--  
+			   <button class="accordion-toggle btn btn-xs btn-default" data-toggle="collapse" data-parent="#accordion-optional" href="#optional-stuff">
+                <span class="glyphicon glyphicon-chevron-down"></span>
+               </button>
+              -->
+              <span id="gutter" style="margin: 5px;"></span>		   
+		      <input type="submit" class="btn btn-xs btn-primary form-group" value="Save">
+		      <span id="gutter" style="margin: 5px;"></span>
+		      <input type="submit" class="btn btn-xs btn-danger form-group" action="@routes.PieceKeeper.draft" value="Post">
+	      	</div>
+	    </div>	 
+	  
+  }
+	
 }
 
-@main(Some(title), nav = "/contribution/edit", username) { 
-
- 	<div id="epiceditor"></div> 
+@main(Some(title), nav = "/piece", username) { 
+	
+ 	<div id="epiceditor">Epic Editor</div> 
  	<script src="@routes.Assets.at("js/epiceditor.js")" type="text/javascript" charset="utf8"></script>
-    
+
 	<script>
 		var opts = {
 			container : 'epiceditor',
@@ -84,4 +106,5 @@
 		var editor = new EpicEditor(opts).load();
 		editor.enterFullscreen();
 	</script>
+
 }(false, 100)

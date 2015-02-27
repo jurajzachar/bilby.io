@@ -19,9 +19,13 @@ GET     /user/change		   			  	  controllers.Accounter.change
 POST 	/user/change						  controllers.Accounter.submit
 	 	 
 # Piece
-GET 	/piece/:id							  controllers.PieceKeeper.render(id: Long)
-GET 	/piece/:id/edit					  	  controllers.PieceKeeper.edit(id: Long)
-POST	/piece/:id/save						  controllers.PieceKeeper.save	
+GET 	/piece/new							  controllers.PieceKeeper.draft
+POST 	/piece/new							  controllers.PieceKeeper.save(id: Long ?= 0)
+GET 	/piece/:id/edit				  	  	  controllers.PieceKeeper.edit(id: Long)
+POST	/piece/:id/save					  	  controllers.PieceKeeper.save(id: Long)	
+POST	/piece/:id/post					  	  controllers.PieceKeeper.post(id: Long)
+
+GET 	/burrow/*uri						  controllers.PieceKeeper.render(uri)	
 				  	 	 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

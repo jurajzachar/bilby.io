@@ -13,41 +13,38 @@ trait FormBindings[M] {
   def form: Form[M]
 }
 
-trait PieceBindings extends FormBindings[Piece] with PieceComponent {
-
-  def posting: Form[PieceFormInfo] =
+trait PieceBindings extends FormBindings[PieceFormInfo] with PieceComponent {
+  
+  val max1MSource = 1000 * 1000
+  
+  def form: Form[PieceFormInfo] =
     Form(
       mapping(
         "title" -> text(minLength = 1, maxLength = 100),
         "shortSummary" -> text(maxLength = 300),
         "titleCoverUrl" -> optional(text),
-        "tags" -> optional(text), //TODO
-        "source" -> text(minLength = 150))
-        (bindFormInfo)(unbindFormInfo))
+        "tags" -> text, //TODO
+        "source" -> text(maxLength = max1MSource))(bindFormInfo)(unbindFormInfo))
 
   def bindFormInfo(
-      title: String, 
-      shortSummary: String, 
-      titleCoverUrl: Option[String], 
-      tags: Option[String], 
-      source: String): PieceFormInfo = {
+    title: String,
+    shortSummary: String,
+    titleCoverUrl: Option[String],
+    tags: String,
+    source: String): PieceFormInfo = {
     PieceFormInfo(
       title,
       shortSummary,
-      new URL(dal.processURL(titleCoverUrl.getOrElse(""))),
-      tags.getOrElse("").split(",").toSet,
+      new URL(titleCoverUrl.getOrElse("")),
+      tags.split(",").toSet,
       source)
   }
 
-  def unbindFormInfo(
-     title: String,
-      shortSummary: String,
-    titleCoverUrl: URL,
-  tags: Set[String],
-  source: String): Option[(String, String, Option[String], String)] = {
-    Option((title, Some(shorSummary), Some(titleCoverUrl.toString()), tags.toList.mkString(","), source))  
-  
+  def unbindFormInfo(p: PieceFormInfo): Option[(String, String, Option[String], String, String)] = {
+    Option((p.title, p.shortSummary, Option(p.titleCoverUrl.toString()), p.tags.toList.mkString(","), p.source))
   }
+  
+}
 
 trait UserBindings extends FormBindings[(User, UserProfile)] with UserComponent {
 

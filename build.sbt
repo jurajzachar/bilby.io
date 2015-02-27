@@ -6,8 +6,6 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.4"
 
-scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
-
 libraryDependencies ++= Seq(
   jdbc,
   "org.webjars" 		%% "webjars-play" 		% "2.3.0-3",
@@ -19,10 +17,12 @@ libraryDependencies ++= Seq(
   "io.strongtyped"		%% "active-slick"		% "0.2.2",
   "org.mindrot" 		%  "jbcrypt" 			% "0.3m",
   "org.scalatestplus"  	%% "play" 				% "1.1.1"	% "test",
-  "com.typesafe.play" 	%% "play-mailer" 		% "2.4.0"
+  "com.typesafe.play" 	%% "play-mailer" 		% "2.4.0",
   cache,
   filters
 )
+
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
 javaOptions in Test ++= Seq( "-Dconfig.resource=fake.conf" )
 

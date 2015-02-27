@@ -11,7 +11,6 @@ import play.api.libs.json.Reads
 import play.api.libs.json.Writes
 import models.HashTag
 import models.Piece
-import models.PieceHeader
 import models.User
 import models.UserProfile
 import models.Visitor
@@ -29,14 +28,12 @@ trait JsonReadWrite {
     (url: URL) => JsString(url.toString)
   }
 
-  implicit val pieceHeaderReads: Reads[PieceHeader] = (
+  implicit val pieceHeaderReads: Reads[PieceFormInfo] = (
     (JsPath \ "title").read[String] and
     (JsPath \ "shortSummary").read[String] and
     (JsPath \ "titleCover").read[String].map(new URL(_)) and
-    (JsPath \ "published").readNullable[Long] and
-    (JsPath \ "authorId").read[Long] and
-    (JsPath \ "tags").read[Set[String]].map(x => x.map(HashTag(_))) and
-    (JsPath \ "rating").read[Double])(PieceHeader.apply _)
+    (JsPath \ "tags").read[Set[String]] and
+    (JsPath \ "source").read[String])(PieceFormInfo.apply _)
 
   implicit val pieceHeaderWrites: Writes[PieceFormInfo] = (
     (JsPath \ "title").write[String] and

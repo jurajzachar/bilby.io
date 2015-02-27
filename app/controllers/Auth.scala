@@ -39,7 +39,7 @@ object Auth extends Controller with UserComponent {
   /**
    * Handle login form submission.
    */
-  def authenticate = CSFRHelper.withToken { implicit request =>
+  def authenticate = CSFRHelper.withToken { token => implicit request =>
     loginForm.bindFromRequest.fold(
       hasErrors => BadRequest(views.html.auth.login(hasErrors)),
       valid => {
@@ -93,14 +93,14 @@ object Auth extends Controller with UserComponent {
   }
 
   object CSFRHelper {
-    def withToken(f: Request[AnyContent] => Result) = {
+    def withToken(f: CSRF.Token => Request[AnyContent] => Result) = {
       Action { request =>
         import play.filters.csrf._
         CSRF.getToken(request) match {
           case None => BadRequest("CSRF token error!")
           case Some(token) => {
             log.info("Processing signed request token: {}", token)
-            f(request)
+            f(token)(request)
           }
         }
       }
