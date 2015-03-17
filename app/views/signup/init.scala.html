@@ -2,45 +2,44 @@
 @(signupForm: Form[(User, UserProfile)])(implicit token: play.filters.csrf.CSRF.Token)
 
 @import helper._
-@import helper.twitterBootstrap._ 
+@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-2", "col-md-4") }
 
-    @title = {
-	<h1><small>Register a new account. It only takes few seconds...</small></h1>
-	
+@title = {
+	<h1><small>Register a new account. It only takes a few seconds...</small></h1>
 } 
 
-@main(Some(title), nav = "user/account/signup", username = "") {
-    
-    @helper.form(action = routes.Signup.submit, 'id -> "form-signup", 'class -> "form-signup") {
+@main(Some(title), nav = "Sign up!", username = None) {
+    <div class="well">
+    @b3.horizontal.form(routes.Signup.submit, "col-md-2", "col-md-4") { implicit hfc => 
     	@CSRF.formField
         <fieldset>
             <legend>Account information</legend>
-            @inputText(
+            <div class="form-group">
+            @b3.text(
                 signupForm("username"), 
                 '_label -> "Username", 
-                '_help -> "Pick a username.",
                 '_error -> signupForm.globalError
+                
             )
-            @inputText(
+            </div>
+            @b3.email(
                 signupForm("email"), 
                 '_label -> "Email",
-                '_help -> "Enter a valid email address.",
+                'placeholder -> "...@example.com",
                 '_error -> signupForm.error("email")
             )
             
-            @inputPassword(
+            @b3.password(
                 signupForm("password.main"), 
                 '_label -> "Password",
                 '_help -> "Your password must be at least 8 characters long. "
             )
             
-            @inputPassword(
+            @b3.password(
                 signupForm("password.confirm"), 
                 '_label -> "Repeat Password",
-                '_help -> "Please repeat your password again.",
                 '_error -> signupForm.error("password")
             )
-            
         </fieldset>
 
   		
@@ -48,25 +47,25 @@
 		
 		  <div class="accordion-group">
 		    <div class="accordion-heading">
-		      <a class="accordion-toggle accordion-legend" data-toggle="collapse" data-parent="#accordion-optional" href="#optional-stuff">
-		         Tell us more about you (optional)
-		      </a>
+		      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-optional" href="#optional-stuff">
+		        <span class="accordion-legend">Tell us more about you (optional)</span>
+		        </a>
 		    </div>
 		    <div id="optional-stuff" class="accordion-body collapse">
 		      <div class="accordion-inner">
 		        
 				  <fieldset>
-		           @inputText(
+		           @b3.text(
 		                signupForm("user.firstName"), 
 		                '_label -> "First Name"
 		            )
 		            
-		            @inputText(
+		            @b3.text(
 		                signupForm("user.lastName"), 
 		                '_label -> "Last Name"
 		            )
 		            
-		            @select(
+		            @b3.select(
 		                signupForm("profile.country"), 
 		                options = options(models.Countries.list),
 		                '_default -> "--- What is your country? ---",
@@ -74,15 +73,17 @@
 		                '_error -> signupForm("profile.country").error.map(_.withMessage("Please select your country"))
 		            )
 		            
-		            @inputText(
+		            @b3.text(
 		                signupForm("profile.city"), 
 		                '_label -> "City"
 		            )
-		            
-		            @inputText(
+		            @b3.number(
 		                signupForm("profile.age"), 
-		                '_label -> "Age", 'class -> "mini",
-		                '_showConstraints -> false
+		                '_label -> "Age", 
+		                'min -> 18,
+		                'max -> 100,
+		                'step -> 1,
+		                'class -> "age"
 		            )
 		              
 		        </fieldset>
@@ -95,7 +96,7 @@
 		
         <fieldset>
             
-            @checkbox(
+            @b3.checkbox(
                 signupForm("accept"), 
                 '_label -> None, '_text -> "You agree to the terms and conditions",
                 '_showConstraints -> false
@@ -103,10 +104,7 @@
             
         </fieldset>
         
-      	<div class="actions">
-       		<input type="submit" class="btn btn-primary" value="Sign Up">
-       		<a href="@routes.Application.index" class="btn btn-default">Cancel</a>
-  		</div>
+      	@b3.submit('class -> "btn btn-primary"){ Submit } 
     }
-    
-}
+	<div>    
+}(false, 60)

@@ -8,6 +8,7 @@ scalaVersion := "2.11.4"
 
 libraryDependencies ++= Seq(
   jdbc,
+  "com.adrianhurt" 		%% "play-bootstrap3" 	% "0.4",
   "org.webjars" 		%% "webjars-play" 		% "2.3.0-3",
   "org.webjars" 		 % "jquery" 			% "2.1.3",
   "org.webjars" 		 % "bootstrap" 			% "3.3.2",

@@ -12,13 +12,9 @@ trait PostgresSpec extends Suite {
   private val passwd = "play"
   private val dbname = "play_dev"
   private val driver = "org.postgresql.Driver"
-  private val remote = "jupiter"
 
   //db stuff 
   lazy val database = {
-    if (InetAddress.getByName(remote).isReachable(3000))
-      Database.forURL(s"jdbc:postgresql://$remote/$dbname?user=$user&password=$passwd", driver = driver)
-    else
       Database.forURL(s"jdbc:postgresql:$dbname?user=$user&password=$passwd", driver = driver)
   }
 }

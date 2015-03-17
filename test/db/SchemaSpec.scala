@@ -70,17 +70,18 @@ class SchemaSpec extends FlatSpec
     database withTransaction { implicit session =>
       followers.foreach(Followers += _)
     }
-    database withTransaction { implicit session =>
-      Followers.length.run must be(1000)
-      Followers.list.foreach {
-        x =>
-          {
-            val user = Users.findById(x.id)
-            val leads: Set[User] = for (id <- x.fids) yield Users.findById(id)
-            println(s"user ${user.username} follows: ${leads.size} other users.")
-          }
-      }
-    }
+    
+//    database withTransaction { implicit session =>
+//      Followers.length.run must be(1000)
+//      Followers.list.foreach {
+//        x =>
+//          {
+//            val user = Users.findById(x.id)
+//            val leads: Set[User] = for (id <- x.fids) yield Users.findById(id)
+//            println(s"user ${user.username} follows: ${leads.size} other users.")
+//          }
+//      }
+//    }
   }
 
 }

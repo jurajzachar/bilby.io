@@ -45,7 +45,7 @@ class ComponentSpec extends PlaySpec
           play.api.db.slick.DB(app).withTransaction { implicit session =>
             try {
               //log.info("Dropping database schema inside the fake app...")
-              //dropSchema
+              dropSchema
             } catch {
               case t: Throwable => println(t.getMessage) // TODO: handle error
             }

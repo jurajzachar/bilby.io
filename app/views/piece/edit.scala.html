@@ -1,75 +1,135 @@
-@(pieceForm: Form[models.PieceFormInfo], username: String)(implicit flash: Flash, token: play.filters.csrf.CSRF.Token)
+@(id: Long, pieceForm: Form[models.PieceFormInfo], username: Option[String])(implicit flash: Flash, token: play.filters.csrf.CSRF.Token)
 
 @import helper._
-@import helper.twitterBootstrap._
 
-@title = {
-	
-	 @helper.form(action = routes.PieceKeeper.save(0), 'id -> "form-piece", 'class -> "form-inline") {
-	 	 <div id="form-piece-container" class="form-info-header">
-          @textarea(
-              pieceForm("title"), 
-              '_class -> "top form-group",
-              '_label -> "Title",
-              'placeHolder -> "A good title should be short, concise and captivating.",
-              
-              '_error -> pieceForm.error("title")
-              
-            )
-            @textarea(
-              pieceForm("shortSummary"), 
-              '_class -> "top form-group",
-              '_label -> "A short summary",
-              'placeHolder -> "Describe your contribution in a short paragraph by summarazing and hightling key points.",
-              '_error -> pieceForm.error("shortSummary")
-            )
-        <div class="accordion form-info-group" id="accordion-optional">
-          <div class="accordion-group">
-            <div id="optional-stuff" class="accordion-body">
-          		<div class="accordion-inner">
-		         @inputText(
-		             pieceForm("titleCoverUrl"), 
-		             '_class -> "form-info-group",
-		             '_label -> "Title Cover URL",
-		             'placeHolder -> "Provide a link to an image which should be used instead of default title cover."
-		           )
-		     
-		         @textarea(
-		             pieceForm("tags"), 
-		             '_class -> "form-info-group",
-		             '_label -> "Tags",
-		             'placeHolder -> "Comma delimited list of tags which should identify the content of your contribution."
-		           )
-			    </div>
-	          </div>
-	        </div>
-	      </div>    
-			<div id="form-info-header-controls" class="form-group">
-			  <!--  
-			   <button class="accordion-toggle btn btn-xs btn-default" data-toggle="collapse" data-parent="#accordion-optional" href="#optional-stuff">
-                <span class="glyphicon glyphicon-chevron-down"></span>
-               </button>
-              -->
-              <span id="gutter" style="margin: 5px;"></span>		   
-		      <input type="submit" class="btn btn-xs btn-primary form-group" value="Save">
-		      <span id="gutter" style="margin: 5px;"></span>
-		      <input type="submit" class="btn btn-xs btn-danger form-group" action="@routes.PieceKeeper.draft" value="Post">
-	      	</div>
-	    </div>	 
-	  
-  }
-	
-}
+@main(None, nav = "Create New", username) { 
+	<script>
+		$(document)
+				.ready(
+						function() {
+							var controller = "#retractor";
+							var data_source = "#title";
+							var target = "#mini-header";
+							//take care of the retracting stuff		
+							$(target).hide();
+							activateRetractor(controller, data_source, target);
+							//fire up tooltips
+							$('#title')
+									.tooltip(
+											{
+												'trigger' : 'focus',
+												'title' : 'A good title should be short, concise and captivating.',
+												'placement' : 'bottom'
+											}).on('shown.bs.tooltip',
+											countChars("#title", 75));
+							$('#titleCoverUrl')
+									.tooltip(
+											{
+												'trigger' : 'focus',
+												'title' : 'Provide a link to an image which should be used instead of the default title cover.',
+												'placement' : 'bottom'
+											});
+							//enhance tagsinput
+							$("#tags").attr("data-role", "tagsinput");
+							$("#tags").tagsinput({
+								maxTags : 10,
+								maxChars : 15,
+								trimValue : true,
+								tagClass : "label label-default hashtag"
+							});
+							//load tags, not sure why this is not done automatically...
+							var source = jQuery.parseJSON($("#tags").val());
+							for (var i = 0; i < source.length; i++) {
+								$("#tags").tagsinput('add', source[i]);
+							}
+							$('#tags_field>.bootstrap-tagsinput')
+									.tooltip(
+											{
+												'trigger' : 'focus',
+												'title' : 'A comma delimited list of up to 10 tags, each of which is at most 15 characters long. Tags aid in categorizing your post.',
+												'placement' : 'right'
+											});
 
-@main(Some(title), nav = "/piece", username) { 
-	
+							$('#shortSummary')
+									.tooltip(
+											{
+												'trigger' : 'focus',
+												'title' : 'Describe your contribution in a short paragraph by summarazing and hightling key points.',
+												'placement' : 'bottom'
+											}).on('shown.bs.tooltip',
+											countChars("#shortSummary", 300));
+
+							fadeOutAlerts(5000); //5 sec
+						});
+	</script>
+			<div class="well .col-xs-12 .col-sm-6 .col-md-8 top-controls">
+				@flash.get("success").map { message =>
+				<div class="alert alert-dismissable alert-success">
+					<button type="button" class="close" data-dismiss="alert">×</button>
+					@message
+				</div>
+				}
+				 @b3.inline.form(routes.PieceKeeper.editorAction(id)) { implicit ifc =>
+				 	@CSRF.formField
+			     	<div class="container-fluid">
+			     		<div class="row"> 
+			     			<div class=".col-md-2">
+			     				<div id="mini-header" class="form-group"></div>
+			     				<span id="retractor" style="float: right;" class="btn glyphicon glyphicon-menu-up"></span>
+			     				<div class="collapsible">
+						           @b3.text(
+						             pieceForm("title"), 
+						             'placeholder -> "Title",
+						             '_error -> pieceForm.error("title")
+						           )
+						           @b3.inputWrapped( "search", pieceForm("titleCoverUrl"), 'placeholder -> "http://..." ) { input =>
+								    <div class="input-group">
+								      <span class="input-group-addon"><span class="glyphicon glyphicon-picture"></span></span>
+								      @input
+								    </div>
+									  }
+							       @b3.submit(
+							       	'class -> "btn btn-xs btn-primary", 
+							       	'name -> "action", 
+							       	'value ->"save"){ <span class="glyphicon glyphicon-pencil"></span> Save } 
+							       @b3.submit(
+							       	'class -> "btn btn-xs btn-success", 
+							       	'name -> "action",
+							       	'value ->"publish"){ <span class="glyphicon glyphicon-globe"></span> Publish } 
+		   					   </div>
+		   					  
+						      <div class=".col-md-4 collapsible">
+						            @b3.textarea(
+						             pieceForm("shortSummary"), 
+						             'placeholder -> "A short summary",	
+						             'rows -> 3,
+						             '_error -> pieceForm.error("shortSummary")
+						           )
+						 			@b3.textarea(
+							          pieceForm("tags"),
+							          'rows -> 3, 
+							          'placeholder -> "Tag me!"
+							       )
+							    <div class="hidden">
+							       	@b3.textarea(
+							       		pieceForm("source"),
+							        	'rows -> 1
+							       	)
+							    </div>
+							</div>
+				  		</div>
+					</div>
+				</div>
+			</div>
+ 	}
+
+<div class="well">	
  	<div id="epiceditor">Epic Editor</div> 
- 	<script src="@routes.Assets.at("js/epiceditor.js")" type="text/javascript" charset="utf8"></script>
-
+	<script src="@routes.Assets.at("js/epiceditor.js")" type="text/javascript" charset="utf8"></script>
 	<script>
 		var opts = {
 			container : 'epiceditor',
-			textarea : null,
+			textarea : 'source',
 			basePath : '../../assets/js/epiceditor', //context root is /piece
 			clientSideStorage : true,
 			localStorageName : 'epiceditor',
@@ -83,7 +143,7 @@
 			theme : {
 				base : '/themes/base/epiceditor.css',
 				preview : '/themes/preview/bartik.css',
-				editor : '/themes/editor/epic-blue.css'
+				editor : '/themes/editor/epic-grey.css'
 			},
 			button : {
 				preview : true,
@@ -106,5 +166,5 @@
 		var editor = new EpicEditor(opts).load();
 		editor.enterFullscreen();
 	</script>
-
+</div>
 }(false, 100)

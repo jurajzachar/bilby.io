@@ -1,14 +1,17 @@
 package models
 
-import io.strongtyped.active.slick.models.Identifiable
-import scala.language.implicitConversions
 import java.net.URL
-import java.util.UUID
+import scala.language.implicitConversions
+import io.strongtyped.active.slick.models.Identifiable
+import scala.slick.jdbc.GetResult
+import play.api.libs.json.Json
 
 object Piece {
 
   implicit def strings2HashTags(xs: Set[String]) = for (tag <- xs) yield HashTag(tag)
   implicit def hashTags2Strings(xs: Set[HashTag]) = for (tag <- xs) yield tag.toString
+  implicit val getPieceOverviewResult = GetResult(r =>
+    PieceOverview(r.<<, r.<<, r.<<, r.<<, Json.parse(r.nextString).as[Set[String]], r.<<, r.<<))
 
   implicit def flattenedPiece(
     id: Option[Long] = None,
@@ -23,6 +26,7 @@ object Piece {
     Piece(PieceFormInfo(title, shortSummary, new URL(titleCover), tags, source), published, author, rating, id)
   }
 }
+
 case class Piece(
   header: PieceFormInfo,
   published: Option[Long],
@@ -30,25 +34,40 @@ case class Piece(
   rating: Double,
   id: Option[Long] = None) extends Identifiable[Piece] {
   require(rating >= 0.0 || rating <= 1.0)
-  
+
   def isDraft: Boolean = published.isDefined
   override type Id = Long
-  override def withId(id: Id): Piece = copy(id = Option(id))
+  override def withId(id: Id): Piece = copy(id = Some(id))
 
-  override def equals(other: Any) = other match{
-    case that: Piece => this.header equals(that.header)
-    case _ => false
+  override def equals(other: Any) = other match {
+    case that: Piece => this.header equals (that.header)
+    case _           => false
   }
-  
+
   /* is plagiarism content */
-  def palgiarized(other: Any) = other match {
+  def plagiarized(other: Any) = other match {
     case that: Piece => this.id == that.id ||
       (this.header.equals(that.header) && this.header.equals(that.header.source))
     case _ => false
   }
-  
+
+  def fromUpdatedHeader(updatedHeader: PieceFormInfo): Piece = {
+    Piece(updatedHeader, published, authorId, rating, id)
+  }
+
 }
 
+/** this is used to do a source-less read-only projection **/
+case class PieceOverview(
+  id: Long,
+  author_id: Long,
+  title: String,
+  shortSummary: String,
+  tags: Set[String],
+  published: Option[Long],
+  rating: Double)
+
+/** this is used to bind editor**/
 case class PieceFormInfo(
   title: String,
   shortSummary: String,

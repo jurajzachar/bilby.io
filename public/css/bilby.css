@@ -1,0 +1,133 @@
+/* The fixed navbar will overlay your other content, 
+unless you add padding to the top of the <body>. 
+Try out your own values or use our snippet below. 
+Tip: By default, the navbar is 50px high.*/
+body {
+	padding-top: 15px;
+}
+
+/* Navbar --> mostly size control */
+.navbar-brand {
+	font-size: 25px;
+}
+
+.navbar-bilby {
+	width: 50px;
+	margin-right: 20px;
+}
+
+.navbar-bilby img {
+	/* must match with navbar-header*/
+	padding-top: 14px;
+	height: 100%;
+	width: 100%
+}
+
+/* piece edit controls*/
+.top-controls {
+	vertical-align: top;
+	padding: 10px;
+	margin-top: 50px;
+	margin-bottom: 5px;
+}
+
+.top-controls .form-group {
+	vertical-align: top;
+	padding: 5px;
+	display: inline-block;
+}
+
+#mini-header.form-group {
+	padding: 0px;
+	margin-left: 10px;
+	text-align: center;
+}
+
+input#title.form-control {
+	margin-left: 5px;
+	width: 350px;
+}
+
+textarea#shortSummary.form-control {
+	margin-left: 5px;
+	width: 350px;
+}
+/* 450 minus width of the glyphicon */
+input#titleCoverUrl.form-control {
+	width: 310px;
+}
+
+#tags_field>.bootstrap-tagsinput {
+	width: 250px;
+	border-radius: 0px;
+}
+
+.hashtag {
+	font-weight: 600;
+	background-color: #FFD800;
+	color: blueviolet;
+}
+
+/* MAIN --> container resizing */
+.container {
+	width: 80%;
+}
+
+.container>footer p {
+	text-align: center; /* center align it with the container */
+}
+
+.container-100 {
+	/* save space --> needed by the editor */
+	margin-top: 0px;
+	width: 100%;
+}
+
+.container-80 {
+	width: 80%;
+}
+
+.container-60 {
+	width: 60%;
+}
+
+.container-40 {
+	width: 40%;
+}
+
+.accordion-legend {
+	display: block;
+	width: 100%;
+	padding: 0px;
+	margin-bottom: 21px;
+	font-size: 22.5px;
+	line-height: inherit;
+	color: #333;
+}
+
+/* Utils */
+.age {
+	width: 50px;
+}
+
+.bilby-bg {
+	background-image: url("../imgs/bilby.png");
+	height: 500px;
+	background-repeat: no-repeat;
+}
+
+.grows {
+	transition: all .2s ease-in-out;
+}
+
+.grows:hover {
+	transform: scale(1.35);
+}
+
+.modal-footer>.modal-controls {
+	display: inline-block;
+}
+
+.gutter {
+	padding-right: 15px;
+}

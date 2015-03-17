@@ -1,15 +1,15 @@
 package controllers
 
-import org.slf4j.LoggerFactory
-
 import components.UserComponent
 import models.User
 import models.Visitor
+import play.api.Logger
 import play.api.data.Form
 import play.api.data.Forms.text
 import play.api.data.Forms.tuple
 import play.api.mvc.Action
 import play.api.mvc.AnyContent
+import play.api.mvc.Call
 import play.api.mvc.Controller
 import play.api.mvc.Request
 import play.api.mvc.RequestHeader
@@ -20,12 +20,12 @@ import play.filters.csrf.CSRF
 
 object Auth extends Controller with UserComponent {
 
-  val log = LoggerFactory.getLogger(this.getClass)
+  val log = Logger(this.getClass)
 
   val loginForm = Form(
     tuple(
       "id" -> text,
-      "password" -> text) verifying ("Username or password does not match", result => result match {
+      "password" -> text) verifying ("Username or password error", result => result match {
         case (id, secret) => dal.authenticate(id, secret).isDefined
       }))
 
@@ -39,24 +39,23 @@ object Auth extends Controller with UserComponent {
   /**
    * Handle login form submission.
    */
-  def authenticate = CSFRHelper.withToken { token => implicit request =>
-    loginForm.bindFromRequest.fold(
-      hasErrors => BadRequest(views.html.auth.login(hasErrors)),
-      valid => {
-       dal.updateVisitor(valid._1, Visitor(Some(request.remoteAddress))) 
-       wrapUp(valid._1) 
-      })
+  def authenticate = CSFRHelper.withToken { token =>
+    implicit request =>
+      loginForm.bindFromRequest.fold(
+        hasErrors => BadRequest(views.html.auth.login(hasErrors)),
+        valid => {
+          dal.updateVisitor(valid._1, Visitor(Some(request.remoteAddress)))
+          createSession(routes.Application.index(), valid._1)
+        })
   }
 
-  def wrapUp(id: String) = {
-    Redirect(routes.Application.index).withSession(
+  def createSession(call: Call ,id: String) = {
+    Redirect(call).withSession(
       Security.username -> id,
-      "checked_in" -> System.currentTimeMillis().toString())
-
-    //TO-DO: Do we need this ?
-    //.withHeaders(
-    //  CACHE_CONTROL -> "max-age=3600",
-    //  ETAG -> "xx")
+      "expires" -> (System.currentTimeMillis() + 4 * 3600).toString)
+      .withHeaders(
+        CACHE_CONTROL -> "max-age=14400",
+        ETAG -> "xx")
   }
 
   /**
@@ -99,7 +98,7 @@ object Auth extends Controller with UserComponent {
         CSRF.getToken(request) match {
           case None => BadRequest("CSRF token error!")
           case Some(token) => {
-            log.info("Processing signed request token: {}", token)
+            log.info("Processing signed request ${request} with token: ${token}")
             f(token)(request)
           }
         }

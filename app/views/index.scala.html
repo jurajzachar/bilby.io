@@ -1,7 +1,7 @@
-@(username: String)
+@(username: Option[String])
 @title ={
 	<small>Hello @username!</small>
 }
-@main(Some(title), "home", username) {
-    
+@main(Some(title), "Home", username) {
+    <div class="bilby-bg"></div>
 }

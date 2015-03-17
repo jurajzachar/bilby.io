@@ -1,23 +1,21 @@
 package components
 
-import play.api.db.slick.Config
-import io.strongtyped.active.slick.ActiveSlick
-import scala.slick.driver.JdbcDriver
-import org.slf4j.LoggerFactory
-import models._
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
-import scala.language.postfixOps
 import java.nio.file.StandardOpenOption
+
+import scala.language.postfixOps
+import scala.slick.driver.JdbcDriver
+
+import io.strongtyped.active.slick.ActiveSlick
+import play.api.db.slick.Config
 
 class ActiveSlickCake(override val jdbcDriver: JdbcDriver)
   extends ActiveSlick with Schema with SchemaExtensions {
 
   import jdbcDriver.simple._
   
-  val evolutionsFile = "./conf/evolutions/default/0.sql"
-  val logger = LoggerFactory.getLogger(this.getClass)
+  val evolutionsFile = "./conf/evolutions/default/1.sql"
 
   def createSchema(implicit session: Session) = {
     ddl.create

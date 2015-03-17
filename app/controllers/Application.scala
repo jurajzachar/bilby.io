@@ -1,13 +1,9 @@
 package controllers
 
-import play.api._
-import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
-import org.slf4j.{ Logger, LoggerFactory }
+import play.api.mvc.Action
+import play.api.mvc.Controller
 
 object Application extends Controller with Auth.Secured {
-  val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   //  def index = Action { request =>
   //    request.session.get("userName").map {
@@ -18,11 +14,11 @@ object Application extends Controller with Auth.Secured {
 
   def index = Action {
     request =>
-      Ok(views.html.index(username(request).getOrElse("")))
+      Ok(views.html.index(username(request)))
   }
 
     def about = Action {
     request =>
-      Ok(views.html.about(username(request).getOrElse("")))
+      Ok(views.html.about(username(request)))
   }
 }

@@ -1,26 +1,28 @@
 package controllers
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
 import components.UserBindings
 import controllers.Auth.CSFRHelper
 import models.Visitor
 import play.api.mvc.Action
 import play.api.mvc.Controller
+import play.api.mvc.Security
+import play.api.Logger
 
 object Signup extends Controller with UserBindings {
 
-  val logger: Logger = LoggerFactory.getLogger(this.getClass())
+  val logger: Logger = Logger(this.getClass())
 
   /**
    * Display an empty form.
    */
-  def init = CSFRHelper.withToken { token => implicit request =>
-    Ok(views.html.signup.init(form));
+  def init = CSFRHelper.withToken { token =>
+    implicit request =>
+      //if a logged in user attempts to signup then he gets logged out. 
+      Ok(views.html.signup.init(form)).withSession(request.session - Security.username) 
   }
 
-  def submit = CSFRHelper.withToken { token => implicit request =>
+  def submit = CSFRHelper.withToken { token =>
+    implicit request =>
       form.bindFromRequest.fold(
         // Form has errors, redisplay it
         errors => {
@@ -33,12 +35,14 @@ object Signup extends Controller with UserBindings {
           val result = dal.signUpNewUser(
             (Visitor(Some(request.remoteAddress), System.currentTimeMillis()), userCombo._2, userCombo._1))
           result match {
-            case Left(user)    => Ok(views.html.account.summary(user, Some(userCombo._2)))
+            case Left(user)    => Auth.createSession(
+                routes.Accounter.user(user.username), user.username)
             case Right(reject) => BadRequest(views.html.signup.init(form.fill(null, null)))
           }
         })
   }
 
+  /* TODO */
   def change = Action {
     Ok("TODO")
   }

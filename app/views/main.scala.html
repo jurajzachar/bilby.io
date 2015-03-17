@@ -1,60 +1,51 @@
-@(title: Option[Html], nav: String = "", username: String)(content: Html)(implicit footer: Boolean = true, width: Int = 60)
+@(title: Option[Html], nav: String = "Not Found", username: Option[String] = None)(content: Html)(implicit footer: Boolean = true, width: Int = 60)
 
-@import tags.menu
+@import tags.navbar
  
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Bilby: @nav</title>
-         
-         <!--  
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/bootstrap.css")">
-         -->
-         
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/bootswatch.css")">
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/main.css")"> 
-        <script src="@routes.Assets.at("js/jquery-1.10.2.min.js")" type="text/javascript"></script>
-        <script src="@routes.Assets.at("js/bootstrap.min.js")" type="text/javascript"></script>
-        <script src="@routes.Assets.at("js/html5shiv.js")" type="text/javascript"></script>
-        <!--   
-        	<script src="@routes.Assets.at("js/less-1.7.5.min.js")"" type="text/javascript"></script>
-        -->
-    </head>
+	<head>
+	    <title>Bilby: @nav</title>
+	     
+	    <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/bootswatch-journal.css")">
+	    <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/bootstrap-tagsinput.css")">
+	    <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/bilby.css")">
+	    <script src="@routes.Assets.at("js/jquery-1.10.2.min.js")" type="text/javascript"></script>
+	    <script src="@routes.Assets.at("js/bootstrap.min.js")" type="text/javascript"></script>
+	    <script src="@routes.Assets.at("js/bootstrap-tagsinput.min.js")" type="text/javascript"></script>
+	    <script src="@routes.Assets.at("js/html5shiv.js")" type="text/javascript"></script>
+	    <script src="@routes.Assets.at("js/less-1.7.5.min.js")"" type="text/javascript"></script>
+	    <script src="@routes.Assets.at("js/bilby.js")"" type="text/javascript"></script>
+	</head>
+
+<!-- Wrap all page content here -->
+<div id="wrap">    
     <body>
-    	
     	<!-- Menu -->
-		@menu(title, username, nav)
-		
+		@navbar(username, nav, width)
+		@if(width != 100){
         <div class="@("container container-" + width)">
-
-			<div class="content">
-				
-				<div class="page-header @("none".when(title == None))"">
-					@title
-				</div>
-				 
-				<div class="row">
-					<div class="col-lg-12">
-						<div class="well">
-							@content
-						</div>
-					</div>
-				</div>
-				
-			</div>
-			
-			
-			<footer class="@("none".when(!footer))">
-				<p>
-				The Artistic License 2.0,
-				Copyright (c) 2014 
-				<a href="mailto:juraj.zachar@@egmail.com?Subject=Hello%20from%20Bilby.io" target="_top">
-					Juraj Zachar
-				</a>
-				</p>
-			</footer>
-
+		} else {
+		<div class="@("container-fluid")">
+		}
+		
+		@if(title.isDefined){
+			<div class="page-header">@title</div>
+		 }
+		
+		 <div class="content">@content</div>
+		
+		@if(footer){
+		<footer>
+			<p>
+			The Artistic License 2.0,
+			Copyright (c) 2014 
+			<a href="mailto:juraj.zachar@@egmail.com?Subject=Hello%20from%20Bilby.io" target="_top">
+			Juraj Zachar</a>
+			</p>
+		</footer>
+		}
 		</div>
-        
     </body>
+   </div> 
 </html>

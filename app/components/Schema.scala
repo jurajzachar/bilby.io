@@ -2,7 +2,6 @@ package components
 
 import scala.slick.lifted.ProvenShape
 import scala.slick.lifted.ProvenShape.proveShapeOf
-
 import io.strongtyped.active.slick.Profile
 import io.strongtyped.active.slick.TableQueries
 import io.strongtyped.active.slick.Tables
@@ -12,6 +11,10 @@ import models.User
 import models.UserProfile
 import models.Visitor
 import play.api.libs.json.Json
+import scala.slick.driver.JdbcDriver
+import models.PieceOverview
+import scala.slick.jdbc.GetResult
+import scala.language.postfixOps
 
 trait Schema { this: Tables with TableQueries with Profile =>
 
@@ -25,16 +28,16 @@ trait Schema { this: Tables with TableQueries with Profile =>
     /** database column for title */
     val title = column[String]("title")
     /** database column for short summary (should be limited in length --> 600 characters) **/
-    val shortSummary = column[Array[Byte]]("short_summary")
+    val shortSummary = column[String]("short_summary", O.DBType("text"), O.Nullable)
     /** titleCoverUrl **/
-    val titleCover = column[Array[Byte]]("title_cover")
+    val titleCover = column[String]("title_cover", O.DBType("text"), O.Nullable)
     /** database column for publishing timestamp **/
-    val published = column[Option[Long]]("published")
+    val published = column[Option[Long]]("published", O.Nullable)
     val authorId = column[Long]("author_id")
-    val tags = column[Array[Byte]]("tags")
+    val tags = column[String]("tags", O.DBType("text"), O.Nullable)
     val rating = column[Double]("rating")
-    val source = column[Array[Byte]]("source")
-
+    val source = column[String]("source", O.DBType("text"))
+    
     def * : ProvenShape[Piece] = {
       val shapedValue = (id.?, title, shortSummary, titleCover, published, authorId, tags, rating, source).shaped
       shapedValue.<>({
@@ -46,21 +49,21 @@ trait Schema { this: Tables with TableQueries with Profile =>
             new String(tuple._4).map(_.toChar),
             tuple._5,
             tuple._6,
-            Json.parse(new String(tuple._7).map(_.toChar)).as[Set[String]],
+            Json.parse(tuple._7).as[Set[String]],
             tuple._8,
-            new String(tuple._9).map(_.toChar))
+            tuple._9)
       }, {
         (p: Piece) =>
           Some {
             (p.id,
               p.header.title,
-              p.header.shortSummary.getBytes,
-              p.header.titleCoverUrl.toString().getBytes,
+              p.header.shortSummary,
+              p.header.titleCoverUrl.toExternalForm(),
               p.published,
               p.authorId,
-              Json.stringify(Json.toJson(p.header.tags)).getBytes,
+              Json.stringify(Json.toJson(p.header.tags)),
               p.rating,
-              p.header.source.getBytes)
+              p.header.source)
           }
       })
     }
@@ -69,6 +72,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
     lazy val authorIdFk = foreignKey("author_id", authorId, UsersTable)(u => u.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
   }
 
+  //lazy val PiecesTable = new TableQuery(tag => new PiecesTable(tag))
   lazy val PiecesTable = new TableQuery(tag => new PiecesTable(tag))
 
   /** Table description of Visitor. */
@@ -122,7 +126,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
     /** Database column password (encrypted) */
     val password = column[String]("password")
     /** Database column avatar url **/
-    val avatarUrl = column[Array[Byte]]("avatar_url")
+    val avatarUrl = column[String]("avatar_url", O.DBType("text"), O.Nullable)
     /** Database column authentication method. **/
     val authMethod = column[String]("auth_method")
     /** Database column oAuth1Info */
@@ -169,7 +173,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
             tuple._3,
             tuple._4,
             tuple._5,
-            new String(tuple._6.map(_.toChar)),
+            tuple._6,
             tuple._7,
             tuple._8,
             tuple._9,
@@ -185,7 +189,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
               u.username,
               u.email,
               u.password,
-              u.avatarUrl.getBytes,
+              u.avatarUrl,
               u.authMethod,
               u.oAuth1Info,
               u.oAuth2Info,
@@ -205,7 +209,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
   class FollowersTable(tag: Tag) extends Table[Follower](tag, "follower") {
     /** Database column id AutoInc, PrimaryKey */
     val id = column[Long]("id", O.PrimaryKey)
-    val fids = column[Array[Byte]]("fids", O.NotNull)
+    val fids = column[String]("fids", O.DBType("text"), O.Nullable)
 
     /** Foreign key referencing User (database name userprofile_id) */
     lazy val userFk = foreignKey("id", id, UsersTable)(r => r.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
@@ -218,7 +222,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
       }, {
         (f: Follower) =>
           Some {
-            (f.id, Json.stringify(Json.toJson(f.fids)).getBytes)
+            (f.id, Json.stringify(Json.toJson(f.fids)))
           }
       })
     }

@@ -1,18 +1,20 @@
 package components
 
+import scala.Left
+import scala.Right
 import scala.language.implicitConversions
 import scala.slick.jdbc.StaticQuery.interpolation
 import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
+
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.LoggerFactory
+
 import models.User
 import models.UserProfile
 import models.Visitor
 import play.api.Play.current
 import play.api.db.slick.DB
 import play.api.db.slick.Session
-import scala.slick.jdbc.StaticQuery
-import scala.slick.jdbc.SQLInterpolation
 
 trait UserComponent {
 

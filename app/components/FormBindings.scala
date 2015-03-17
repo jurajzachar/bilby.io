@@ -1,13 +1,23 @@
 package components
+
+import java.net.URL
 import scala.language.implicitConversions
 import org.mindrot.jbcrypt.BCrypt
+import models.PieceFormInfo
+import models.Reserved
+import models.User
+import models.UserProfile
 import play.api.Play.current
 import play.api.data.Form
-import play.api.data.Forms._
-import models.{ User, UserProfile, Reserved }
-import models.Piece
-import java.net.URL
-import models.PieceFormInfo
+import play.api.data.Forms.checked
+import play.api.data.Forms.email
+import play.api.data.Forms.mapping
+import play.api.data.Forms.number
+import play.api.data.Forms.optional
+import play.api.data.Forms.text
+import play.api.data.Forms.tuple
+import play.api.libs.json.Json
+import scala.collection.SortedSet
 
 trait FormBindings[M] {
   def form: Form[M]
@@ -15,18 +25,20 @@ trait FormBindings[M] {
 
 trait PieceBindings extends FormBindings[PieceFormInfo] with PieceComponent {
   
-  val max1MSource = 1000 * 1000
+  val max1MSource = 1000 * 1000 //1MB
   
   def form: Form[PieceFormInfo] =
     Form(
       mapping(
-        "title" -> text(minLength = 1, maxLength = 100),
+        "title" -> text(minLength = 4, maxLength = 75),
         "shortSummary" -> text(maxLength = 300),
         "titleCoverUrl" -> optional(text),
         "tags" -> text, //TODO
-        "source" -> text(maxLength = max1MSource))(bindFormInfo)(unbindFormInfo))
+        "source" -> text(maxLength = max1MSource))
+        (bindPieceFormInfo)
+        (unbindPieceFormInfo))
 
-  def bindFormInfo(
+  def bindPieceFormInfo(
     title: String,
     shortSummary: String,
     titleCoverUrl: Option[String],
@@ -35,13 +47,18 @@ trait PieceBindings extends FormBindings[PieceFormInfo] with PieceComponent {
     PieceFormInfo(
       title,
       shortSummary,
-      new URL(titleCoverUrl.getOrElse("")),
-      tags.split(",").toSet,
+      new URL(titleCoverUrl.getOrElse("http://...")),
+      tags.split(",").toSet, //instead of json, $("#tags").val(); yields comma delimeted strings
       source)
   }
 
-  def unbindFormInfo(p: PieceFormInfo): Option[(String, String, Option[String], String, String)] = {
-    Option((p.title, p.shortSummary, Option(p.titleCoverUrl.toString()), p.tags.toList.mkString(","), p.source))
+  def unbindPieceFormInfo(p: PieceFormInfo): Option[(String, String, Option[String], String, String)] = {
+    Option((
+        p.title, 
+        p.shortSummary, 
+        Option(p.titleCoverUrl.toString()), 
+        {if(p.tags.size > 0) Json.stringify(Json.toJson(SortedSet[String]() ++ p.tags)) else ""}, 
+        p.source))
   }
   
 }
