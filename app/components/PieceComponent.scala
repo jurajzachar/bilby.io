@@ -29,7 +29,7 @@ trait PieceComponent {
 
     import cake._
     val logger = Logger(this.getClass)
-    
+
     def processURL(str: String): URL =
       Try(new URL(str)).getOrElse(new URL("http://"))
 
@@ -84,9 +84,25 @@ trait PieceComponent {
         case Some(x) if (isOwner(x, authorId)) => {
           DB.withSession {
             implicit session: Session =>
-              Pieces.findById(x).fromUpdatedHeader(pieceFormInfo).update
+              Pieces.findById(x).copy(pieceFormInfo).update
           }
         }
+      }
+    }
+
+    def publish(id: Long) = {
+      DB.withSession {
+        implicit session: Session =>
+          Pieces.findById(id).copy(
+              published = Some(System.currentTimeMillis())).update.id.get
+      }
+    }
+
+    def unpublish(id: Long) = {
+      DB.withSession {
+        implicit session: Session =>
+          Pieces.findById(id).copy(
+              published = None).update.id.get
       }
     }
 

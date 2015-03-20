@@ -3,10 +3,17 @@
 @import helper._
 @import b3.inline.fieldConstructor
 
-@main(Some(Html("My Contributions")), nav = "My Contributions", Some(username)) {
+@getDate(timestamp: Long) = @{
+  new java.util.Date(timestamp)
+}
+
+@main(Some(Html("My Posts")), nav = "View Existing", Some(username)) {
 	<script>
 		$(document).ready(function() {
 			fadeOutAlerts(2000); //2 sec
+			$(function () {
+				  $('[data-toggle="tooltip"]').tooltip()
+				}) //init tooltips
 		});
 	</script>
 	@flash.get("success").map { message =>
@@ -18,7 +25,7 @@
 	<div class="panel panel-default">
   		<div class="panel-heading">
     		<h3 class="panel-title">You have @pieces.size @if(pieces.size > 1){
-    			Contributions } else { Contribution }</h3>
+    			posts } else { post }</h3>
   		</div>
   		<div class="panel-body">
     		<table class="table table-striped table-hover">
@@ -26,51 +33,71 @@
 			         <tr>
 			         	<th>Title</th>
 			         	<th>Short Summary</th>
+			         	<th>Tags</th>
+			         	<th>Rating</th>
 			         	@if(pieces.exists(_.published.isDefined)){
 			         		<th>Published</th>
 			         	}
-			         	<th>Tags</th>
-			         	<th>Rating</th>
+			         	<th colspan=3>Actions</th>
 			         </tr>
 		         </thead>
 		         <tbody>
-		         	@for(p <- pieces) {
+		         	@for(p <- pieces.sortBy(_.title) ) {
 		         		@b3.form(routes.PieceKeeper.overviewAction(p.id)) {
 			         		@CSRF.formField
 							<tr>
-		           				<td>@p.title</td>
-		           				@if(p.shortSummary.length > 50){
-		           					<td>@p.shortSummary.substring(0, 50) ...</td>
+		           				<td>
+		           					@if(p.published.isDefined){<span class="glyphicon glyphicon-pushpin published"></span>}
+		           					@p.title
+		           				</td>
+		           				@if(p.shortSummary.length > 100){
+		           					<td>@p.shortSummary.substring(0, 100) ...</td>
 		           				}else{
 		           					<td>@p.shortSummary</td>
 		           				}
 		           				@if(p.tags.size > 0){
 									<td>
-										@p.tags.mkString(", ")
+										@for(t <- p.tags){
+											<span class="hashtag">@t</span>
+										}
 									</td>
 								}	           				
 		           				<td>@p.rating</td>
 		         				@if(p.published.isDefined){
-		         					<td>@p.published</td>
-		         				}else {
-			         			<td>
-				         			 @b3.submit(
-										       	'class -> "btn btn-xs btn-success", 
-										       	'name -> "action", 
-										       	'value ->"publish"){ <span class="glyphicon glyphicon-globe"></span> Publish } 
-				         		</td>
-			         			}
-			         			<td>
-			         				@b3.submit(
-										       	'class -> "btn btn-xs btn-primary", 
-										       	'name -> "action", 
-										       	'value ->"edit"){ <span class="glyphicon glyphicon-pencil"></span> Edit } 
-				         		</td>
-			         			<td>
-		         					<button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#confirmDelete-@p.id">
-									  	Delete
-									</button>
-								</td>
+		         					<td>
+		         						@getDate(p.published.get)
+	         						</td>
+	         						<td>
+					         			 <div class="form-group">
+						         			 <button type="submit" class="btn btn-xs btn-default" name="action" value="unpublish" data-toggle="tooltip" 
+						         			 	data-placement="left" title="Take It Offline"> 
+						         			 	<span class="glyphicon glyphicon-globe"></span> 
+						         			 </button> 
+					         			 </div>
+	         						
+		         				} else {
+	         						<td>n/a</td>
+				         			<td>
+				         			<div class="form-group">
+						         			 <button type="submit" class="btn btn-xs btn-success" name="action" value="publish" data-toggle="tooltip" 
+						         			 data-placement="left" title="Publish"> 
+						         			 	<span class="glyphicon glyphicon-globe"></span> 
+						         			 </button> 
+					         		</div>
+				         	}
+			         				<div class="form-group">
+						         			 <button type="submit" class="btn btn-xs btn-primary" name="action" value="edit" data-toggle="tooltip" 
+						         			 data-placement="left" title="Edit"> 
+						         			 	<span class="glyphicon glyphicon-pencil"></span> 
+						         			 </button> 
+					         		</div>
+						         		<span data-toggle="modal" data-target="#confirmDelete-@p.id">
+				         					<button type="button" class="btn btn-xs btn-danger" class="btn btn-xs btn-primary" name="action" value="edit" data-toggle="tooltip" 
+								         			 data-placement="left" title="Delete">
+											  <span class="glyphicon glyphicon-trash"></span>
+											</button>
+										</span>
+									</td>
 							</tr>
 							 
 							<div class="modal fade" id="confirmDelete-@p.id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

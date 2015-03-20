@@ -51,10 +51,6 @@ case class Piece(
     case _ => false
   }
 
-  def fromUpdatedHeader(updatedHeader: PieceFormInfo): Piece = {
-    Piece(updatedHeader, published, authorId, rating, id)
-  }
-
 }
 
 /** this is used to do a source-less read-only projection **/

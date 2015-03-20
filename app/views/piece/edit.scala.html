@@ -35,7 +35,7 @@
 								maxTags : 10,
 								maxChars : 15,
 								trimValue : true,
-								tagClass : "label label-default hashtag"
+								tagClass : "label label-default hashtag heavy"
 							});
 							//load tags, not sure why this is not done automatically...
 							var source = jQuery.parseJSON($("#tags").val());
@@ -88,14 +88,6 @@
 								      @input
 								    </div>
 									  }
-							       @b3.submit(
-							       	'class -> "btn btn-xs btn-primary", 
-							       	'name -> "action", 
-							       	'value ->"save"){ <span class="glyphicon glyphicon-pencil"></span> Save } 
-							       @b3.submit(
-							       	'class -> "btn btn-xs btn-success", 
-							       	'name -> "action",
-							       	'value ->"publish"){ <span class="glyphicon glyphicon-globe"></span> Publish } 
 		   					   </div>
 		   					  
 						      <div class=".col-md-4 collapsible">
@@ -110,6 +102,16 @@
 							          'rows -> 3, 
 							          'placeholder -> "Tag me!"
 							       )
+							       <div class="btn-group">
+								        @b3.submit(
+								       	'class -> "btn btn-xs btn-primary editor-actions", 
+								       	'name -> "action", 
+								       	'value ->"save"){ <span class="glyphicon glyphicon-pencil"></span> Save } 
+								       @b3.submit(
+								       	'class -> "btn btn-xs btn-success editor-actions", 
+								       	'name -> "action",
+								       	'value ->"publish"){ <span class="glyphicon glyphicon-globe"></span> Publish } 
+							       	</div>
 							    <div class="hidden">
 							       	@b3.textarea(
 							       		pieceForm("source"),
