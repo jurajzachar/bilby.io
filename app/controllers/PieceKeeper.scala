@@ -2,30 +2,26 @@ package controllers
 
 import components.PieceBindings
 import components.PieceComponent
-import models.Piece
 import models.PieceFormInfo
 import models.User
 import play.api.Logger.logger
 import play.api.Play.current
-import play.api.data.Form
 import play.api.db.slick.DB
+import play.api.db.slick.Session
 import play.api.mvc.Action
 import play.api.mvc.AnyContent
-import play.api.mvc.Call
 import play.api.mvc.Controller
 import play.api.mvc.Request
 import play.api.mvc.Result
 import play.api.mvc.Results
-import play.api.Play.current
-import play.api.db.slick.DB
-import play.api.db.slick.Session
-import play.utils.UriEncoding
+import play.api.libs.json.Json
+import components.JsonConversions._
 
 object PieceKeeper extends Controller
   with PieceBindings
   with Auth.Secured
   with Authorized {
-
+    
   /* this will go away once i figure out how to use localized messages */
   val draftSavedMsg = "Your draft has been saved."
   val publishMsg = "Your draft has been published."
@@ -33,10 +29,11 @@ object PieceKeeper extends Controller
   val pieceDeletedMsg = "Your post has been deleted."
   val notAllowedMsg = "This action is not allowed"
 
-  trait PieceAction {}
+  sealed trait PieceAction {}
   case class Save(id: Long, author: User) extends PieceAction
   case class Publish(id: Long, author: User, hasFormData: Boolean) extends PieceAction
   case class Unpublish(id: Long, author: User) extends PieceAction
+  case class Preview(id: Long, author: User, title: String) extends PieceAction
 
   /**
    * Read only rendering of pieces.
@@ -45,8 +42,11 @@ object PieceKeeper extends Controller
    */
   def render(uri: String) = Action {
     request =>
-      //not implemented
-      Ok(views.html.index(username(request)))
+      dal.findByUri(uri) match {
+        case (Some(piece), Some(author)) => Ok(views.html.piece.render(piece, author, username(request)))
+        case (_, _)                      => NotFound(views.html.notfound(request.path))
+      }
+
   }
 
   /**
@@ -54,7 +54,7 @@ object PieceKeeper extends Controller
    */
   def list = withUser { user =>
     implicit request =>
-      Ok(views.html.piece.list(user.username, dal.listAll(user.id.get)))
+      Ok(views.html.piece.list(user.username, dal.fetchAll(user.id.get)))
 
   }
 
@@ -151,6 +151,22 @@ object PieceKeeper extends Controller
     }
 
   }
+
+  def previewUri(action: Preview) = {
+    EncodedPieceIdUri.unapply(action.id, action.author.username, action.title)
+  }
+
+  def preview(id: Long)(implicit request: Request[_]) = {
+    DB.withSession {
+      implicit session: Session =>
+        {
+          val piece = dal.cake.Pieces.findById(id)
+          val author = dal.cake.Users.findById(piece.authorId).username
+           Ok(Json.obj("piece" -> Json.toJson(piece), "author" -> author)) 
+        }
+    }
+  }
+
   def editorAction(id: Long) = withAuthorOf(id) { user =>
     implicit request =>
       request.body.asFormUrlEncoded.get("action").headOption match {
@@ -160,17 +176,20 @@ object PieceKeeper extends Controller
       }
   }
 
-  def overviewAction(id: Long) = withAuthorOf(id) { user =>
+  def overviewAction(id: Long, title: String) = withAuthorOf(id) { user =>
     implicit request =>
       request.body.asFormUrlEncoded.get("action").headOption match {
-        case Some("publish")  => publish(Publish(id, user, false))(request)
+        case Some("publish")   => publish(Publish(id, user, false))(request)
         case Some("unpublish") => publish(Unpublish(id, user))(request)
-        case Some("edit")     => Redirect(routes.PieceKeeper.edit(id))
-        case Some("delete")   => delete(id, user)(request)
-        case _                => BadRequest(notAllowedMsg)
+        case Some("edit")      => Redirect(routes.PieceKeeper.edit(id))
+        //case Some("preview")   => Redirect(routes.PieceKeeper.render(previewUri(Preview(id, user, title))))
+        case Some("preview")   => preview(id)(request)
+        case Some("delete")    => delete(id, user)(request)
+        case _                 => BadRequest(notAllowedMsg)
       }
   }
 }
+
 trait Authorized extends Auth.Secured {
   dal: PieceComponent =>
 

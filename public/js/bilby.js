@@ -1,6 +1,19 @@
 /* utils used at bilby.io to aid bootstrap */
+/**
+ * recompute page-header padding with respect to the navbar... TODO: find pure
+ * CSS solution *
+ */
+function remarginPageHeader() {
+		var nav_height = $('.navbar').height() + 10; 
+		$(".page-header").css({
+			marginTop : nav_height
+		});
+}
 
-/** for edit.piece.scala.html -> count remaining characters inside input source and update child tooltip * */
+/**
+ * for edit.piece.scala.html -> count remaining characters inside input source
+ * and update child tooltip *
+ */
 function countChars(source, text_max) {
 	$(source).keyup(
 			function() {
@@ -13,7 +26,7 @@ function countChars(source, text_max) {
 			});
 }
 
-/** for edit.piece.scala.html -> activates a retractor button **/
+/** for edit.piece.scala.html -> activates a retractor button * */
 function activateRetractor(controller, data_source, target) {
 	$(controller).click(function() {
 		$('.collapsible').slideToggle('slow');
@@ -40,8 +53,8 @@ function fadeOutAlerts(timeout) {
 	}, timeout);
 }
 
-$(".modal").each(function(modal){
-	$(this).click(function(){
-	    $(this).modal();
-	  });
-  });
+$(".modal").each(function(modal) {
+	$(this).click(function() {
+		$(this).modal();
+	});
+});

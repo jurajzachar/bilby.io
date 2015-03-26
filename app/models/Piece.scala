@@ -1,9 +1,12 @@
 package models
 
 import java.net.URL
+
 import scala.language.implicitConversions
-import io.strongtyped.active.slick.models.Identifiable
 import scala.slick.jdbc.GetResult
+
+import components.JsonConversions.pieceWrites
+import io.strongtyped.active.slick.models.Identifiable
 import play.api.libs.json.Json
 
 object Piece {
@@ -50,10 +53,10 @@ case class Piece(
       (this.header.equals(that.header) && this.header.equals(that.header.source))
     case _ => false
   }
-
+  override def toString = Json.toJson(this).toString
 }
 
-/** this is used to do a source-less read-only projection **/
+/** this is used to do a source-less read-only listing projection **/
 case class PieceOverview(
   id: Long,
   author_id: Long,
@@ -63,7 +66,7 @@ case class PieceOverview(
   published: Option[Long],
   rating: Double)
 
-/** this is used to bind editor**/
+/** this is used to bind editor form**/
 case class PieceFormInfo(
   title: String,
   shortSummary: String,

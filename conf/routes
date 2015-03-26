@@ -24,8 +24,11 @@ POST	/piece/create						  controllers.PieceKeeper.editorAction(id: Long ?=0)
 GET 	/piece/edit/:id						  controllers.PieceKeeper.edit(id: Long)
 POST	/piece/edit/:id						  controllers.PieceKeeper.editorAction(id: Long)	
 GET		/piece/list							  controllers.PieceKeeper.list
-POST 	/piece/list							  controllers.PieceKeeper.overviewAction(id: Long)
+POST 	/piece/list							  controllers.PieceKeeper.overviewAction(id: Long, title: String)
 GET 	/dwell/*uri						  	  controllers.PieceKeeper.render(uri)	
-				  	 	 
+
+# javascript routes
+GET     /jsroutes.js                		  controllers.JsRoutes.all
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

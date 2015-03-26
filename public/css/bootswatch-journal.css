@@ -1653,7 +1653,7 @@ a.bg-danger:hover {
 
 .page-header {
 	padding-bottom: 9.5px;
-	margin: 50px 0 21px;
+	margin: 70px 0px 20px 0px;
 	border-bottom: 1px solid #eeeeee;
 }
 
@@ -2598,7 +2598,7 @@ th {
 
 .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td,
 	.table>tbody>tr>td, .table>tfoot>tr>td {
-	padding: 8px;
+	padding: 10px;
 	line-height: 1.42857143;
 	vertical-align: top;
 	border-top: 1px solid #dddddd;

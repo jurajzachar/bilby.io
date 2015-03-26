@@ -5,6 +5,7 @@ import scala.slick.jdbc.StaticQuery.interpolation
 import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
 import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
 import scala.util.Try
+import scala.util.Success
 import models.Piece
 import models.Piece._
 import models.PieceFormInfo
@@ -15,11 +16,37 @@ import scala.slick.lifted.Rep
 import scala.slick.lifted.Column
 import models.PieceOverview
 import play.api.Logger
+import play.utils.UriEncoding
+import models.User
 
 /**
  * @author juri
  */
 trait PieceComponent {
+
+  case object EncodedPieceIdUri {
+    //Uri encoded id-user-title
+    private val uriF = "%d-%s-%s"
+    private val uriR = """(\d+)-(\w+)-""".r //capture id and author's username
+
+    def unapply(id: Long, authorUserName: String, title: String) =
+      uriF.format(id, authorUserName, UriEncoding.encodePathSegment(title, "UTF-8"))
+
+    def apply(encodedPieceIdUri: String): (Option[Long], Option[String]) = {
+      uriR.findFirstMatchIn(encodedPieceIdUri) match {
+        case Some(matches) => {
+          matches.subgroups match {
+            case Nil => (None, None) //invalid
+            case id :: author => (Try(java.lang.Long.parseLong(id)), Try(author.head)) match {
+              case (Success(id), Success(author)) => (Some(id), Some(author))
+              case _                              => (None, None)
+            }
+          }
+        }
+        case None => (None, None)
+      }
+    }
+  }
 
   def initComponent(cake: ActiveSlickCake = ActiveSlickCake.cake) = new PieceComponent(cake)
 
@@ -48,9 +75,17 @@ trait PieceComponent {
             end as is_owner from piece where id = $pieceId """.as[Boolean].first
       }
     }
-
-    /** use PieceOverviews to minimize memory footprint **/
-    def listAll(authorId: Long) = {
+    
+    def fetchAll(authorId: Long): List[Piece] = {
+      import scala.slick.driver.JdbcDriver.simple._
+      DB.withSession {
+        implicit session: Session =>
+          cake.Pieces.filter(_.authorId === authorId).sortBy(_.id).list;
+      }
+    }
+    
+    /** TODO: use PieceOverviews to minimize memory footprint FIXME: how to get templates work wtih ajax load?**/
+    def fetchAllOverviews(authorId: Long) = {
       DB.withSession {
         implicit session: Session =>
           Q.queryNA[PieceOverview](s"""select id, 
@@ -60,6 +95,16 @@ trait PieceComponent {
                         tags, 
                         published, 
                         rating from piece where author_id = $authorId""").list
+      }
+    }
+    
+    def findByUri(uri: String): (Option[Piece], Option[String]) = {
+      EncodedPieceIdUri(uri) match {
+        case (Some(id), Some(author)) => DB.withSession {
+          implicit session: Session =>
+            (cake.Pieces.findOptionById(id), Some(author))
+        }
+        case (_,_) => (None, None)
       }
     }
 
@@ -80,7 +125,7 @@ trait PieceComponent {
           }
         }
         //we are dealing with and existing piece, 
-        //which may or may not have been published yet...TODO
+        //which may or may not have been published
         case Some(x) if (isOwner(x, authorId)) => {
           DB.withSession {
             implicit session: Session =>
@@ -89,12 +134,12 @@ trait PieceComponent {
         }
       }
     }
-
+    
     def publish(id: Long) = {
       DB.withSession {
         implicit session: Session =>
           Pieces.findById(id).copy(
-              published = Some(System.currentTimeMillis())).update.id.get
+            published = Some(System.currentTimeMillis())).update.id.get
       }
     }
 
@@ -102,7 +147,7 @@ trait PieceComponent {
       DB.withSession {
         implicit session: Session =>
           Pieces.findById(id).copy(
-              published = None).update.id.get
+            published = None).update.id.get
       }
     }
 

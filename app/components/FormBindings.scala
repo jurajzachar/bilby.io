@@ -73,7 +73,7 @@ trait UserBindings extends FormBindings[(User, UserProfile)] with UserComponent 
 
     // Define a mapping that will handle User values
     mapping(
-      "username" -> text(minLength = 6),
+      "username" -> text(minLength = 4),
       "email" -> email.verifying(
         "This email address is already registered.",
         email =>

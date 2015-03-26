@@ -1,0 +1,5 @@
+@(piece: models.Piece, author: String, username: Option[String])
+
+@main(Some(components.title(piece, author)), nav = "Preview", username) { 
+	@components.content(piece, author)
+}(false)

@@ -1,0 +1,29 @@
+@import piece.components
+@import b3.inline.fieldConstructor
+@(piece: Piece, author: String)
+
+<div class="modal fade" tabindex="-1" id="preview-@piece.id.get" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Preview</h4>
+      </div>
+      
+      <div class="modal-body">
+       	@components.title(piece, author)
+		@components.content(piece, author)
+	  </div>
+      
+      <div class="modal-footer">
+		<div class="modal-controls">
+	      	@b3.free('class -> "clearfix"){
+	        	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        }
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
