@@ -8,20 +8,24 @@
 			<div id="@generatedId" class="piece-bg"></div>
 			<h2>@pieceHeader.title</h2>
 			<h4>
-				<small>by<a href="#"> @author.toUpperCase</a>,</small>
+				<small>by<a href="@routes.SearchEngine.findUser(author)"> @author.toUpperCase</a>,</small>
 				<small><span>views: 0</span></small> 
 			</h4>
 			<div class="piece-header-summary">
 				@pieceHeader.shortSummary
 			</div>
 			<div class="piece-header-stats container-fluid">
-				<div class="col-xs-9">
+				<div class="col-xs-12">
 				@if(pieceHeader.tags.size > 0){
+					<div class="stats-display">
 					@for(t <- pieceHeader.tags){
 						@if(t.size > 0){
-							<small><span class="hashtag">@t</span></small>
+							<a href="@routes.SearchEngine.findByTag(t)">
+								<small><span class="tag label label-default hashtag">@t</span></small>
+							</a>
 						}
-					}
+					 }
+					 </div>
 				 }	           		
 					
 		  		<!--  

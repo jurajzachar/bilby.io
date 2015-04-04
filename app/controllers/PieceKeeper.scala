@@ -26,7 +26,7 @@ object PieceKeeper extends Controller
 
   /* this will go away once i figure out how to use localized messages */
   val draftSavedMsg = "Your draft has been saved."
-  val publishMsg = "Your draft has been published."
+  val publishMsg = "Your post has been published."
   val unpublishMsg = "Your post has been taken down."
   val pieceDeletedMsg = "Your post has been deleted."
   val notAllowedMsg = "This action is not allowed"
@@ -37,20 +37,29 @@ object PieceKeeper extends Controller
   case class Unpublish(id: Long, author: User) extends PieceAction
   case class Preview(id: Long, author: User, title: String) extends PieceAction
 
+  private def cachedWorld = {
+    Cache.getOrElse("world", 60){ 
+    DB.withSession {
+      implicit session: Session =>
+          val unsorted =
+          for(u <- dal.cake.Users.fetchAll)
+          yield (u.username, buildUserWorld(u.id.get))
+          dal.popularAndRecentFirst(unsorted)
+        }
+    }
+  }
+  
+  private def buildUserWorld(authorId: Long) = {
+    dal.fetchAll(authorId).filter(_.published.isDefined)
+  }
+  
   /**
    * FIXME
    */
   def getWorld = {
-    import scala.slick.driver.JdbcDriver.simple._
-    DB.withSession {
-      implicit session: Session =>
-        Cache.getOrElse("world", 15){
-        for(u <- dal.cake.Users.fetchAll)
-          yield (u.username, dal.fetchAll(u.id.get).filter(_.published.isDefined))
-        }
-    }
+    cachedWorld
   }
-
+  
   /**
    * Read only rendering of pieces.
    * TODO: setup sharing and privacy traits
@@ -115,7 +124,7 @@ object PieceKeeper extends Controller
   /**
    *  Secured deletion of contributions.
    */
-  def delete(id: Long, user: User)(implicit request: Request[_]) = {
+  private def delete(id: Long, user: User)(implicit request: Request[_]) = {
     dal.delete(id)
     Redirect(routes.PieceKeeper.list).flashing("success" -> pieceDeletedMsg)
   }

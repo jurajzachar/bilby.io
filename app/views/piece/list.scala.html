@@ -2,6 +2,7 @@
 
 @import helper._
 @import views.utils
+@import stringy.EnglishGrammar
 @import b3.inline.fieldConstructor
 
 @main(Some(Html("")), nav = "Manage Existing", Some(username)) {
@@ -21,8 +22,7 @@
 	}
 	<div class="panel panel-default">
   		<div class="panel-heading">
-    		<div class="panel-title">You have @pieces.size @if(pieces.size == 1){
-    			post } else { posts }
+    		<div class="panel-title">You have @pieces.size @EnglishGrammar.oneOrMore(pieces.size, "post")
     		</div>
   		</div>
   		<div class="panel-body">

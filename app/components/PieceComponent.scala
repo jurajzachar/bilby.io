@@ -56,7 +56,7 @@ trait PieceComponent {
     import cake._
     val logger = Logger(this.getClass)
 
-    def processURL(str: String): URL =
+    private def processURL(str: String): URL =
       Try(new URL(str)).getOrElse(new URL("http://"))
 
     def draft = PieceFormInfo(
@@ -74,7 +74,12 @@ trait PieceComponent {
             end as is_owner from piece where id = $pieceId """.as[Boolean].first
       }
     }
-    
+
+    def popularAndRecentFirst(stream: List[(String, List[Piece])]) = {
+      val tups = for (x <- stream; y <- x._2) yield (x._1, y)
+      tups.sortBy(x => (x._2.rating, x._2.published.get)).reverse
+    }
+
     def fetchAll(authorId: Long): List[Piece] = {
       import scala.slick.driver.JdbcDriver.simple._
       DB.withSession {
@@ -82,28 +87,28 @@ trait PieceComponent {
           cake.Pieces.filter(_.authorId === authorId).sortBy(_.id).list;
       }
     }
-    
+
     /** TODO: use PieceOverviews to minimize memory footprint FIXME: how to get templates work wtih ajax load?**/
-//    def fetchAllOverviews = {
-//      DB.withSession {
-//        implicit session: Session =>
-//          Q.queryNA[PieceOverview](s"""select id, 
-//                        author_id, 
-//                        title, 
-//                        short_summary, 
-//                        tags, 
-//                        published, 
-//                        rating from piece""").list
-//      }
-//    }
-    
+    //    def fetchAllOverviews = {
+    //      DB.withSession {
+    //        implicit session: Session =>
+    //          Q.queryNA[PieceOverview](s"""select id, 
+    //                        author_id, 
+    //                        title, 
+    //                        short_summary, 
+    //                        tags, 
+    //                        published, 
+    //                        rating from piece""").list
+    //      }
+    //    }
+
     def findPublishedByUri(uri: String): (Option[Piece], Option[String]) = {
       EncodedPieceIdUri(uri) match {
         case (Some(id), Some(author)) => DB.withSession {
           implicit session: Session =>
             (cake.Pieces.findOptionById(id).filter(_.published.isDefined), Some(author))
         }
-        case (_,_) => (None, None)
+        case (_, _) => (None, None)
       }
     }
 
@@ -133,7 +138,7 @@ trait PieceComponent {
         }
       }
     }
-    
+
     def publish(id: Long) = {
       DB.withSession {
         implicit session: Session =>

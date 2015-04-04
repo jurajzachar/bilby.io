@@ -19,9 +19,7 @@ object Application extends Controller with Auth.Secured {
    */
   def index =  Action {
     request =>
-      val tups = for(x <- PieceKeeper.getWorld; y <- x._2) yield (x._1, y)
-      val popularAndRecentFirst = tups.sortBy(x => (x._2.rating, x._2.published.get)).reverse
-      Ok(views.html.index(popularAndRecentFirst, username(request)))
+      Ok(views.html.index(PieceKeeper.getWorld, username(request)))
   }
 
   def about = Action {
