@@ -22,14 +22,10 @@
 	<div id="wrap">    
     <body>
     	<div class="container-60">
-    	<div class="@("container-fluid")">
-			
-			<div class="page-header"><h2>404</h2> <strong>The depths of the burrows were searched but nothing was found.</strong></div>
-		
-		 	<div class="content bilby-frame bilby-bg">
-		 		@param
-			</div>
-			<footer>
+	    	<div class="@("container-fluid")">
+	    		<h2>404: @param</h2>
+	    		<div class="content bilby-frame bilby-bg"></div>
+				The depths of the burrows were searched but nothing was found.
 				<form class="navbar-form navbar-center" role="search">
 				        <div class="form-group">
 				          <input type="text" class="form-control" placeholder="Search">
@@ -38,15 +34,18 @@
 						       	'class -> "btn btn-xs btn-default", 
 						       	'name -> "action", 
 						       	'value ->"search"){ <span class="glyphicon glyphicon-search"></span> Submit } 
+						 <a class="btn btn-xs btn-info form-group" href="@routes.Application.index">Go to homepage</a>      	
 				</form>
-				<p>
-				The Artistic License 2.0,
-				Copyright (c) 2014 
-				<a href="mailto:juraj.zachar@@egmail.com?Subject=Hello%20from%20Bilby.io" target="_top">
-				Blue Skiron</a>
-				</p>
-			</footer>
-			</div>	
+				<footer>
+				
+					<p>
+					The Artistic License 2.0,
+					Copyright (c) 2014 
+					<a href="mailto:juraj.zachar@@egmail.com?Subject=Hello%20from%20Bilby.io" target="_top">
+					Blue Skiron</a>
+					</p>
+				</footer>
+				</div>	
 			</div>
     </body>
    </div> 

@@ -14,7 +14,6 @@ import play.api.db.slick.DB
 import play.api.db.slick.Session
 import scala.slick.lifted.Rep
 import scala.slick.lifted.Column
-import models.PieceOverview
 import play.api.Logger
 import play.utils.UriEncoding
 import models.User
@@ -85,24 +84,24 @@ trait PieceComponent {
     }
     
     /** TODO: use PieceOverviews to minimize memory footprint FIXME: how to get templates work wtih ajax load?**/
-    def fetchAllOverviews(authorId: Long) = {
-      DB.withSession {
-        implicit session: Session =>
-          Q.queryNA[PieceOverview](s"""select id, 
-                        author_id, 
-                        title, 
-                        short_summary, 
-                        tags, 
-                        published, 
-                        rating from piece where author_id = $authorId""").list
-      }
-    }
+//    def fetchAllOverviews = {
+//      DB.withSession {
+//        implicit session: Session =>
+//          Q.queryNA[PieceOverview](s"""select id, 
+//                        author_id, 
+//                        title, 
+//                        short_summary, 
+//                        tags, 
+//                        published, 
+//                        rating from piece""").list
+//      }
+//    }
     
-    def findByUri(uri: String): (Option[Piece], Option[String]) = {
+    def findPublishedByUri(uri: String): (Option[Piece], Option[String]) = {
       EncodedPieceIdUri(uri) match {
         case (Some(id), Some(author)) => DB.withSession {
           implicit session: Session =>
-            (cake.Pieces.findOptionById(id), Some(author))
+            (cake.Pieces.findOptionById(id).filter(_.published.isDefined), Some(author))
         }
         case (_,_) => (None, None)
       }

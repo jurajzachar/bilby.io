@@ -4,7 +4,7 @@
 @import views.utils
 @import b3.inline.fieldConstructor
 
-@main(Some(Html("")), nav = "View Existing", Some(username)) {
+@main(Some(Html("")), nav = "Manage Existing", Some(username)) {
 	<script>
 		$(document).ready(function() {
 			fadeOutAlerts(2000); //2 sec
@@ -46,22 +46,24 @@
 							<tr>
 		           				<td>
 		           					@if(p.published.isDefined){<span class="glyphicon glyphicon-pushpin published"></span>}
-		           					@p.header.title
+		           					<strong>@p.header.title</strong>
 		           				</td>
 		           				@if(p.header.shortSummary.length > 100){
 		           					<td>@p.header.shortSummary.substring(0, 100) ...</td>
 		           				}else{
 		           					<td>@p.header.shortSummary</td>
 		           				}
+		           				<td>
 		           				@if(p.header.tags.size > 0){
-									<td>
+									
 										@for(t <- p.header.tags){
 											@if(t.size > 0){
 												<span class="hashtag">@t</span>
 											}
 										}
-									</td>
-								}	           				
+									
+								}
+								</td>	           				
 		           				<td>@p.rating</td>
 		         				@if(p.published.isDefined){
 		         					<td>
@@ -93,20 +95,20 @@
 					         		</div>
 					         		</td>
 					         		<td>
-					         		<div class="form-group">
-							         	<span data-toggle="modal" data-target="#preview-@p.id">
-				         					<button type="button" class="btn btn-xxs btn-info" class="btn btn-xs btn-primary" data-toggle="tooltip" 
-								         			 data-placement="left" title="Preview">
-											  <span class="glyphicon glyphicon-eye-open"></span>
+						         		<div class="form-group">
+								         	<span data-toggle="modal" data-target="#preview-@p.id">
+					         					<button type="button" class="btn btn-xxs btn-info" class="btn btn-xs btn-primary" data-toggle="tooltip" 
+									         			 data-placement="left" title="Preview">
+												  <span class="glyphicon glyphicon-eye-open"></span>
+												</button>
+											</span> 
+						         		</div>
+						         		<span data-toggle="modal" data-target="#confirmDelete-@p.id">
+				         					<button type="button" class="btn btn-xxs btn-danger" class="btn btn-xs btn-primary" data-toggle="tooltip" 
+								         			 data-placement="left" title="Delete">
+											  <span class="glyphicon glyphicon-trash"></span>
 											</button>
-										</span> 
-					         		</div>
-					         		<span data-toggle="modal" data-target="#confirmDelete-@p.id">
-			         					<button type="button" class="btn btn-xxs btn-danger" class="btn btn-xs btn-primary" data-toggle="tooltip" 
-							         			 data-placement="left" title="Delete">
-										  <span class="glyphicon glyphicon-trash"></span>
-										</button>
-									</span>
+										</span>
 									</td>
 							</tr>
 							@modals.delete(p)

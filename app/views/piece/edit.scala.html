@@ -1,66 +1,10 @@
-@(id: Long, pieceForm: Form[models.PieceFormInfo], username: Option[String])(implicit flash: Flash, token: play.filters.csrf.CSRF.Token)
-
 @import helper._
+
+@(id: Long, pieceForm: Form[models.PieceFormInfo], username: Option[String])(implicit flash: Flash, token: play.filters.csrf.CSRF.Token)
 
 @main(None, nav = "Create New", username) { 
 	<script>
-		$(document)
-				.ready(
-						function() {
-							var controller = "#retractor";
-							var data_source = "#title";
-							var target = "#mini-header";
-							//take care of the retracting stuff		
-							$(target).hide();
-							activateRetractor(controller, data_source, target);
-							//fire up tooltips
-							$('#title')
-									.tooltip(
-											{
-												'trigger' : 'focus',
-												'title' : 'A good title should be short, concise and captivating.',
-												'placement' : 'bottom'
-											}).on('shown.bs.tooltip',
-											countChars("#title", 75));
-							$('#titleCoverUrl')
-									.tooltip(
-											{
-												'trigger' : 'focus',
-												'title' : 'Provide a link to an image which should be used instead of the default title cover.',
-												'placement' : 'bottom'
-											});
-							//enhance tagsinput
-							$("#tags").attr("data-role", "tagsinput");
-							$("#tags").tagsinput({
-								maxTags : 10,
-								maxChars : 15,
-								trimValue : true,
-								tagClass : "label label-default hashtag heavy"
-							});
-							//load tags, not sure why this is not done automatically...
-							var source = jQuery.parseJSON($("#tags").val());
-							for (var i = 0; i < source.length; i++) {
-								$("#tags").tagsinput('add', source[i]);
-							}
-							$('#tags_field>.bootstrap-tagsinput')
-									.tooltip(
-											{
-												'trigger' : 'focus',
-												'title' : 'A comma delimited list of up to 10 tags, each of which is at most 15 characters long. Tags aid in categorizing your post.',
-												'placement' : 'right'
-											});
-
-							$('#shortSummary')
-									.tooltip(
-											{
-												'trigger' : 'focus',
-												'title' : 'Describe your contribution in a short paragraph by summarazing and hightling key points.',
-												'placement' : 'bottom'
-											}).on('shown.bs.tooltip',
-											countChars("#shortSummary", 300));
-
-							fadeOutAlerts(5000); //5 sec
-						});
+		$(document).ready(readyEditor);
 	</script>
 			<div class="well .col-xs-12 .col-sm-6 .col-md-8 top-controls">
 				@flash.get("success").map { message =>
@@ -82,7 +26,7 @@
 						             'placeholder -> "Title",
 						             '_error -> pieceForm.error("title")
 						           )
-						           @b3.inputWrapped( "search", pieceForm("titleCoverUrl"), 'placeholder -> "http://..." ) { input =>
+						           @b3.inputWrapped( "link", pieceForm("titleCoverUrl"), 'placeholder -> "http://..." ) { input =>
 								    <div class="input-group">
 								      <span class="input-group-addon"><span class="glyphicon glyphicon-picture"></span></span>
 								      @input

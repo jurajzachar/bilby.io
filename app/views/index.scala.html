@@ -1,7 +1,9 @@
-@(username: Option[String])
+@(stream: List[(String, Piece)], username: Option[String])
 @title ={
-	<small>Welcome back @username!</small>
+	<h4>Currently trending</h4> 
 }
-@main(Some(title), "Home", username) {
-    <div class=" bilby-frame bilby-bg"></div>
-}
+@main(Some(title), "The Burrows", username) {
+	<div id="world" data-masonry-options='{ "columnWidth": 150, "gutter": 10 }'>
+		@piece.world(stream)
+	</div>
+}(true, 80)

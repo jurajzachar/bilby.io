@@ -13,8 +13,8 @@ object Piece {
 
   implicit def strings2HashTags(xs: Set[String]) = for (tag <- xs) yield HashTag(tag)
   implicit def hashTags2Strings(xs: Set[HashTag]) = for (tag <- xs) yield tag.toString
-  implicit val getPieceOverviewResult = GetResult(r =>
-    PieceOverview(r.<<, r.<<, r.<<, r.<<, Json.parse(r.nextString).as[Set[String]], r.<<, r.<<))
+  //implicit val getPieceOverviewResult = GetResult(r =>
+  //  PieceOverview(r.<<, r.<<, r.<<, r.<<, Json.parse(r.nextString).as[Set[String]], r.<<, r.<<))
 
   implicit def flattenedPiece(
     id: Option[Long] = None,
@@ -57,14 +57,14 @@ case class Piece(
 }
 
 /** this is used to do a source-less read-only listing projection **/
-case class PieceOverview(
-  id: Long,
-  author_id: Long,
-  title: String,
-  shortSummary: String,
-  tags: Set[String],
-  published: Option[Long],
-  rating: Double)
+//case class PieceOverview(
+//  id: Long,
+//  author_id: Long,
+//  title: String,
+//  shortSummary: String,
+//  tags: Set[String],
+//  published: Option[Long],
+//  rating: Double)
 
 /** this is used to bind editor form**/
 case class PieceFormInfo(

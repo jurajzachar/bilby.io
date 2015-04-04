@@ -1,0 +1,38 @@
+@* title Template File *@
+@(pieceHeader: models.PieceFormInfo, author: String, generatedId: String)
+
+@import views.utils
+
+<div class="piece-header-frame">
+	<div class="jumbotron piece">
+			<div id="@generatedId" class="piece-bg"></div>
+			<h2>@pieceHeader.title</h2>
+			<h4>
+				<small>by<a href="#"> @author.toUpperCase</a>,</small>
+				<small><span>views: 0</span></small> 
+			</h4>
+			<div class="piece-header-summary">
+				@pieceHeader.shortSummary
+			</div>
+			<div class="piece-header-stats container-fluid">
+				<div class="col-xs-9">
+				@if(pieceHeader.tags.size > 0){
+					@for(t <- pieceHeader.tags){
+						@if(t.size > 0){
+							<small><span class="hashtag">@t</span></small>
+						}
+					}
+				 }	           		
+					
+		  		<!--  
+		  			<span class="glyphicon glyphicon-thumbs-up" style="color: #1A873A;"></span> #votes
+		  			<span class="gutter"><span>
+		  			<span class="glyphicon glyphicon-thumbs-down" style="color: red"></span> #votes
+		  		-->
+		  		</div>
+  			</div>
+	</div>
+	<script>
+		setBG("#@generatedId", "@pieceHeader.titleCoverUrl");
+	</script>
+</div>

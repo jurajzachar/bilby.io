@@ -3,7 +3,7 @@
 @(piece: Piece, author: String)
 
 <div class="modal fade" tabindex="-1" id="preview-@piece.id.get" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
     
       <div class="modal-header">
@@ -12,7 +12,7 @@
       </div>
       
       <div class="modal-body">
-       	@components.title(piece, author)
+       	@components.header(piece.header, author, java.util.UUID.randomUUID.toString)
 		@components.content(piece, author)
 	  </div>
       

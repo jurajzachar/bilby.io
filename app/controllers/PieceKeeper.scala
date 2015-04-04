@@ -1,27 +1,29 @@
 package controllers
 
+import components.JsonConversions.pieceWrites
 import components.PieceBindings
 import components.PieceComponent
 import models.PieceFormInfo
 import models.User
 import play.api.Logger.logger
 import play.api.Play.current
+import play.api.cache.Cache
 import play.api.db.slick.DB
 import play.api.db.slick.Session
+import play.api.libs.json.Json
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.Action
 import play.api.mvc.AnyContent
 import play.api.mvc.Controller
 import play.api.mvc.Request
 import play.api.mvc.Result
 import play.api.mvc.Results
-import play.api.libs.json.Json
-import components.JsonConversions._
 
 object PieceKeeper extends Controller
   with PieceBindings
   with Auth.Secured
   with Authorized {
-    
+
   /* this will go away once i figure out how to use localized messages */
   val draftSavedMsg = "Your draft has been saved."
   val publishMsg = "Your draft has been published."
@@ -36,13 +38,27 @@ object PieceKeeper extends Controller
   case class Preview(id: Long, author: User, title: String) extends PieceAction
 
   /**
+   * FIXME
+   */
+  def getWorld = {
+    import scala.slick.driver.JdbcDriver.simple._
+    DB.withSession {
+      implicit session: Session =>
+        Cache.getOrElse("world", 15){
+        for(u <- dal.cake.Users.fetchAll)
+          yield (u.username, dal.fetchAll(u.id.get).filter(_.published.isDefined))
+        }
+    }
+  }
+
+  /**
    * Read only rendering of pieces.
    * TODO: setup sharing and privacy traits
    * @return
    */
   def render(uri: String) = Action {
     request =>
-      dal.findByUri(uri) match {
+      dal.findPublishedByUri(uri) match {
         case (Some(piece), Some(author)) => Ok(views.html.piece.render(piece, author, username(request)))
         case (_, _)                      => NotFound(views.html.notfound(request.path))
       }
@@ -162,7 +178,7 @@ object PieceKeeper extends Controller
         {
           val piece = dal.cake.Pieces.findById(id)
           val author = dal.cake.Users.findById(piece.authorId).username
-           Ok(Json.obj("piece" -> Json.toJson(piece), "author" -> author)) 
+          Ok(Json.obj("piece" -> Json.toJson(piece), "author" -> author))
         }
     }
   }

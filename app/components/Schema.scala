@@ -12,7 +12,6 @@ import models.UserProfile
 import models.Visitor
 import play.api.libs.json.Json
 import scala.slick.driver.JdbcDriver
-import models.PieceOverview
 import scala.slick.jdbc.GetResult
 import scala.language.postfixOps
 

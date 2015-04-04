@@ -207,7 +207,7 @@ td, th {
 		text-shadow: none !important;
 	}
 	a, a:visited {
-		text-decoration: underline;
+/* 		text-decoration: underline; */
 	}
 	a[href]:after {
 		content: " (" attr(href) ")";
@@ -1371,7 +1371,7 @@ a {
 
 a:hover, a:focus {
 	color: #e22620;
-	text-decoration: underline;
+/* 	text-decoration: underline; */
 }
 
 a:focus {

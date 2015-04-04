@@ -1,5 +1,5 @@
 @(piece: models.Piece, author: String, username: Option[String])
 
-@main(Some(components.title(piece, author)), nav = "Preview", username) { 
+@main(Some(components.header(piece.header, author, java.util.UUID.randomUUID.toString)), nav = "", username) { 
 	@components.content(piece, author)
 }(false)

@@ -1,13 +1,33 @@
 /* utils used at bilby.io to aid bootstrap */
+
+/**set background for piece-header **/
+function setBG(element, url) {
+	var img = new Image();
+	$(img).error(function() {
+		// URL not exists
+		$(element).addClass("unresolved");
+		//$(element).css("background-color", getRandomColor());
+	});
+	img.onload = function() {
+		var resolves = img.height != 0;
+		if (resolves) {
+			// URL OK
+			$(element).css("background-image", "url(" + url + ")");
+		}
+	}
+	img.src = url;
+
+}
+
 /**
  * recompute page-header padding with respect to the navbar... TODO: find pure
  * CSS solution *
  */
 function remarginPageHeader() {
-		var nav_height = $('.navbar').height() + 10; 
-		$(".page-header").css({
-			marginTop : nav_height
-		});
+	var nav_height = $('.navbar').height() + 10;
+	$(".page-header").css({
+		marginTop : nav_height
+	});
 }
 
 /**
@@ -58,3 +78,73 @@ $(".modal").each(function(modal) {
 		$(this).modal();
 	});
 });
+
+/** PAGE CONTROL **/
+
+// EDIT page
+function readyEditor() {
+	var controller = "#retractor";
+	var data_source = "#title";
+	var target = "#mini-header";
+	//take care of the retracting stuff		
+	$(target).hide();
+	activateRetractor(controller, data_source, target);
+	//fire up tooltips
+	$('#title').tooltip({
+		'trigger' : 'focus',
+		'title' : 'A good title should be short, concise and captivating.',
+		'placement' : 'bottom'
+	}).on('shown.bs.tooltip', countChars("#title", 75));
+
+	$('#titleCoverUrl')
+			.tooltip(
+					{
+						'trigger' : 'focus',
+						'title' : 'Provide a link to an image which should be used instead of the default title cover.',
+						'placement' : 'bottom'
+					});
+
+	//enhance tagsinput
+	$("#tags").attr("data-role", "tagsinput");
+	$("#tags").tagsinput({
+		maxTags : 10,
+		maxChars : 15,
+		trimValue : true,
+		tagClass : "label label-default hashtag heavy"
+	});
+	//load tags, not sure why this is not done automatically...
+	var tags = $("#tags").val();
+	if (tags.length > 0) {
+		var source = jQuery.parseJSON($("#tags").val());
+		for (var i = 0; i < source.length; i++) {
+			$("#tags").tagsinput('add', source[i]);
+		}
+	}
+	$('#tags_field>.bootstrap-tagsinput')
+			.tooltip(
+					{
+						'trigger' : 'focus',
+						'title' : 'A comma delimited list of up to 10 tags, each of which is at most 15 characters long. Tags aid in categorizing your post.',
+						'placement' : 'top'
+					});
+
+	$('#shortSummary')
+			.tooltip(
+					{
+						'trigger' : 'focus',
+						'title' : 'Describe your contribution in a short paragraph by summarazing and hightling key points.',
+						'placement' : 'bottom'
+					}).on('shown.bs.tooltip', countChars("#shortSummary", 300));
+
+	fadeOutAlerts(5000); //5 sec
+}
+
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}

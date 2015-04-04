@@ -1,8 +1,6 @@
-@* source Template File *@
 @(piece: models.Piece, author: String)
 
 @import views.utils
-
 
 @sanitizeSource(payload: String) = @{
 	"\n" + payload
@@ -23,8 +21,11 @@
 		$("#piece-@piece.id.get").html(marked($("#piece-source-@piece.id.get").text()));
 	});
 </script>
+
+<small>
+  		@if(piece.published.isDefined){ <span class="glyphicon glyphicon-time"></span> @utils.long2date(piece.published.get) } 
+</small>
 <div id="piece-source-@piece.id.get" class="hidden">
 	@sanitizeSource(piece.header.source)
 </div>
-
-<div id="piece-@piece.id.get" class="well piece-render"></div>
+<div id="piece-@piece.id.get" class="well"></div>

@@ -1,0 +1,42 @@
+@(stream: List[(String, Piece)])
+<script>
+	$(document).ready(function() {
+		//init elevators
+		$(".piece-item").each(function() {
+			$(this).on('mouseenter', function() {
+				$(this).children(".elevator").each(function() {
+					$(this).animate({
+						margin : -5,
+						height : "+=5"
+					});
+				});
+				$(this).css("opacity", "0.85");
+			}).on('mouseleave', function() {
+				$(this).children(".elevator").each(function() {
+					$(this).animate({
+						margin : 0,
+						height : "-=5"
+					});
+				});
+				$(this).css("opacity", "1");
+			})
+		});
+		//final call is to masonry wrapped in waitforimages callback...
+		var container = $('#world');
+		container.waitForImages(true).done(function() {
+			container.masonry({
+				itemSelector : '.piece-item'
+			});
+		});
+	});
+</script>
+@** here we want to achieve three columns *@
+@for(chunks <- stream.grouped(4)){
+	<div clas="row">
+		@components.colgenerator(chunks) 
+	</div>
+}
+
+
+
+

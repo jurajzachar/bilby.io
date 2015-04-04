@@ -1,0 +1,12 @@
+@(columns: List[(String, Piece)])
+
+@for(authoredPiece <- columns.zipWithIndex) {
+	 <div class="piece-item col-xs-6 col-sm-3">
+	 	<div class="elevator"></div>
+		<a href="@routes.PieceKeeper.render(authoredPiece._1._2.id.get + "-" + authoredPiece._1._1 + "-" + authoredPiece._1._2.header.title)">
+			<div class="piece-thumbnail">
+				@header(authoredPiece._1._2.header, authoredPiece._1._1, java.util.UUID.randomUUID.toString)
+			</div>
+		</a>
+	</div>
+}
