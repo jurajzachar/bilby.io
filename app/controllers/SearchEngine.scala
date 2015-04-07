@@ -11,7 +11,12 @@ import play.api.mvc.Request
 import play.api.mvc.Result
 import play.api.mvc.Results
 import stringy.EnglishGrammar
-import language.postfixOps;
+import language.postfixOps
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
+import components.JsonConversions._
+import play.api.Play.current
+import play.api.cache.Cache
 
 object SearchEngine extends Controller with Auth.Secured {
 
@@ -31,14 +36,14 @@ object SearchEngine extends Controller with Auth.Secured {
     def apply(s: String): Search = {
       val spaceDelimited = s.split(" +").toSet //split by white spaces
       val commaDelimited = s.split(" ?, ?").toSet
-      new Search( spaceDelimited union commaDelimited )
+      new Search(spaceDelimited union commaDelimited)
     }
 
     def unapply(search: Search) = Some(search.tokens.mkString(" "))
   }
-  
+
   def searchForm: Form[Search] = Form(
-    mapping("token" -> text)(Search.apply)(Search.unapply))
+    mapping("searchToken" -> text)(Search.apply)(Search.unapply))
 
   /** TODO **/
   def find = Action {
@@ -47,11 +52,16 @@ object SearchEngine extends Controller with Auth.Secured {
         hasErrors => BadRequest(
           views.html.searches("Please narrow down your search.", Nil, username(request))),
         valid => {
+          val tokens = valid.tokens.map(_.toLowerCase.trim)
           //narrow down by tags
           val projection = PieceKeeper.getWorld
-          val results = projection.filter(x => valid.tokens.contains(x._1) ||
-            valid.tokens.intersect(x._2.header.tags).size > 0)
-          val message = genericSourceMsg.format(results.size, EnglishGrammar.oneOrMore(results.size, "result"), valid.tokens.mkString(","))
+          val results = projection.filter {
+            x =>
+              tokens.exists(t => x._1.toLowerCase.contains(t) || t.contains(x._1.toLowerCase)) || //bi-directional user match
+                tokens.exists(t => (x._2.header.title.toLowerCase).contains(t)) || //bi-directional title match
+                tokens.exists(t => (x._2.header.tags.exists(tag => tag.toLowerCase.contains(t) || t.contains(tag.toLowerCase)))) //bi-directional tag match
+          }
+          val message = genericSourceMsg.format(results.size, EnglishGrammar.oneOrMore(results.size, "result"), valid.tokens.mkString(", "))
           Ok(views.html.searches(message, results, username(request)))
         })
   }
@@ -72,4 +82,18 @@ object SearchEngine extends Controller with Auth.Secured {
       Ok(views.html.searches(message, results, username(request)))
   }
 
+  def cachedDatasets = {
+    Cache.getOrElse("tta", 60) {
+      PieceKeeper.getWorld.map(_._1).toSet ++ //users
+        PieceKeeper.getWorld.map(_._2.header.title).toSet ++ //titles
+        PieceKeeper.getWorld.map(_._2.header.tags).flatten.toSet //tags
+    }
+  }
+  def typeAheadSources(token: Option[String]) = Action {
+    token match {
+      case Some(t) => Ok(Json.toJson(cachedDatasets.filter(_.contains(t)).map(x => Map("value" -> x))))
+      case None    => Ok("[]")
+    }
+
+  }
 }

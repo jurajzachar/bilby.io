@@ -72,7 +72,6 @@ input#titleCoverUrl.form-control {
     width: 250px;
     border-radius: 4px;
 }
-
 .piece-header-frame {
     position: relative;
 }
@@ -104,7 +103,6 @@ input#titleCoverUrl.form-control {
     transform: rotate(3deg);
     right: 10px;
     left: auto;
-
 }
 .piece-content-frame {
     position: relative;
@@ -124,8 +122,8 @@ input#titleCoverUrl.form-control {
     bottom: 10px;
     left: 0;
     right: 0;
-    -moz-border-radius: 100px / 10px;
-    border-radius: 100px / 10px;
+    -moz-border-radius: 100px/10px;
+    border-radius: 100px/10px;
 }
 .piece-content-frame:after {
     right: 10px;
@@ -136,73 +134,67 @@ input#titleCoverUrl.form-control {
     -o-transform: skew(8deg) rotate(3deg);
     transform: skew(8deg) rotate(3deg);
 }
-
-.piece-bg{
-	width: 100%;
-	padding-top: 25%;
-	padding-bottom: 35%;
-	max-height: 60%;
-	overflow: auto;	
-	background-size: cover;
-	border-top-left-radius: 6px;
-	border-top-right-radius: 6px;
+.piece-bg {
+    width: 100%;
+    padding-top: 25%;
+    padding-bottom: 35%;
+    max-height: 60%;
+    overflow: auto;
+    background-size: cover;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
 }
-
-.piece-bg.unresolved{
-	padding-top: 0%;
-	padding-bottom: 0%;
+.piece-bg.unresolved {
+    padding-top: 0%;
+    padding-bottom: 0%;
 }
-
 .piece-header-stats.container-fluid {
-	padding: 0px;
-	margin: 0px;
+    padding: 0px;
+    margin: 0px;
 }
 .jumbotron.piece {
-	padding-top: 0px;
-	padding-bottom: 10px;
-	padding-left: 0px;
-	padding-right: 0px;
+    padding-top: 0px;
+    padding-bottom: 10px;
+    padding-left: 0px;
+    padding-right: 0px;
 }
-
 .jumbotron.piece>.piece-header-summary {
-	padding-left: 15px;
-	padding-right: 15px;	
+    padding-left: 15px;
+    padding-right: 15px;
 }
-.jumbotron.piece h2,.jumbotron.piece h3,.jumbotron.piece h4,.jumbotron.piece h5 {
-	padding-left: 15px;
-	padding-right: 15px;	
+.jumbotron.piece h2,
+.jumbotron.piece h3,
+.jumbotron.piece h4,
+.jumbotron.piece h5 {
+    padding-left: 15px;
+    padding-right: 15px;
 }
-
 .piece-item {
-  display: inline-block;
-  padding: 5px;
+    display: inline-block;
+    padding: 5px;
 }
 .piece-thumbnail>.piece-header-frame>.jumbotron.piece {
-	font-size:14px;
+    font-size: 14px;
 }
 .piece-thumbnail>.piece-header-frame>.jumbotron.piece>h2 {
-	font-size:18px;
+    font-size: 18px;
 }
 .piece-thumbnail>.piece-header-frame>.jumbotron.piece>h4 {
-	font-size:14px;
+    font-size: 14px;
 }
-
 a>.piece-thumbnail>.piece-header-frame>.jumbotron.piece {
     margin-bottom: 25px;
     color: #777777;
     text-decoration: none;
 }
-
 .piece-header-stats {
     padding-bottom: 15px;
     font-size: 12px;
 }
-
 .piece-header-summary {
     margin-top: 20px;
     padding-bottom: 15px;
 }
-
 .hashtag .heavy {
     font-weight: 600;
 }
@@ -252,36 +244,41 @@ a>.piece-thumbnail>.piece-header-frame>.jumbotron.piece {
     min-height: 250px;
     margin-right: 50%;
 }
-
-@-webkit-keyframes blink {
+@ -webkit-keyframes blink {
     0% {
         background-image: url("../imgs/bilby-cropped.png");
     }
     49% {
-        background-image: url("../imgs/bilby-cropped.png");
+        background-image: url ("../imgs/bilby-cropped
+ .png ");
+
     }
     50% {
-        background-image: url("../imgs/bilby-blink.png");
+        background-image: url ("../imgs/bilby-blink
+ .png ");
+
     }
-    53%{
-    	background-image: url("../imgs/bilby-cropped.png");
+    53% {
+        background-image: url ("../imgs/bilby-cropped
+ .png ");
+
     }
     100% {
-       background-image: url("../imgs/bilby-cropped.png");
+        background-image: url ("../imgs/bilby-cropped
+ .png ");
+
     }
 }
-
 .bilby-bg {
-	background-image: url("../imgs/bilby-cropped.png");
-	background-size: contain;
-	background-repeat: no-repeat;
-	background-position: center;
-	-webkit-animation-name: blink;
-  	-webkit-animation-duration: 5s;
-  	-webkit-animation-iteration-count: infinite;
-  	-webkit-animation-direction: alternate;
+    background-image: url("../imgs/bilby-cropped.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    -webkit-animation-name: blink;
+    -webkit-animation-duration: 5s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-direction: alternate;
 }
-
 .grows {
     transition: all .2s ease-in-out;
 }
@@ -294,12 +291,13 @@ a>.piece-thumbnail>.piece-header-frame>.jumbotron.piece {
 .gutter {
     padding-right: 15px;
 }
-
 .hashtag {
-/*     background-color: #FFD893; */
+    /*     background-color: #FFD893; */
+    
     background-color: #868686;
-/*     color: #777777; */
-	color: white; 
+    /*     color: #777777; */
+    
+    color: white;
     border-bottom-left-radius: 2.8125px;
     border-bottom-right-radius: 2.8125px;
     border-top-left-radius: 2.8125px;
@@ -321,21 +319,54 @@ a>.piece-thumbnail>.piece-header-frame>.jumbotron.piece {
     vertical-align: baseline;
     white-space: nowrap;
     width: auto;
-    -webkit-font-smoothing: subpixel-antialiased; 
+    -webkit-font-smoothing: subpixel-antialiased;
 }
 a .hashtag {
- 	outline: 0;
- 	cursor: auto;
+    outline: 0;
+    cursor: auto;
 }
-
 a .hashtag:hover {
-/* 	color: #e22620; */
- 	color: black; 
- 	background-color: #FFD893;
+    /* 	color: #e22620; */
+    
+    color: black;
+    background-color: #FFD893;
 }
+.stats-display {
+    padding-right: 5px;
+    padding-bottom: 5px;
+    display: inline-block;
+}
+/** typeahead stuff **/
 
-.stats-display{
-  padding-right: 5px;
-  padding-bottom: 5px;
-  display: inline-block;
+.tt-dropdown-menu {
+    max-height: 250px;
+    overflow-y: scroll;
+    min-width: 160px;
+    margin-top: 2px;
+    padding: 5px 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, .2);
+    *border-right-width: 2px;
+    *border-bottom-width: 2px;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+    -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+    -webkit-background-clip: padding-box;
+    -moz-background-clip: padding;
+    background-clip: padding-box;
+}
+.tt-suggestion {
+    display: block;
+    padding: 3px 20px;
+}
+.tt-cursor {
+    color: black;
+    background-color: #F0F0F0;
+}
+.tt-highlight {
+    color: black;
 }

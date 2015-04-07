@@ -5,7 +5,7 @@ import java.net.URL
 import scala.language.implicitConversions
 import scala.slick.jdbc.GetResult
 
-import components.JsonConversions.pieceWrites
+import components.JsonConversions.{pieceHeaderWrites,pieceWrites}
 import io.strongtyped.active.slick.models.Identifiable
 import play.api.libs.json.Json
 
@@ -77,6 +77,8 @@ case class PieceFormInfo(
     case that: PieceFormInfo => this.title.equals(that.title) && this.shortSummary.equals(that.shortSummary)
     case _                   => false
   }
+  
+  override def toString = Json.toJson(this).toString
 }
 
 //case class PieceStats(id: Long, totalViews: Long, rating: Double) {

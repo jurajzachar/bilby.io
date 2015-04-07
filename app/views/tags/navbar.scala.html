@@ -3,88 +3,106 @@
 @import helper._
 @import b3.inline.fieldConstructor
 
-	<div class="navbar-wrapper">
-		<nav class="navbar navbar-default navbar-fixed-top ">
-		  <div class="@("container container-" + width)">
-		    <div class="row">
-  				<div class=".col-md-6 .col-md-offset-3">
-				    <!-- Brand and toggle get grouped for better mobile display -->
-				    <div class="navbar-header">
-				      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1">
-				        <span class="sr-only">Toggle navigation</span>
-				        <span class="icon-bar"></span>
-				        <span class="icon-bar"></span>
-				        <span class="icon-bar"></span>
-				      </button>
-				      <a class="navbar-brand" href="@routes.Application.index">Bilby.io</a>
-				    </div>
-				
-				    <!-- Collect the nav links, forms, and other content for toggling -->
-				    <div class="collapse navbar-collapse" id="navbar-collapse-1">
-				      <ul class="nav navbar-nav">
-				      	
-				      	<li><div class="navbar-bilby">
-				      			<a href="@routes.Application.index">
-				      				<img alt="Brand" src="@routes.Assets.at("imgs/bilby-cropped.png")" type="image/png" />
-								</a>
-							</div>
+<script>
+	$(document).ready(function(){
+		var url = "@routes.SearchEngine.typeAheadSources(Some("%QUERY"))";
+		console.log(url);
+	  	initTypeAhead("#searchToken", new Dataset("Suggestions", url));
+	});
+</script>
+<div class="navbar-wrapper">
+	<nav class="navbar navbar-default navbar-fixed-top ">
+	  <div class="@("container container-" + width)">
+	    <div class="row">
+ 				<div class=".col-md-6 .col-md-offset-3">
+			    <!-- Brand and toggle get grouped for better mobile display -->
+			    <div class="navbar-header">
+			      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1">
+			        <span class="sr-only">Toggle navigation</span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			      </button>
+			      <a class="navbar-brand" href="@routes.Application.index">Bilby.io</a>
+			    </div>
+			
+			    <!-- Collect the nav links, forms, and other content for toggling -->
+			    <div class="collapse navbar-collapse" id="navbar-collapse-1">
+			      <ul class="nav navbar-nav">
+			      	
+			      	<li><div class="navbar-bilby">
+			      			<a href="@routes.Application.index">
+			      				<img alt="Brand" src="@routes.Assets.at("imgs/bilby-cropped.png")" type="image/png" />
+							</a>
+						</div>
+					</li>
+					@if(nav.length > 0){
+						<li class="active"><a href="#">@nav<span class="sr-only">(current)</span></a></li>
+					}
+					@if(username.isDefined){
+			        <li class="dropdown">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+			          	 @username.get <span class="caret"></span>
+			          </a>
+			          <ul class="dropdown-menu" role="menu">
+	            		<li>
+							<a href="@routes.PieceKeeper.create">Create New</a>
 						</li>
-						@if(nav.length > 0){
-							<li class="active"><a href="#">@nav<span class="sr-only">(current)</span></a></li>
-						}
-						@if(username.isDefined){
-				        <li class="dropdown">
-				          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-				          	 @username.get <span class="caret"></span>
-				          </a>
-				          <ul class="dropdown-menu" role="menu">
-		            		<li>
-								<a href="@routes.PieceKeeper.create">Create New</a>
-							</li>
-							<li><a href="@routes.PieceKeeper.list">Manage Existing</a></li>
-							<li><a href="#">Sharing Preferences</a></li>
-							<li class="divider"></li>
-							<li class="@("active".when(nav == "Account"))">
-								<a href="@routes.Accounter.user(username.get)">Account</a>
-							</li>
-							<li class="@("active".when(nav == "About"))">
-								<a href="@routes.Application.about">About</a>
-							</li>	
-							<li><a href="@routes.Auth.logout">Logout</a></li>
-				          </ul>
-				        </li>
-				        <li><a href="@routes.Auth.logout">Logout</a></li>
-				     	}
-				     	 @if(nav != "About" && !username.isDefined){
-				     		<li class="@("active".when(nav == "About"))">
-					    		<a href="@routes.Application.about">About</a>
-					    	</li>	
-				     	 }
-				     	 <!--login -->
-				        @if(nav != "Sign in" && !username.isDefined){ 
-				        	<li><a href="@routes.Auth.login">Enter the burrows...</a></li>
-						}
-				     	<li>
-				        <!-- search -->
-				        @import SearchEngine.searchForm
-				        
-				        @b3.inline.form(routes.SearchEngine.find, 'class -> "navbar-form navbar-center", 'role -> "search") { implicit cfc =>
-  							@b3.inputWrapped( "search", searchForm("token"), 'placeholder -> "Search..." ) { input =>
-   						 	<div class="input-group">
-      							@input
-      							<!--  
-						    	<span class="input-group-btn">
-						    		<button class="btn btn-xs btn-default" type="submit">Search</button>
-						    	</span>
-						    	-->
+						<li><a href="@routes.PieceKeeper.list">Manage Existing</a></li>
+						<li><a href="#">Sharing Preferences</a></li>
+						<li class="divider"></li>
+						<li class="@("active".when(nav == "Account"))">
+							<a href="@routes.Accounter.user(username.get)">Account</a>
+						</li>
+						<li class="@("active".when(nav == "About"))">
+							<a href="@routes.Application.about">About</a>
+						</li>	
+						<li><a href="@routes.Auth.logout">Logout</a></li>
+			          </ul>
+			        </li>
+			        <li><a href="@routes.Auth.logout">Logout</a></li>
+			     	}
+			     	 @if(nav != "About" && !username.isDefined){
+			     		<li class="@("active".when(nav == "About"))">
+				    		<a href="@routes.Application.about">About</a>
+				    	</li>	
+			     	 }
+			     	 <!--login -->
+			        @if(nav != "Sign In" && !username.isDefined){ 
+			        	<li><a href="@routes.Auth.login">Enter the burrows...</a></li>
+					}
+			     	<li>
+			        <!-- search -->
+			        @import SearchEngine.searchForm
+				        @b3.clear.form(routes.SearchEngine.find, 'class -> "navbar-form navbar-center") { implicit cfc =>
+						  @b3.inputWrapped( "search", searchForm("searchToken"), 'placeholder -> "Search..." ) { input =>
+						    <div class="input-group">
+						      @input
+						      <span class="input-group-btn">
+						        <button class="form-control input-group-addon btn"><span class="glyphicon glyphicon-search"></span></button>
+						      </span>
 						    </div>
 						  }
 						}
-				        </li>
-				      </ul>
-				    </div>
-		    	</div>
-		  	</div>
-		  </div><!-- /.container-fluid -->
-		</nav>
-	</div>
+							
+							@**
+					        @b3.inline.form(routes.SearchEngine.find, 'class -> "navbar-form navbar-center") { implicit cfc =>
+		 							@b3.inputWrapped( "search", searchForm("searchToken"), 'placeholder -> "Search..." ) { input =>
+		  						 	<div class="input-group">
+		     							@input
+							    		<span class="input-group-btn">
+							    			<span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
+							    		</span>
+							    	</div>
+							  }
+							}
+							**@
+				
+			        </li>
+			      </ul>
+			    </div>
+	    	</div>
+	  	</div>
+	  </div><!-- /.container-fluid -->
+	</nav>
+</div>

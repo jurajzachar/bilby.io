@@ -26,10 +26,10 @@ object PieceKeeper extends Controller
 
   /* this will go away once i figure out how to use localized messages */
   val draftSavedMsg = "Your draft has been saved."
-  val publishMsg = "Your post has been published."
-  val unpublishMsg = "Your post has been taken down."
+  val publishMsg = "Your post has been published. Please allow some time for this change to take effect."
+  val unpublishMsg = "Your post has been taken down. Please allow some time for this change to take effect."
   val pieceDeletedMsg = "Your post has been deleted."
-  val notAllowedMsg = "This action is not allowed"
+  val notAllowedMsg = "This action is not allowed!"
 
   sealed trait PieceAction {}
   case class Save(id: Long, author: User) extends PieceAction

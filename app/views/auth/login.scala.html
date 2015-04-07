@@ -2,12 +2,8 @@
 
 @import helper._
 
-@title = {
-        	<h1>Sign in</h1> 
-} 
-
-@main(Some(title), nav = "Sign In", username = None) { 
-	<div class="well">	
+@main(None, nav = "Sign In", username = None) { 
+	<div class="page-header well">	
 	@loginForm.globalError.map { error =>
 		<div class="alert alert-dismissable alert-danger">
 			<button type="button" class="close" data-dismiss="alert">×</button>
@@ -24,18 +20,15 @@
 	@b3.inline.form(routes.Auth.authenticate) { implicit hfc => 
 		@CSRF.formField
 		@b3.text( loginForm("id"), 'placeHolder -> "Username (or Email)", '_error -> loginForm.hasErrors)
-		<span id="gutter" style="margin: 5px;"></span>
 		@b3.password( loginForm("password"), 'placeHolder -> "Password",  '_error -> loginForm.hasErrors)
-		<span id="gutter" style="margin: 5px;"></span> 
 		@b3.submit('class -> "btn btn-primary"){ <span class="glyphicon glyphicon-ok"></span> Sign in } 
-		<span id="gutter" style="margin: 5px;"></span> 
 		<a href="@routes.Signup.init">or register a new account...</a> 
 		<p class="note" style="margin-top: 10px;">
-			Forgot <a href="@routes.Signup.init">username</a> or <a href="@routes.Signup.init">password</a>?
+			<small>Forgot <a href="@routes.Signup.init">username</a> or <a href="@routes.Signup.init">password</a>?</small>
 		</p>
 	</div>
 
 
 	}
-}(false)
+}(true)
           

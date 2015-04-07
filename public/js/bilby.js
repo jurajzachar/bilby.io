@@ -1,12 +1,12 @@
 /* utils used at bilby.io to aid bootstrap */
 
-/**set background for piece-header **/
+/** set background for piece-header * */
 function setBG(element, url) {
 	var img = new Image();
 	$(img).error(function() {
 		// URL not exists
 		$(element).addClass("unresolved");
-		//$(element).css("background-color", getRandomColor());
+		// $(element).css("background-color", getRandomColor());
 	});
 	img.onload = function() {
 		var resolves = img.height != 0;
@@ -79,17 +79,17 @@ $(".modal").each(function(modal) {
 	});
 });
 
-/** PAGE CONTROL **/
+/** PAGE CONTROL * */
 
 // EDIT page
 function readyEditor() {
 	var controller = "#retractor";
 	var data_source = "#title";
 	var target = "#mini-header";
-	//take care of the retracting stuff		
+	// take care of the retracting stuff
 	$(target).hide();
 	activateRetractor(controller, data_source, target);
-	//fire up tooltips
+	// fire up tooltips
 	$('#title').tooltip({
 		'trigger' : 'focus',
 		'title' : 'A good title should be short, concise and captivating.',
@@ -104,7 +104,7 @@ function readyEditor() {
 						'placement' : 'bottom'
 					});
 
-	//enhance tagsinput
+	// enhance tagsinput
 	$("#tags").attr("data-role", "tagsinput");
 	$("#tags").tagsinput({
 		maxTags : 10,
@@ -112,7 +112,7 @@ function readyEditor() {
 		trimValue : true,
 		tagClass : "label label-default hashtag heavy"
 	});
-	//load tags, not sure why this is not done automatically...
+	// load tags, not sure why this is not done automatically...
 	var tags = $("#tags").val();
 	if (tags.length > 0) {
 		var source = jQuery.parseJSON($("#tags").val());
@@ -136,15 +136,96 @@ function readyEditor() {
 						'placement' : 'bottom'
 					}).on('shown.bs.tooltip', countChars("#shortSummary", 300));
 
-	fadeOutAlerts(5000); //5 sec
+	fadeOutAlerts(5000); // 5 sec
 }
 
-
 function getRandomColor() {
-    var letters = '0123456789ABCDEF'.split('');
-    var color = '#';
-    for (var i = 0; i < 6; i++ ) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+	var letters = '0123456789ABCDEF'.split('');
+	var color = '#';
+	for (var i = 0; i < 6; i++) {
+		color += letters[Math.floor(Math.random() * 16)];
+	}
+	return color;
+}
+
+var substringMatcher = function(strs) {
+	return function findMatches(q, cb) {
+		var matches, substrRegex;
+
+		// an array that will be populated with substring matches
+		matches = [];
+
+		// regex used to determine if a string contains the substring `q`
+		substrRegex = new RegExp(q, 'i');
+
+		// iterate through the pool of strings and for any string that
+		// contains the substring `q`, add it to the `matches` array
+		$.each(strs, function(i, str) {
+			if (substrRegex.test(str)) {
+				// the typeahead jQuery plugin expects suggestions to a
+				// JavaScript object, refer to typeahead docs for more info
+				matches.push({
+					value : str
+				});
+			}
+		});
+
+		cb(matches);
+	};
+};
+
+/** a read-only class used to pass as an array parameter to the function below **/
+function Dataset(name, url) {
+	this.name = name;
+	this.url = url;
+}
+
+/** 
+ * takes parameters: 
+ * 
+ * element - selector on which typeahead is enabled
+ * datasets - array of Dataset
+ *
+ **/
+
+function initTypeAhead(element, dataset) {
+
+	$(element).keypress(function(e) {
+		// '32' is the keyCode for 'space'
+		if (e.keyCode == '32' || e.charCode == '32') {
+			var token = $(element).val().replace(/,|\./, "").trim();
+			$(element).val(token);
+		}
+	});
+
+	//this is left intentionally as an arr
+	//in the future we may have more datasets...
+	var adaptors = [];
+	// init bloodhoud obj
+	var bloodhound = new Bloodhound({
+		datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
+		queryTokenizer : Bloodhound.tokenizers.whitespace,
+		limit : 25,
+		remote : {
+			url : dataset.url,
+			wildcard: "%25QUERY"
+		}
+	});
+	bloodhound.initialize();
+	//bloodhounds.push(bloodhound);
+
+	// init typeahead obj
+	var adaptor = {
+		name : dataset.name,
+		displayKey : 'value',
+		source : bloodhound.ttAdapter(),
+	//source: substringMatcher(states)
+	}
+	adaptors.push(adaptor);
+
+	$(element).typeahead({
+		hint : true,
+		highlight : true,
+		minLength : 3
+	}, adaptors);
 }
