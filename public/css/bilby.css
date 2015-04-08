@@ -362,10 +362,18 @@ a .hashtag:hover {
 .tt-suggestion {
     display: block;
     padding: 3px 20px;
+    font-weight: 400;
+}
+.tt-suggestion-header {
+    border-top: 1px solid rgba(0, 0, 0, .2);
+    border-bottom: 1px solid rgba(0, 0, 0, .2);
+    font-size: 12px;
+    background-color: #E3E3E3;
+    height: 100%;
 }
 .tt-cursor {
     color: black;
-    background-color: #F0F0F0;
+    background-color: #E3E3E3;
 }
 .tt-highlight {
     color: black;

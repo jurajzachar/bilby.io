@@ -175,8 +175,9 @@ var substringMatcher = function(strs) {
 };
 
 /** a read-only class used to pass as an array parameter to the function below **/
-function Dataset(name, url) {
+function Dataset(name, prefetch, url) {
 	this.name = name;
+	this.prefetch = prefetch;
 	this.url = url;
 }
 
@@ -188,7 +189,7 @@ function Dataset(name, url) {
  *
  **/
 
-function initTypeAhead(element, dataset) {
+function initTypeAhead(element, datasets) {
 
 	$(element).keypress(function(e) {
 		// '32' is the keyCode for 'space'
@@ -198,34 +199,40 @@ function initTypeAhead(element, dataset) {
 		}
 	});
 
-	//this is left intentionally as an arr
-	//in the future we may have more datasets...
 	var adaptors = [];
-	// init bloodhoud obj
-	var bloodhound = new Bloodhound({
-		datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
-		queryTokenizer : Bloodhound.tokenizers.whitespace,
-		limit : 25,
-		remote : {
-			url : dataset.url,
-			wildcard: "%25QUERY"
-		}
-	});
-	bloodhound.initialize();
-	//bloodhounds.push(bloodhound);
+	for(var i = 0; i < datasets.length; i++){
+		// init bloodhoud obj
+		var bloodhound = new Bloodhound({
+			datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
+			queryTokenizer : Bloodhound.tokenizers.whitespace,
+			limit : 25,
+			dupDetector: function(remoteMatch, localMatch) {
+			    return remoteMatch.value === localMatch.value;
+			},
+			prefetch: datasets[i].prefetch,
+			remote : {
+				url : datasets[i].url,
+				wildcard: "%25QUERY"
+			}
+		});
+		bloodhound.initialize();
 
-	// init typeahead obj
-	var adaptor = {
-		name : dataset.name,
-		displayKey : 'value',
-		source : bloodhound.ttAdapter(),
-	//source: substringMatcher(states)
+		// init typeahead obj
+		var adaptor = {
+			name : datasets[i].name,
+			displayKey : 'value',
+			source : bloodhound.ttAdapter(),
+			templates: {
+				    header: '<div class="tt-suggestion tt-suggestion-header">' + datasets[i].name + '</div>'
+			}
+		}
+		adaptors.push(adaptor);
 	}
-	adaptors.push(adaptor);
+	
 
 	$(element).typeahead({
 		hint : true,
 		highlight : true,
-		minLength : 3
+		minLength : 1
 	}, adaptors);
 }

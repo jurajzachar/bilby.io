@@ -34,9 +34,10 @@ object SearchEngine extends Controller with Auth.Secured {
      * @return
      */
     def apply(s: String): Search = {
-      val spaceDelimited = s.split(" +").toSet //split by white spaces
-      val commaDelimited = s.split(" ?, ?").toSet
-      new Search(spaceDelimited union commaDelimited)
+      //val spaceDelimited = s.split(" +").toSet //split by white spaces
+      //val commaDelimited = s.split(" ?, ?").toSet
+      //new Search(spaceDelimited union commaDelimited)
+    	new Search(Set(s))
     }
 
     def unapply(search: Search) = Some(search.tokens.mkString(" "))
@@ -57,9 +58,9 @@ object SearchEngine extends Controller with Auth.Secured {
           val projection = PieceKeeper.getWorld
           val results = projection.filter {
             x =>
-              tokens.exists(t => x._1.toLowerCase.contains(t) || t.contains(x._1.toLowerCase)) || //bi-directional user match
-                tokens.exists(t => (x._2.header.title.toLowerCase).contains(t)) || //bi-directional title match
-                tokens.exists(t => (x._2.header.tags.exists(tag => tag.toLowerCase.contains(t) || t.contains(tag.toLowerCase)))) //bi-directional tag match
+              tokens.exists(t => x._1.toLowerCase.contains(t)) || //uni-directional user match
+                tokens.exists(t => (x._2.header.title.toLowerCase).contains(t)) || //uni-directional title match
+                tokens.exists(t => (x._2.header.tags.exists(tag => tag.toLowerCase.contains(t)))) //bi-directional tag match
           }
           val message = genericSourceMsg.format(results.size, EnglishGrammar.oneOrMore(results.size, "result"), valid.tokens.mkString(", "))
           Ok(views.html.searches(message, results, username(request)))
@@ -84,14 +85,20 @@ object SearchEngine extends Controller with Auth.Secured {
 
   def cachedDatasets = {
     Cache.getOrElse("tta", 60) {
-      PieceKeeper.getWorld.map(_._1).toSet ++ //users
-        PieceKeeper.getWorld.map(_._2.header.title).toSet ++ //titles
-        PieceKeeper.getWorld.map(_._2.header.tags).flatten.toSet //tags
+      Map(
+        "users" -> PieceKeeper.getWorld.map(_._1).toSet,
+        "titles" -> PieceKeeper.getWorld.map(_._2.header.title).toSet,
+        "tags" -> PieceKeeper.getWorld.map(_._2.header.tags).flatten.toSet)
     }
   }
-  def typeAheadSources(token: Option[String]) = Action {
-    token match {
-      case Some(t) => Ok(Json.toJson(cachedDatasets.filter(_.contains(t)).map(x => Map("value" -> x))))
+
+  def prefetchDataset(dataset: String) = Action {
+   Ok(Json.toJson(cachedDatasets(dataset).map(x => Map("value" -> x))))
+  }
+
+  def typeAhead(dataset: String, query: Option[String]) = Action {
+    query match {
+      case Some(q) => Ok(Json.toJson(cachedDatasets(dataset).filter(_.contains(q)).map(x => Map("value" -> x))))
       case None    => Ok("[]")
     }
 
