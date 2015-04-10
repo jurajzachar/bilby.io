@@ -1,4 +1,4 @@
-@(username: String, pieces: List[Piece])(implicit flash: Flash, token: play.filters.csrf.CSRF.Token)
+@(username: String, pieces: List[PieceWithMetrics])(implicit flash: Flash, token: play.filters.csrf.CSRF.Token)
 
 @import helper._
 @import views.utils
@@ -33,30 +33,31 @@
 			         	<th>Short Summary</th>
 			         	<th>Tags</th>
 			         	<th>Rating</th>
-			         	@if(pieces.exists(_.published.isDefined)){
+			         	<th>Views</th>
+			         	@if(pieces.map(_.piece).exists(_.published.isDefined)){
 			         		<th>Published</th>
 			         	}
 			         	<th colspan=3>Actions</th>
 			         </tr>
 		         </thead>
 		         <tbody>
-		         	@for(p <- pieces.sortBy(_.header.title) ) {
-		         		@b3.form(routes.PieceKeeper.overviewAction(p.id.get, p.header.title)) {
+		         	@for(pwm <- pieces.sortBy(_.piece.header.title)) {
+		         		@b3.form(routes.PieceKeeper.overviewAction(pwm.piece.id.get, pwm.piece.header.title)) {
 			         		@CSRF.formField
 							<tr>
 		           				<td>
-		           					@if(p.published.isDefined){<span class="glyphicon glyphicon-pushpin published"></span>}
-		           					<strong>@p.header.title</strong>
+		           					@if(pwm.piece.published.isDefined){<span class="glyphicon glyphicon-pushpin published"></span>}
+		           					<strong>@pwm.piece.header.title</strong>
 		           				</td>
-		           				@if(p.header.shortSummary.length > 100){
-		           					<td>@p.header.shortSummary.substring(0, 100) ...</td>
+		           				@if(pwm.piece.header.shortSummary.length > 100){
+		           					<td>@pwm.piece.header.shortSummary.substring(0, 100) ...</td>
 		           				}else{
-		           					<td>@p.header.shortSummary</td>
+		           					<td>@pwm.piece.header.shortSummary</td>
 		           				}
 		           				<td>
-		           				@if(p.header.tags.size > 0){
+		           				@if(pwm.piece.header.tags.size > 0){
 									
-										@for(t <- p.header.tags){
+										@for(t <- pwm.piece.header.tags){
 											@if(t.size > 0){
 												<span class="hashtag">@t</span>
 											}
@@ -64,10 +65,11 @@
 									
 								}
 								</td>	           				
-		           				<td>@p.rating</td>
-		         				@if(p.published.isDefined){
+		           				<td>@utils.calculateRating(pwm.pieceMetrics)</td>
+		           				<td>@pwm.pieceMetrics.views.size</td>
+		         				@if(pwm.piece.published.isDefined){
 		         					<td>
-		         						@utils.long2date(p.published.get)
+		         						@utils.long2date(pwm.piece.published.get)
 	         						</td>
 	         						<td>
 					         			 <div class="form-group">
@@ -96,14 +98,14 @@
 					         		</td>
 					         		<td>
 						         		<div class="form-group">
-								         	<span data-toggle="modal" data-target="#preview-@p.id">
+								         	<span data-toggle="modal" data-target="#preview-@pwm.piece.id">
 					         					<button type="button" class="btn btn-xxs btn-info" class="btn btn-xs btn-primary" data-toggle="tooltip" 
 									         			 data-placement="left" title="Preview">
 												  <span class="glyphicon glyphicon-eye-open"></span>
 												</button>
 											</span> 
 						         		</div>
-						         		<span data-toggle="modal" data-target="#confirmDelete-@p.id">
+						         		<span data-toggle="modal" data-target="#confirmDelete-@pwm.piece.id">
 				         					<button type="button" class="btn btn-xxs btn-danger" class="btn btn-xs btn-primary" data-toggle="tooltip" 
 								         			 data-placement="left" title="Delete">
 											  <span class="glyphicon glyphicon-trash"></span>
@@ -111,8 +113,8 @@
 										</span>
 									</td>
 							</tr>
-							@modals.delete(p)
-							@modals.preview(p, username)
+							@modals.delete(pwm)
+							@modals.preview(pwm, username)
 						}
 					}
 		       </tbody>

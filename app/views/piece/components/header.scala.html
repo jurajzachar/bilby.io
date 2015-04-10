@@ -1,5 +1,5 @@
 @* title Template File *@
-@(pieceHeader: models.PieceFormInfo, author: String, generatedId: String)
+@(pieceHeader: models.PieceFormInfo, metrics: PieceMetrics, author: String, generatedId: String)
 
 @import views.utils
 
@@ -9,7 +9,7 @@
 			<h2>@pieceHeader.title</h2>
 			<h4>
 				<small>by<a href="@routes.SearchEngine.findUser(author)"> @author.toUpperCase</a>,</small>
-				<small><span>views: 0</span></small> 
+				<small><span>views: @metrics.views.size</span></small> 
 			</h4>
 			<div class="piece-header-summary">
 				@pieceHeader.shortSummary

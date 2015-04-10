@@ -7,6 +7,7 @@ import io.strongtyped.active.slick.TableQueries
 import io.strongtyped.active.slick.Tables
 import models.Follower
 import models.Piece
+import models.PieceMetrics
 import models.User
 import models.UserProfile
 import models.Visitor
@@ -14,6 +15,7 @@ import play.api.libs.json.Json
 import scala.slick.driver.JdbcDriver
 import scala.slick.jdbc.GetResult
 import scala.language.postfixOps
+import components.JsonConversions.{visitorReads, visitorWrites}
 
 trait Schema { this: Tables with TableQueries with Profile =>
 
@@ -34,11 +36,10 @@ trait Schema { this: Tables with TableQueries with Profile =>
     val published = column[Option[Long]]("published", O.Nullable)
     val authorId = column[Long]("author_id")
     val tags = column[String]("tags", O.DBType("text"), O.Nullable)
-    val rating = column[Double]("rating")
     val source = column[String]("source", O.DBType("text"))
     
     def * : ProvenShape[Piece] = {
-      val shapedValue = (id.?, title, shortSummary, titleCover, published, authorId, tags, rating, source).shaped
+      val shapedValue = (id.?, title, shortSummary, titleCover, published, authorId, tags, source).shaped
       shapedValue.<>({
         tuple =>
           Piece.flattenedPiece(
@@ -49,8 +50,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
             tuple._5,
             tuple._6,
             Json.parse(tuple._7).as[Set[String]],
-            tuple._8,
-            tuple._9)
+            tuple._8)
       }, {
         (p: Piece) =>
           Some {
@@ -61,7 +61,6 @@ trait Schema { this: Tables with TableQueries with Profile =>
               p.published,
               p.authorId,
               Json.stringify(Json.toJson(p.header.tags)),
-              p.rating,
               p.header.source)
           }
       })
@@ -80,7 +79,7 @@ trait Schema { this: Tables with TableQueries with Profile =>
     /** Database column id AutoInc, PrimaryKey */
     val id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     /** Database column host */
-    val host = column[Option[String]]("host")
+    val host = column[String]("host")
     /** Database column timestamp */
     val timestamp = column[Long]("timestamp")
     /** Database column id AutoInc, PrimaryKey */
@@ -228,5 +227,32 @@ trait Schema { this: Tables with TableQueries with Profile =>
   }
   /** Collection-like TableQuery object for table User */
   lazy val FollowersTable = new TableQuery(tag => new FollowersTable(tag))
+  
+  class PieceMetricsTable(tag: Tag) extends Table[PieceMetrics](tag, "piecemetrics") {
+      /** Database column id AutoInc, PrimaryKey */
+    val id = column[Long]("id", O.PrimaryKey)
+    val views  = column[String]("views", O.DBType("text"), O.Nullable)
+    val likes = column[Int]("likes", O.Nullable)
+    val dislikes = column[Int]("dislikes", O.Nullable)
+    
+   /** Foreign key referencing User (database name userprofile_id) */
+   lazy val pieceFk = foreignKey("id", id, PiecesTable)(r => r.id, onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
 
+   def * : ProvenShape[PieceMetrics] = {
+      val shapedValue = (id, views, likes, dislikes).shaped
+      shapedValue.<>({
+        tuple =>
+          PieceMetrics.apply(tuple._1, Json.parse(tuple._2).as[List[Long]],
+          tuple._3,
+          tuple._4)
+      }, {
+        (pm: PieceMetrics) =>
+          Some {
+            (pm.id, Json.stringify(Json.toJson(pm.views)), pm.likes, pm.dislikes)
+          }
+      })
+    }
+  }
+    /** Collection-like TableQuery object for table User */
+  lazy val PieceMetricsTable = new TableQuery(tag => new PieceMetricsTable(tag))
 }

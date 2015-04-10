@@ -16,14 +16,18 @@ trait SchemaExtensions {
   this: ActiveSlick with Schema =>
 
   import jdbcDriver.simple._
-
-  lazy val Visitors = EntityTableQuery[Visitor, VisitorsTable](tag => new VisitorsTable(tag))
+  
+  /* plain slick */
   lazy val Followers = FollowersTable
+  lazy val PieceMets = PieceMetricsTable
+
+  /* active slick */
+  lazy val Visitors = EntityTableQuery[Visitor, VisitorsTable](tag => new VisitorsTable(tag))
   lazy val Users = EntityTableQuery[User, UsersTable](tag => new UsersTable(tag))
   lazy val UserProfiles = EntityTableQuery[UserProfile, UserProfilesTable](tag => new UserProfilesTable(tag))
   lazy val Pieces = EntityTableQuery[Piece, PiecesTable](tag => new PiecesTable(tag))
 
-  val ddl = Visitors.ddl ++ UserProfiles.ddl ++ Users.ddl ++ Followers.ddl ++ Pieces.ddl
+  val ddl = Visitors.ddl ++ UserProfiles.ddl ++ Users.ddl ++ Followers.ddl ++ Pieces.ddl ++ PieceMets.ddl
 
   implicit class VisitorExtenstions(val model: Visitor) extends ActiveRecord[Visitor] {
     override def table = Visitors

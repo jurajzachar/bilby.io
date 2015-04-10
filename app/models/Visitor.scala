@@ -1,12 +1,14 @@
 package models
 import io.strongtyped.active.slick.models.Identifiable
 import java.util.Date
+import play.api.libs.json.Json
+import components.JsonConversions.visitorWrites
 
 /**
  * @author juri
  */
 case class Visitor(
-  host: Option[String] = Some("unknownHost"),
+  host: String = "unknownHost",
   timestamp: Long = System.currentTimeMillis(),
   id: Option[Long] = None) extends Identifiable[Visitor] {
 
@@ -14,11 +16,8 @@ case class Visitor(
   override def withId(id: Id): Visitor = copy(id = Option(id))
   lazy val users = Nil
 
-  override def toString(): String = {
-    val date = new Date(timestamp)
-    s"\thost: ${host getOrElse None}\n" +
-    s"\ttimestamp: $date\n" 
-  }
+  override def toString(): String = Json.toJson(this).toString
+  
 }
     
 

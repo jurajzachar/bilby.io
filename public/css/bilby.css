@@ -340,7 +340,7 @@ a .hashtag:hover {
 
 .tt-dropdown-menu {
     max-height: 250px;
-    overflow-y: scroll;
+    overflow-y: auto;
     min-width: 160px;
     margin-top: 2px;
     padding: 5px 0;

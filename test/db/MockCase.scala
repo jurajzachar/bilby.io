@@ -43,6 +43,6 @@ trait MockCase {
     srcSeq.dropWhile(x => x.contains("---")).mkString  
   )
 
-  val piece = Piece(pieceHeader, None, 1, 0.0, None)
+  val piece = Piece(pieceHeader, None, 1, None)
   //println(Json.toJson(piece))
 }

@@ -38,28 +38,28 @@ object PieceKeeper extends Controller
   case class Preview(id: Long, author: User, title: String) extends PieceAction
 
   private def cachedWorld = {
-    Cache.getOrElse("world", 60){ 
-    DB.withSession {
-      implicit session: Session =>
+    Cache.getOrElse("world", 60) {
+      DB.withSession {
+        implicit session: Session =>
           val unsorted =
-          for(u <- dal.cake.Users.fetchAll)
-          yield (u.username, buildUserWorld(u.id.get))
+            for (u <- dal.cake.Users.fetchAll)
+              yield (u.username, buildUserWorld(u.id.get))
           dal.popularAndRecentFirst(unsorted)
-        }
+      }
     }
   }
-  
+
   private def buildUserWorld(authorId: Long) = {
-    dal.fetchAll(authorId).filter(_.published.isDefined)
+    dal.fetchAll(authorId).filter(_.piece.published.isDefined)
   }
-  
+
   /**
    * FIXME
    */
   def getWorld = {
     cachedWorld
   }
-  
+
   /**
    * Read only rendering of pieces.
    * TODO: setup sharing and privacy traits
@@ -68,8 +68,12 @@ object PieceKeeper extends Controller
   def render(uri: String) = Action {
     request =>
       dal.findPublishedByUri(uri) match {
-        case (Some(piece), Some(author)) => Ok(views.html.piece.render(piece, author, username(request)))
-        case (_, _)                      => NotFound(views.html.notfound(request.path))
+        case (Some(pwm), Some(author)) => {
+          //update visitors table and piecemetrics...
+          dal.updateVisitorMetrics(pwm.piece.id.get, request.remoteAddress)
+          Ok(views.html.piece.render(pwm, author, username(request)))
+        }
+        case (_, _) => NotFound(views.html.notfound(request.path))
       }
 
   }
@@ -80,7 +84,6 @@ object PieceKeeper extends Controller
   def list = withUser { user =>
     implicit request =>
       Ok(views.html.piece.list(user.username, dal.fetchAll(user.id.get)))
-
   }
 
   /**

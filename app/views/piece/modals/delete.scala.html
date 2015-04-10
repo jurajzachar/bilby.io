@@ -1,8 +1,8 @@
-@(p: Piece)
+@(pwm: PieceWithMetrics)
 
 @import b3.inline.fieldConstructor
 
-<div class="modal fade" id="confirmDelete-@p.id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmDelete-@pwm.piece.id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -12,9 +12,9 @@
       <div class="modal-body">
        <p> Are you sure you want to irreversibly <strong>delete</strong> this contribution?</p>
        <div class="jumbotron">
-       		<h3>@p.header.title</h3>
+       		<h3>@pwm.piece.header.title</h3>
        		<span class="gutter"></span>
-       		<h5>@p.header.shortSummary</h5>
+       		<h5>@pwm.piece.header.shortSummary</h5>
        </div>
       </div>
       <div class="modal-footer">

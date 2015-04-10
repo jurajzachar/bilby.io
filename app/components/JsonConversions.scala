@@ -46,14 +46,12 @@ trait JsonReadWrite {
     (JsPath \ "header").write[PieceFormInfo] and
     (JsPath \ "published").writeNullable[Long] and
     (JsPath \ "authorId").write[Long] and
-    (JsPath \ "rating").write[Double] and
     (JsPath \ "id").writeNullable[Long])(unlift(Piece.unapply))
     
   implicit val pieceReads: Reads[Piece] = (
     (JsPath \ "header").read[PieceFormInfo] and
     (JsPath \ "published").readNullable[Long] and
     (JsPath \ "authorId").read[Long] and
-    (JsPath \ "rating").read[Double] and
     (JsPath \ "id").readNullable[Long])(Piece.apply _)
 
   implicit val userReads: Reads[User] = (
@@ -78,7 +76,12 @@ trait JsonReadWrite {
     (JsPath \ "id").readNullable[Long])(UserProfile.apply _)
 
   implicit val visitorReads: Reads[Visitor] = (
-    (JsPath \ "host").readNullable[String] and
+    (JsPath \ "host").read[String] and
     (JsPath \ "timestamp").read[Long] and
     (JsPath \ "id").readNullable[Long])(Visitor.apply _)
+    
+  implicit val visitorWrites: Writes[Visitor] = (
+    (JsPath \ "host").write[String] and
+    (JsPath \ "timestamp").write[Long] and
+    (JsPath \ "id").writeNullable[Long])(unlift(Visitor.unapply))  
 }

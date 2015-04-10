@@ -24,9 +24,8 @@ object Piece {
     published: Option[Long],
     author: Long,
     tags: Set[String],
-    rating: Double,
     source: String): Piece = {
-    Piece(PieceFormInfo(title, shortSummary, new URL(titleCover), tags, source), published, author, rating, id)
+    Piece(PieceFormInfo(title, shortSummary, new URL(titleCover), tags, source), published, author, id)
   }
 }
 
@@ -34,9 +33,7 @@ case class Piece(
   header: PieceFormInfo,
   published: Option[Long],
   authorId: Long,
-  rating: Double,
   id: Option[Long] = None) extends Identifiable[Piece] {
-  require(rating >= 0.0 || rating <= 1.0)
 
   def isDraft: Boolean = published.isDefined
   override type Id = Long
@@ -57,14 +54,6 @@ case class Piece(
 }
 
 /** this is used to do a source-less read-only listing projection **/
-//case class PieceOverview(
-//  id: Long,
-//  author_id: Long,
-//  title: String,
-//  shortSummary: String,
-//  tags: Set[String],
-//  published: Option[Long],
-//  rating: Double)
 
 /** this is used to bind editor form**/
 case class PieceFormInfo(
@@ -81,13 +70,12 @@ case class PieceFormInfo(
   override def toString = Json.toJson(this).toString
 }
 
-//case class PieceStats(id: Long, totalViews: Long, rating: Double) {
-//  def getDaily: Double  = 0.0 //implement me
-//  def getMonthly: Double = 0.0
-//  def getWeekly: Double = 0.0
-//}
-
 case class HashTag(xs: String) {
   override def toString() = xs
 }
 
+case class PieceMetrics(id: Long, views: List[Long], likes: Int, dislikes: Int)
+
+case class PieceWithMetrics(id: Long, piece: Piece, pieceMetrics: PieceMetrics) {
+  require(id == pieceMetrics.id)
+}

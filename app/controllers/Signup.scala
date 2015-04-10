@@ -33,7 +33,7 @@ object Signup extends Controller with UserBindings {
         userCombo => {
           logger.debug("Creating a new user: " + userCombo._1.username)
           val result = dal.signUpNewUser(
-            (Visitor(Some(request.remoteAddress), System.currentTimeMillis()), userCombo._2, userCombo._1))
+            (Visitor(request.remoteAddress, System.currentTimeMillis()), userCombo._2, userCombo._1))
           result match {
             case Left(user)    => Auth.createSession(
                 routes.Accounter.user(user.username), user.username)

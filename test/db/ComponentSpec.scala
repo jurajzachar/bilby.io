@@ -88,7 +88,7 @@ class ComponentSpec extends PlaySpec
       candidateId match {
         case Some(id) => //ignore
         case None => UserComponent.signUpNewUser((
-          Visitor(None, System.currentTimeMillis(), None), 
+          Visitor("localhost", System.currentTimeMillis(), None), 
           UserProfile(None, None, None, None), 
           users.find(_.username.equals(username)).get))
       }
@@ -103,7 +103,7 @@ class ComponentSpec extends PlaySpec
       candidateId match {
         case Some(id) => //ignore
         case None => UserComponent.signUpNewUser((
-          Visitor(None, System.currentTimeMillis(), None), 
+          Visitor("localhost", System.currentTimeMillis(), None), 
           UserProfile(None, None, None, None), 
           users.find(_.email.equals(email)).get))
       }

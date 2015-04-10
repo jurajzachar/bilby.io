@@ -6,9 +6,8 @@ import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
 import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
 import scala.util.Try
 import scala.util.Success
-import models.Piece
-import models.Piece._
-import models.PieceFormInfo
+import models.{ Piece, PieceMetrics, User, Visitor, PieceFormInfo }
+import components.JsonConversions.{ visitorReads, visitorWrites }
 import play.api.Play.current
 import play.api.db.slick.DB
 import play.api.db.slick.Session
@@ -16,7 +15,12 @@ import scala.slick.lifted.Rep
 import scala.slick.lifted.Column
 import play.api.Logger
 import play.utils.UriEncoding
-import models.User
+import play.api.libs.json.Json
+import play.api.cache.Cache
+import models.PieceWithMetrics
+import models.PieceWithMetrics
+import models.PieceWithMetrics
+import models.PieceWithMetrics
 
 /**
  * @author juri
@@ -75,57 +79,69 @@ trait PieceComponent {
       }
     }
 
-    def popularAndRecentFirst(stream: List[(String, List[Piece])]) = {
+    def popularAndRecentFirst(stream: List[(String, List[PieceWithMetrics])]) = {
       val tups = for (x <- stream; y <- x._2) yield (x._1, y)
-      tups.sortBy(x => (x._2.rating, x._2.published.get)).reverse
+      //tups.sortBy(x => (x._2.rating, x._2.published.get)).reverse
+      tups.sortBy(x => (x._2.pieceMetrics.views.size, x._2.piece.published.get)).reverse
     }
 
-    def fetchAll(authorId: Long): List[Piece] = {
+    def fetchAll(authorId: Long): List[PieceWithMetrics] = {
       import scala.slick.driver.JdbcDriver.simple._
       DB.withSession {
         implicit session: Session =>
-          cake.Pieces.filter(_.authorId === authorId).sortBy(_.id).list;
+          //val pieces = cake.Pieces.filter(_.authorId === authorId).sortBy(_.id).list;
+          val results = for {
+            p <- cake.Pieces if p.authorId === authorId
+            pm <- cake.PieceMets if pm.id === p.id
+          } yield (p.id, p, pm)
+          results.list.map(x => PieceWithMetrics(x._1, x._2, x._3))
       }
     }
 
-    /** TODO: use PieceOverviews to minimize memory footprint FIXME: how to get templates work wtih ajax load?**/
-    //    def fetchAllOverviews = {
-    //      DB.withSession {
-    //        implicit session: Session =>
-    //          Q.queryNA[PieceOverview](s"""select id, 
-    //                        author_id, 
-    //                        title, 
-    //                        short_summary, 
-    //                        tags, 
-    //                        published, 
-    //                        rating from piece""").list
-    //      }
-    //    }
-
-    def findPublishedByUri(uri: String): (Option[Piece], Option[String]) = {
+    def findPublishedByUri(uri: String): (Option[PieceWithMetrics], Option[String]) = {
       EncodedPieceIdUri(uri) match {
-        case (Some(id), Some(author)) => DB.withSession {
-          implicit session: Session =>
-            (cake.Pieces.findOptionById(id).filter(_.published.isDefined), Some(author))
+        case (Some(id), Some(author)) => Cache.getOrElse(id.toString, 60) {
+          DB.withSession {
+            implicit session: Session =>
+              (findPieceMetricsOptionById(id), Some(author))
+          }
         }
         case (_, _) => (None, None)
       }
     }
 
+    def findPieceMetricsOptionById(id: Long) = {
+      import scala.slick.driver.JdbcDriver.simple._
+      DB.withSession {
+        implicit session: Session =>
+          //val pieces = cake.Pieces.filter(_.authorId === authorId).sortBy(_.id).list;
+          val results = for {
+            p <- cake.Pieces if p.id === id
+            pm <- cake.PieceMets if pm.id === p.id
+          } yield (p.id, p, pm)
+          results.firstOption.map(x => PieceWithMetrics(x._1, x._2, x._3))
+      }
+    }
+    
     def findByPieceId(id: Long, authorId: Long): Piece = {
       Try(DB.withSession {
         implicit session: Session =>
           cake.Pieces.findById(id)
-      }).getOrElse(Piece(draft, None, authorId, 0.0, None))
+      }).getOrElse(Piece(draft, None, authorId, None))
     }
 
     def save(id: Option[Long], authorId: Long, pieceFormInfo: PieceFormInfo): Piece = {
       id match {
         //we are dealing with an unpublished new draft
         case None => {
+          import scala.slick.driver.JdbcDriver.simple._
           DB.withSession {
             implicit session: Session =>
-              Piece(pieceFormInfo, None, authorId, 0.0, None).save
+              //create piece table
+              val p = Piece(pieceFormInfo, None, authorId, None).save
+              //create metrics sub-table with the appropirate FK...
+              PieceMets += PieceMetrics(p.id.get, Nil, 0, 0)
+              p
           }
         }
         //we are dealing with and existing piece, 
@@ -162,5 +178,28 @@ trait PieceComponent {
           Pieces.tryDeleteById(id)
       }
     }
+
+    def updateVisitorMetrics(pieceId: Long, remoteAddress: String) {
+      logger.debug("updating piece metrics id=${id}")
+      DB.withSession {
+        implicit session: Session =>
+          import scala.slick.driver.JdbcDriver.simple._
+          val v = Visitor(remoteAddress, System.currentTimeMillis(), None)
+          val qpm = for { pm <- PieceMets if pm.id === pieceId } yield pm.views
+          val serializedIds = Json.parse(qpm.firstOption.getOrElse("[]")).as[List[Long]]
+          val visitors = for (id <- serializedIds) yield Visitors.findById(id)
+          //filter our visitors that came from this address within the last minute 
+          visitors.filter(x => x.timestamp + 60000L >= v.timestamp && x.host.equals(v.host)) match {
+            //we have a unique visitor
+            case Nil => {
+              val id = v.save.id.get
+              val updatedV = Json.toJson(id :: serializedIds).toString
+              qpm.update(updatedV)
+            }
+            case x :: xs => //ignore repeated page loads from the same address
+          }
+      }
+    }
+
   }
 }

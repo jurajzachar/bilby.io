@@ -59,8 +59,8 @@ object SearchEngine extends Controller with Auth.Secured {
           val results = projection.filter {
             x =>
               tokens.exists(t => x._1.toLowerCase.contains(t)) || //uni-directional user match
-                tokens.exists(t => (x._2.header.title.toLowerCase).contains(t)) || //uni-directional title match
-                tokens.exists(t => (x._2.header.tags.exists(tag => tag.toLowerCase.contains(t)))) //bi-directional tag match
+                tokens.exists(t => (x._2.piece.header.title.toLowerCase).contains(t)) || //uni-directional title match
+                tokens.exists(t => (x._2.piece.header.tags.exists(tag => tag.toLowerCase.contains(t)))) //bi-directional tag match
           }
           val message = genericSourceMsg.format(results.size, EnglishGrammar.oneOrMore(results.size, "result"), valid.tokens.mkString(", "))
           Ok(views.html.searches(message, results, username(request)))
@@ -77,7 +77,7 @@ object SearchEngine extends Controller with Auth.Secured {
 
   def findByTag(tagName: String) = Action {
     request =>
-      val results = PieceKeeper.getWorld.filter(_._2.header.tags.contains(tagName))
+      val results = PieceKeeper.getWorld.filter(_._2.piece.header.tags.contains(tagName))
       val message = genericTagsMsg.format(results.size,
         EnglishGrammar.oneOrMore(results.size, "result"), tagName.toUpperCase)
       Ok(views.html.searches(message, results, username(request)))
@@ -87,8 +87,8 @@ object SearchEngine extends Controller with Auth.Secured {
     Cache.getOrElse("tta", 60) {
       Map(
         "users" -> PieceKeeper.getWorld.map(_._1).toSet,
-        "titles" -> PieceKeeper.getWorld.map(_._2.header.title).toSet,
-        "tags" -> PieceKeeper.getWorld.map(_._2.header.tags).flatten.toSet)
+        "titles" -> PieceKeeper.getWorld.map(_._2.piece.header.title).toSet,
+        "tags" -> PieceKeeper.getWorld.map(_._2.piece.header.tags).flatten.toSet)
     }
   }
 

@@ -44,7 +44,7 @@ object Auth extends Controller with UserComponent {
       loginForm.bindFromRequest.fold(
         hasErrors => BadRequest(views.html.auth.login(hasErrors)),
         valid => {
-          dal.updateVisitor(valid._1, Visitor(Some(request.remoteAddress)))
+          dal.updateVisitor(valid._1, Visitor(request.remoteAddress))
           createSession(routes.Application.index(), valid._1)
         })
   }

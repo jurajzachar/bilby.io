@@ -1,8 +1,8 @@
 @import piece.components
 @import b3.inline.fieldConstructor
-@(piece: Piece, author: String)
+@(pwm: PieceWithMetrics, author: String)
 
-<div class="modal fade" tabindex="-1" id="preview-@piece.id.get" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" tabindex="-1" id="preview-@pwm.piece.id.get" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
     
@@ -12,8 +12,8 @@
       </div>
       
       <div class="modal-body">
-       	@components.header(piece.header, author, java.util.UUID.randomUUID.toString)
-		@components.content(piece, author)
+       	@components.header(pwm.piece.header, pwm.pieceMetrics, author, java.util.UUID.randomUUID.toString)
+		@components.content(pwm.piece, author)
 	  </div>
       
       <div class="modal-footer">
