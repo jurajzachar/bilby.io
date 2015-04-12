@@ -18,46 +18,32 @@ import play.api.mvc.Controller
 import play.api.mvc.Request
 import play.api.mvc.Result
 import play.api.mvc.Results
+import play.libs.Akka
+import actors.Yallara._
 
 object PieceKeeper extends Controller
   with PieceBindings
+  with PieceComponent
   with Auth.Secured
   with Authorized {
 
   /* this will go away once i figure out how to use localized messages */
-  val draftSavedMsg = "Your draft has been saved."
-  val publishMsg = "Your post has been published. Please allow some time for this change to take effect."
-  val unpublishMsg = "Your post has been taken down. Please allow some time for this change to take effect."
-  val pieceDeletedMsg = "Your post has been deleted."
-  val notAllowedMsg = "This action is not allowed!"
-
+  private val draftSavedMsg = "Your draft has been saved."
+  private val publishMsg = "Your post has been published. Please allow some time for this change to take effect."
+  private val unpublishMsg = "Your post has been taken down. Please allow some time for this change to take effect."
+  private val pieceDeletedMsg = "Your post has been deleted."
+  private val notAllowedMsg = "This action is not allowed!"
+  
   sealed trait PieceAction {}
   case class Save(id: Long, author: User) extends PieceAction
   case class Publish(id: Long, author: User, hasFormData: Boolean) extends PieceAction
   case class Unpublish(id: Long, author: User) extends PieceAction
   case class Preview(id: Long, author: User, title: String) extends PieceAction
 
-  private def cachedWorld = {
-    Cache.getOrElse("world", 60) {
-      DB.withSession {
-        implicit session: Session =>
-          val unsorted =
-            for (u <- dal.cake.Users.fetchAll)
-              yield (u.username, buildUserWorld(u.id.get))
-          dal.popularAndRecentFirst(unsorted)
-      }
-    }
-  }
-
-  private def buildUserWorld(authorId: Long) = {
-    dal.fetchAll(authorId).filter(_.piece.published.isDefined)
-  }
-
-  /**
-   * FIXME
-   */
   def getWorld = {
-    cachedWorld
+    Cache.getOrElse("world", 60) {
+      dal.popularAndRecentFirst(dal.fetchWorld)
+    }
   }
 
   /**
@@ -164,7 +150,6 @@ object PieceKeeper extends Controller
           },
           pieceFormInfo => {
             dal.publish(id)
-
             if (hasPieceForm)
               Redirect(routes.PieceKeeper.edit(resolveSavedStatus(id, author, pieceFormInfo))).flashing("success" -> publishMsg)
             else Redirect(routes.PieceKeeper.list).flashing("success" -> publishMsg)

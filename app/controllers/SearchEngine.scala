@@ -10,7 +10,7 @@ import play.api.mvc.Controller
 import play.api.mvc.Request
 import play.api.mvc.Result
 import play.api.mvc.Results
-import stringy.EnglishGrammar
+import utils.EnglishGrammar
 import language.postfixOps
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json

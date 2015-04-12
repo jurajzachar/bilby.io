@@ -1,7 +1,9 @@
 package components
 
+import scala.language.postfixOps
 import scala.slick.lifted.ProvenShape
 import scala.slick.lifted.ProvenShape.proveShapeOf
+
 import io.strongtyped.active.slick.Profile
 import io.strongtyped.active.slick.TableQueries
 import io.strongtyped.active.slick.Tables
@@ -12,15 +14,11 @@ import models.User
 import models.UserProfile
 import models.Visitor
 import play.api.libs.json.Json
-import scala.slick.driver.JdbcDriver
-import scala.slick.jdbc.GetResult
-import scala.language.postfixOps
-import components.JsonConversions.{visitorReads, visitorWrites}
 
 trait Schema { this: Tables with TableQueries with Profile =>
 
   import jdbcDriver.simple._
-
+  
   class PiecesTable(tag: Tag) extends EntityTable[Piece](tag, "piece") {
 
     /** Database column id AutoInc, PrimaryKey */

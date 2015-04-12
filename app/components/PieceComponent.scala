@@ -1,26 +1,34 @@
 package components
 
 import java.net.URL
+
+import play.api.db.slick.Config.driver.simple._
+import scala.slick.jdbc.GetResult
+import scala.slick.jdbc.{StaticQuery => Q}
 import scala.slick.jdbc.StaticQuery.interpolation
 import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
-import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
-import scala.util.Try
-import scala.util.Success
-import models.{ Piece, PieceMetrics, User, Visitor, PieceFormInfo }
-import components.JsonConversions.{ visitorReads, visitorWrites }
-import play.api.Play.current
-import play.api.db.slick.DB
-import play.api.db.slick.Session
-import scala.slick.lifted.Rep
 import scala.slick.lifted.Column
+import scala.slick.lifted.Rep
+import scala.util.Success
+import scala.util.Try
+
+import components.JsonConversions.visitorReads
+import components.JsonConversions.visitorWrites
+import models.Piece
+import models.PieceFormInfo
+import models.PieceMetrics
+import models.PieceWithMetrics
+import models.PieceWithMetrics
+import models.PieceWithMetrics
+import models.PieceWithMetrics
+import models.User
+import models.Visitor
 import play.api.Logger
-import play.utils.UriEncoding
-import play.api.libs.json.Json
+import play.api.Play.current
 import play.api.cache.Cache
-import models.PieceWithMetrics
-import models.PieceWithMetrics
-import models.PieceWithMetrics
-import models.PieceWithMetrics
+import play.api.db.slick.DB
+import play.api.libs.json.Json
+import play.utils.UriEncoding
 
 /**
  * @author juri
@@ -52,9 +60,9 @@ trait PieceComponent {
   }
 
   def initComponent(cake: ActiveSlickCake = ActiveSlickCake.cake) = new PieceComponent(cake)
-
+  
   lazy val dal = initComponent()
-
+  
   class PieceComponent(val cake: ActiveSlickCake) {
 
     import cake._
@@ -86,7 +94,6 @@ trait PieceComponent {
     }
 
     def fetchAll(authorId: Long): List[PieceWithMetrics] = {
-      import scala.slick.driver.JdbcDriver.simple._
       DB.withSession {
         implicit session: Session =>
           //val pieces = cake.Pieces.filter(_.authorId === authorId).sortBy(_.id).list;
@@ -111,10 +118,8 @@ trait PieceComponent {
     }
 
     def findPieceMetricsOptionById(id: Long) = {
-      import scala.slick.driver.JdbcDriver.simple._
       DB.withSession {
         implicit session: Session =>
-          //val pieces = cake.Pieces.filter(_.authorId === authorId).sortBy(_.id).list;
           val results = for {
             p <- cake.Pieces if p.id === id
             pm <- cake.PieceMets if pm.id === p.id
@@ -122,7 +127,7 @@ trait PieceComponent {
           results.firstOption.map(x => PieceWithMetrics(x._1, x._2, x._3))
       }
     }
-    
+
     def findByPieceId(id: Long, authorId: Long): Piece = {
       Try(DB.withSession {
         implicit session: Session =>
@@ -134,7 +139,6 @@ trait PieceComponent {
       id match {
         //we are dealing with an unpublished new draft
         case None => {
-          import scala.slick.driver.JdbcDriver.simple._
           DB.withSession {
             implicit session: Session =>
               //create piece table
@@ -175,6 +179,11 @@ trait PieceComponent {
       logger.debug("deleting piece id=${id}")
       DB.withSession {
         implicit session: Session =>
+          val q = PieceMetricsTable.filter(_.id === id)
+          /** This is Play-Slick bullshit! **/
+          val deleteInvoker = queryToDeleteInvoker(
+              q.asInstanceOf[scala.slick.lifted.Query[play.api.db.slick.Config.driver.Table[_], _, Seq]])
+          deleteInvoker.delete
           Pieces.tryDeleteById(id)
       }
     }
@@ -201,5 +210,16 @@ trait PieceComponent {
       }
     }
 
+    def fetchWorld = {
+      DB.withSession {
+        implicit session: Session =>
+          for (u <- dal.cake.Users.fetchAll)
+            yield (u.username, buildUserWorld(u.id.get))
+      }
+    }
+
+    private def buildUserWorld(authorId: Long) = {
+      dal.fetchAll(authorId).filter(_.piece.published.isDefined)
+    }
   }
 }

@@ -1,5 +1,4 @@
-# --- created: 2015-04-10T19:32:12.601+02:00
-
+# --- created: 2015-04-11T10:07:15.977+02:00
 # --- !Ups
 create table "visitor" ("host" VARCHAR(254) NOT NULL,"timestamp" BIGINT NOT NULL,"id" BIGSERIAL NOT NULL PRIMARY KEY);
 create table "userprofile" ("country" VARCHAR(254),"place_of_res" VARCHAR(254),"age" SMALLINT,"id" BIGSERIAL NOT NULL PRIMARY KEY);
@@ -13,7 +12,91 @@ alter table "user" add constraint "userprofile_id" foreign key("userprofile_id")
 alter table "user" add constraint "visitor_id" foreign key("visitor_id") references "visitor"("id") on update NO ACTION on delete NO ACTION;
 alter table "follower" add constraint "id" foreign key("id") references "user"("id") on update NO ACTION on delete NO ACTION;
 alter table "piece" add constraint "author_id" foreign key("author_id") references "user"("id") on update NO ACTION on delete NO ACTION;
-alter table "piecemetrics" add constraint "id" foreign key("id") references "piece"("id") on update NO ACTION on delete NO ACTION;
+alter table "piecemetrics" add constraint "id" foreign key("id") references "piece"("id") on update NO ACTION on delete NO ACTION;;
+# --- !Downs
+alter table "piecemetrics" drop constraint "id";
+alter table "piece" drop constraint "author_id";
+alter table "follower" drop constraint "id";
+alter table "user" drop constraint "userprofile_id";
+alter table "user" drop constraint "visitor_id";
+drop table "piecemetrics";
+drop table "piece";
+drop table "follower";
+drop table "user";
+drop table "userprofile";
+drop table "visitor";
+# --- !Downs
+alter table "piecemetrics" drop constraint "id";
+alter table "piece" drop constraint "author_id";
+alter table "follower" drop constraint "id";
+alter table "user" drop constraint "userprofile_id";
+alter table "user" drop constraint "visitor_id";
+drop table "piecemetrics";
+drop table "piece";
+drop table "follower";
+drop table "user";
+drop table "userprofile";
+drop table "visitor";
+# --- !Downs
+alter table "piecemetrics" drop constraint "id";
+alter table "piece" drop constraint "author_id";
+alter table "follower" drop constraint "id";
+alter table "user" drop constraint "userprofile_id";
+alter table "user" drop constraint "visitor_id";
+drop table "piecemetrics";
+drop table "piece";
+drop table "follower";
+drop table "user";
+drop table "userprofile";
+drop table "visitor";
+# --- !Downs
+alter table "piecemetrics" drop constraint "id";
+alter table "piece" drop constraint "author_id";
+alter table "follower" drop constraint "id";
+alter table "user" drop constraint "userprofile_id";
+alter table "user" drop constraint "visitor_id";
+drop table "piecemetrics";
+drop table "piece";
+drop table "follower";
+drop table "user";
+drop table "userprofile";
+drop table "visitor";
+# --- !Downs
+alter table "piecemetrics" drop constraint "id";
+alter table "piece" drop constraint "author_id";
+alter table "follower" drop constraint "id";
+alter table "user" drop constraint "userprofile_id";
+alter table "user" drop constraint "visitor_id";
+drop table "piecemetrics";
+drop table "piece";
+drop table "follower";
+drop table "user";
+drop table "userprofile";
+drop table "visitor";
+# --- !Downs
+alter table "piecemetrics" drop constraint "id";
+alter table "piece" drop constraint "author_id";
+alter table "follower" drop constraint "id";
+alter table "user" drop constraint "userprofile_id";
+alter table "user" drop constraint "visitor_id";
+drop table "piecemetrics";
+drop table "piece";
+drop table "follower";
+drop table "user";
+drop table "userprofile";
+drop table "visitor";
+# --- !Downs
+alter table "piecemetrics" drop constraint "id";
+alter table "piece" drop constraint "author_id";
+alter table "follower" drop constraint "id";
+alter table "user" drop constraint "userprofile_id";
+alter table "user" drop constraint "visitor_id";
+drop table "piecemetrics";
+drop table "piece";
+drop table "follower";
+drop table "user";
+drop table "userprofile";
+drop table "visitor";
 # --- !Downs
 alter table "piecemetrics" drop constraint "id";
 alter table "piece" drop constraint "author_id";

@@ -23,7 +23,7 @@ trait FormBindings[M] {
   def form: Form[M]
 }
 
-trait PieceBindings extends FormBindings[PieceFormInfo] with PieceComponent {
+trait PieceBindings extends FormBindings[PieceFormInfo] {
   
   val max1MSource = 1000 * 1000 //1MB
   
