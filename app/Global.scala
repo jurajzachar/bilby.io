@@ -12,8 +12,8 @@ import play.api.db.slick.DB
 import play.api.db.slick.Session
 import play.libs.Akka
 import akka.actor.Props
-import actors.Yallara
-import actors.Yallara.CacheWorld
+import actors.CacheBuilder
+import actors.CacheBuilder.CacheWorld
 import scala.concurrent.duration._
 
 object Global extends WithFilters(CSRFFilter()) with GlobalSettings {
@@ -25,7 +25,7 @@ object Global extends WithFilters(CSRFFilter()) with GlobalSettings {
     //    implicit session: Session =>
     //      ActiveSlickCake.cake.createSchema
     //      ActiveSlickCake.cake.dropSchema
-    val cacheBuilder = Akka.system.actorOf(Props(new Yallara(60)), name = "yallara")
+    val cacheBuilder = Akka.system.actorOf(Props(new CacheBuilder(60)), name = "yallara")
     Akka.system.scheduler.schedule(0.microsecond, 61.seconds, cacheBuilder, CacheWorld)
   }
 

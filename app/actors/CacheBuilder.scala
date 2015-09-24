@@ -13,16 +13,16 @@ import akka.actor.ActorRef
  * @author juri
  *
  */
-object Yallara {
+object CacheBuilder {
 
   case object CacheWorld
   case class CacheUri(uri: String)
 
 }
 
-class Yallara(expiration: Int) extends Actor with PieceComponent with akka.actor.ActorLogging {
+class CacheBuilder(expiration: Int) extends Actor with PieceComponent with akka.actor.ActorLogging {
 
-  import Yallara._
+  import CacheBuilder._
 
   def receive = {
 

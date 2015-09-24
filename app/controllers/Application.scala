@@ -5,7 +5,7 @@ import play.api.mvc.Controller
 import play.api.cache.Cached
 import play.api.Play.current
 import play.api.mvc.WebSocket
-import actors.Cockatoo
+import actors.WebSocketWorker
 
 object Application extends Controller with Auth.Secured {
 
@@ -31,6 +31,6 @@ object Application extends Controller with Auth.Secured {
 
   def socket = WebSocket.acceptWithActor[String, String] { request =>
     out =>
-      Cockatoo.props(out)
+      WebSocketWorker.props(out)
   }
 }

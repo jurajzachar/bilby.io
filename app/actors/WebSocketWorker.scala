@@ -4,11 +4,11 @@ import akka.actor.ActorRef
 import akka.actor.Props
 import akka.actor.Actor
 
-object Cockatoo {
-  def props(out: ActorRef) = Props(new Cockatoo(out))
+object WebSocketWorker {
+  def props(out: ActorRef) = Props(new WebSocketWorker(out))
 }
 
-class Cockatoo(out: ActorRef) extends Actor with akka.actor.ActorLogging {
+class WebSocketWorker(out: ActorRef) extends Actor with akka.actor.ActorLogging {
   def receive = {
     case msg: String =>
       out ! ("I received your message: " + msg)

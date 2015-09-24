@@ -19,7 +19,7 @@ import play.api.mvc.Request
 import play.api.mvc.Result
 import play.api.mvc.Results
 import play.libs.Akka
-import actors.Yallara._
+import actors.CacheBuilder
 
 object PieceKeeper extends Controller
   with PieceBindings
