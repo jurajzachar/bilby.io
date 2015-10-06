@@ -5,7 +5,12 @@ logs
 
 # sbt specific
 .cache
+<<<<<<< HEAD
 .cache-*
+=======
+.cache-main
+.cache-tests
+>>>>>>> 68317917fbeff2a628d226e9da50b7cd6540753d
 .history/
 .lib/
 dist/*
