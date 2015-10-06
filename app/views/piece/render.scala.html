@@ -1,5 +1,0 @@
-@(pwm: models.PieceWithMetrics, author: String, username: Option[String])
-
-@main(Some(components.header(pwm.piece.header, pwm.pieceMetrics, author, java.util.UUID.randomUUID.toString)), nav = "", username) { 
-	@components.content(pwm.piece, author)
-}(false)

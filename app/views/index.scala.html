@@ -1,9 +1,0 @@
-@(stream: List[(String, PieceWithMetrics)], username: Option[String])
-@title ={
-	<h4>Currently trending</h4> 
-}
-@main(Some(title), "The Burrows", username) {
-	<div id="world" data-masonry-options='{ "columnWidth": 150, "gutter": 10 }'>
-		@piece.world(stream)
-	</div>
-}(true, 80)

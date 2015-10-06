@@ -4,7 +4,8 @@ logs
 *.log
 
 # sbt specific
-.cache/
+.cache
+.cache-*
 .history/
 .lib/
 dist/*
