@@ -1,14 +1,13 @@
 name := "bilby.io"
 scalaVersion := "2.11.7"
 
-scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
-
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 lazy val commonSettings = Seq(
   organization := "com.blueskiron",
   version := "0.0.1-SNAPSHOT",
-  scalaVersion := "2.11.7"
+  scalaVersion := "2.11.7",
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 )
 
 //api-like module with no dependencies

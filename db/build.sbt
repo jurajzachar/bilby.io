@@ -1,6 +1,6 @@
 name := "db"
 scalaVersion := "2.11.7"
-
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 lazy val model = project.in(file("../model"))
 
 lazy val db = project.in(file("."))
@@ -12,7 +12,6 @@ lazy val db = project.in(file("."))
   "com.typesafe.slick" 		%% 	"slick" 						% "3.0.3" withSources() withJavadoc(),
   "com.typesafe.slick" 		%% 	"slick-codegen" 				% "3.0.1",
   "io.strongtyped" 			%% 	"active-slick" 					% "0.3.2",
-  "com.chuusai" 			%% 	"shapeless" 					% "2.2.5",
   "com.typesafe" 			% 	"config" 						% "1.3.0",
   "org.scalatest" 			% "scalatest_2.11" 					% "2.2.4" 	% "test",
   "org.scalamock" 			%% "scalamock-scalatest-support" 	% "3.2" 	% "test"

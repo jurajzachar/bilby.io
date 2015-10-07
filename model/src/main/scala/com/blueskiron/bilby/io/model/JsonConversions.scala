@@ -22,28 +22,28 @@ trait JsonReadWrite {
     (url: URL) => JsString(url.toString)
   }
 
-  implicit val pieceHeaderReads: Reads[PieceFormInfo] = (
+  implicit val pieceHeaderReads: Reads[PieceHeader] = (
     (JsPath \ "title").read[String] and
-    (JsPath \ "shortSummary").read[String] and
-    (JsPath \ "titleCover").read[String].map(new URL(_)) and
+    (JsPath \ "shortSummary").readNullable[String] and
+    (JsPath \ "titleCover").readNullable[String] and
     (JsPath \ "tags").read[Set[String]] and
-    (JsPath \ "source").read[String])(PieceFormInfo.apply _)
+    (JsPath \ "source").read[String])(PieceHeader.apply _)
 
-  implicit val pieceHeaderWrites: Writes[PieceFormInfo] = (
+  implicit val pieceHeaderWrites: Writes[PieceHeader] = (
     (JsPath \ "title").write[String] and
-    (JsPath \ "shortSummary").write[String] and
-    (JsPath \ "titleCover").write[URL] and
+    (JsPath \ "shortSummary").writeNullable[String] and
+    (JsPath \ "titleCover").writeNullable[String] and
     (JsPath \ "tags").write[Set[String]] and
-    (JsPath \ "source").write[String])(unlift(PieceFormInfo.unapply))
+    (JsPath \ "source").write[String])(unlift(PieceHeader.unapply))
 
   implicit val pieceWrites: Writes[Piece] = (
-    (JsPath \ "header").write[PieceFormInfo] and
+    (JsPath \ "header").write[PieceHeader] and
     (JsPath \ "published").writeNullable[Long] and
     (JsPath \ "authorId").write[Long] and
     (JsPath \ "id").writeNullable[Long])(unlift(Piece.unapply))
     
   implicit val pieceReads: Reads[Piece] = (
-    (JsPath \ "header").read[PieceFormInfo] and
+    (JsPath \ "header").read[PieceHeader] and
     (JsPath \ "published").readNullable[Long] and
     (JsPath \ "authorId").read[Long] and
     (JsPath \ "id").readNullable[Long])(Piece.apply _)
@@ -59,8 +59,8 @@ trait JsonReadWrite {
     (JsPath \ "oauth1").readNullable[String] and
     (JsPath \ "oauth2").readNullable[String] and
     (JsPath \ "passwordInfo").readNullable[String] and
-    (JsPath \ "userprofileId").readNullable[Long] and
-    (JsPath \ "visitorId").readNullable[Long] and
+    (JsPath \ "userprofile").readNullable[UserProfile] and
+    (JsPath \ "visitor").readNullable[Visitor] and
     (JsPath \ "id").readNullable[Long])(User.apply _)
 
   implicit val userProfileReads: Reads[UserProfile] = (

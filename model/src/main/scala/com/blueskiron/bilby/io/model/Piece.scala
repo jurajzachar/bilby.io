@@ -1,10 +1,9 @@
 package com.blueskiron.bilby.io.model
 
-import java.net.URL
-
 import scala.language.implicitConversions
 
-import JsonConversions.{pieceHeaderWrites,pieceWrites}
+import JsonConversions.pieceHeaderWrites
+import JsonConversions.pieceWrites
 import play.api.libs.json.Json
 
 object Piece {
@@ -12,23 +11,23 @@ object Piece {
   implicit def strings2HashTags(xs: Set[String]) = for (tag <- xs) yield HashTag(tag)
   implicit def hashTags2Strings(xs: Set[HashTag]) = for (tag <- xs) yield tag.toString
   //implicit val getPieceOverviewResult = GetResult(r =>
-  //  PieceOverview(r.<<, r.<<, r.<<, r.<<, Json.parse(r.nextString).as[Set[String]], r.<<, r.<<))
+  //PieceOverview(r.<<, r.<<, r.<<, r.<<, Json.parse(r.nextString).as[Set[String]], r.<<, r.<<))
 
   implicit def flattenedPiece(
     id: Option[Long] = None,
     title: String,
-    shortSummary: String,
-    titleCover: String,
+    shortSummary: Option[String],
+    titleCover: Option[String],
     published: Option[Long],
     author: Long,
     tags: Set[String],
     source: String): Piece = {
-    Piece(PieceFormInfo(title, shortSummary, new URL(titleCover), tags, source), published, author, id)
+    Piece(PieceHeader(title, shortSummary, titleCover, tags, source), published, author, id)
   }
 }
 
 case class Piece(
-  header: PieceFormInfo,
+  header: PieceHeader,
   published: Option[Long],
   authorId: Long,
   id: Option[Long] = None) {
@@ -52,14 +51,14 @@ case class Piece(
 /** this is used to do a source-less read-only listing projection **/
 
 /** this is used to bind editor form**/
-case class PieceFormInfo(
-  title: String,
-  shortSummary: String,
-  titleCoverUrl: URL,
-  tags: Set[String],
+case class PieceHeader(
+  title: String, 
+  shortSummary: Option[String], 
+  titleCoverUrl: Option[String], 
+  tags: Set[String], 
   source: String) {
   override def equals(other: Any) = other match {
-    case that: PieceFormInfo => this.title.equals(that.title) && this.shortSummary.equals(that.shortSummary)
+    case that: PieceHeader => this.title.equals(that.title) && this.shortSummary.equals(that.shortSummary)
     case _                   => false
   }
   

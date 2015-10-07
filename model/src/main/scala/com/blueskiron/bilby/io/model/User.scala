@@ -1,9 +1,7 @@
 package com.blueskiron.bilby.io.model
 
 import scala.language.implicitConversions
-import java.sql.Blob
-import javax.sql.rowset.serial.SerialBlob
-import scala.reflect.runtime.universe._
+
 import play.libs.Json
 
 /**
@@ -37,9 +35,9 @@ case class User(
     oAuth1Info: Option[String],
     oAuth2Info: Option[String],
     passwordInfo: Option[String],
-    userprofile_id: Option[Long] = None, //no profile defined
-    visitor_id: Option[Long] = None, //no visitor defined
-    id: Option[Long] = None) {
+    userprofile: Option[UserProfile] = None, //no profile defined
+    visitor: Option[Visitor] = None, //no visitor defined
+    id: Option[Long] = None) { //new user
 
   override def toString(): String = Json.toJson(this).toString
 }
@@ -57,4 +55,13 @@ case class UserProfile(
     id: Option[Long]) {
 
   override def toString(): String = Json.toJson(this).toString
+}
+
+case class Visitor (
+  host: String = "unknownHost",
+  timestamp: Long = System.currentTimeMillis(),
+  id: Option[Long] = None) {
+
+  override def toString(): String = Json.toJson(this).toString
+  
 }
