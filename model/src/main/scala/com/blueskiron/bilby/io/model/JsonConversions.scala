@@ -51,9 +51,9 @@ trait JsonReadWrite {
   implicit val userReads: Reads[User] = (
     (JsPath \ "firstName").readNullable[String] and
     (JsPath \ "lastName").readNullable[String] and
-    (JsPath \ "username").read[String] and
+    (JsPath \ "userName").read[String] and
     (JsPath \ "email").read[String] and
-    (JsPath \ "password").read[String].map(BCrypt.hashpw(_, BCrypt.gensalt())) and
+    (JsPath \ "password").read[String] and
     (JsPath \ "avatarUrl").read[String] and
     (JsPath \ "authMethod").read[String] and
     (JsPath \ "oauth1").readNullable[String] and
@@ -62,13 +62,34 @@ trait JsonReadWrite {
     (JsPath \ "userprofile").readNullable[UserProfile] and
     (JsPath \ "visitor").readNullable[Visitor] and
     (JsPath \ "id").readNullable[Long])(User.apply _)
-
+  
+  implicit val userWrites: Writes[User] = (
+    (JsPath \ "firstName").writeNullable[String] and
+    (JsPath \ "lastName").writeNullable[String] and
+    (JsPath \ "userName").write[String] and
+    (JsPath \ "email").write[String] and
+    (JsPath \ "password").write[String] and
+    (JsPath \ "avatarUrl").write[String] and
+    (JsPath \ "authMethod").write[String] and
+    (JsPath \ "oauth1").writeNullable[String] and
+    (JsPath \ "oauth2").writeNullable[String] and
+    (JsPath \ "passwordInfo").writeNullable[String] and
+    (JsPath \ "userprofile").writeNullable[UserProfile] and
+    (JsPath \ "visitor").writeNullable[Visitor] and
+    (JsPath \ "id").writeNullable[Long])(unlift(User.unapply))
+    
   implicit val userProfileReads: Reads[UserProfile] = (
     (JsPath \ "country").readNullable[String] and
     (JsPath \ "placeOfResidence").readNullable[String] and
     (JsPath \ "age").readNullable[Short] and
     (JsPath \ "id").readNullable[Long])(UserProfile.apply _)
-
+    
+  implicit val userProfileWrites: Writes[UserProfile] = (
+    (JsPath \ "country").writeNullable[String] and
+    (JsPath \ "placeOfResidence").writeNullable[String] and
+    (JsPath \ "age").writeNullable[Short] and
+    (JsPath \ "id").writeNullable[Long])(unlift(UserProfile.unapply))
+    
   implicit val visitorReads: Reads[Visitor] = (
     (JsPath \ "host").read[String] and
     (JsPath \ "timestamp").read[Long] and

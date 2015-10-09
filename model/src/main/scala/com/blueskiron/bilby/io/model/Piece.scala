@@ -69,7 +69,7 @@ case class HashTag(xs: String) {
   override def toString() = xs
 }
 
-case class PieceMetrics(id: Long, views: List[Long], likes: Int, dislikes: Int)
+case class PieceMetrics(id: Long, views: Set[Long], likes: Int, dislikes: Int)
 
 case class PieceWithMetrics(id: Long, piece: Piece, pieceMetrics: PieceMetrics) {
   require(id == pieceMetrics.id)

@@ -22,7 +22,7 @@ object ActiveSlickRepos {
     // Implement EntityActions
     //
     import jdbcProfile.api._
-
+    
     type Entity = Tables.UserRow
     type Id = Long
     type EntityTable = Tables.User
@@ -125,8 +125,9 @@ object ActiveSlickRepos {
     override type JP = Tables.profile.type
     override val jdbcProfile = Tables.profile
 
-    import jdbcProfile.api._
-
+    //import jdbcProfile.api._
+    import slick.driver.PostgresDriver.api._
+    
     type Entity = Tables.VisitorRow
     type Id = Long
     type EntityTable = Tables.Visitor

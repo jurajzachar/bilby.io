@@ -2,7 +2,8 @@ package com.blueskiron.bilby.io.model
 
 import scala.language.implicitConversions
 
-import play.libs.Json
+import JsonConversions._
+import play.api.libs.json.Json
 
 /**
  * @author juri
@@ -27,7 +28,7 @@ import play.libs.Json
 case class User(
     firstName: Option[String],
     lastName: Option[String],
-    username: String,
+    userName: String,
     email: String,
     password: String,
     avatarUrl: String,

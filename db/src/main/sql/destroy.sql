@@ -1,4 +1,4 @@
-# --- !Downs
+--- !Downs
 alter table "piecemetrics" drop constraint "id";
 alter table "piece" drop constraint "author_id";
 alter table "follower" drop constraint "id";
