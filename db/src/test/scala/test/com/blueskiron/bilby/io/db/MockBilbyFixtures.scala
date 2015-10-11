@@ -29,7 +29,7 @@ object MockBilbyFixtures {
   val visitors = Json.parse(Source.fromURL(getClass.getResource("/mock_visitors.json")).mkString).validate[Seq[Visitor]].get
   assert(visitors != null)
   println("mock visitors initialized: " + visitors.head)
-  val followers = for (i <- (1 until 1001)) yield Follower(i, Set(1L to random.nextInt(mockSize).toLong: _*))
+  val followers = for (i <- (1 until 1001)) yield Follower(None, Set(i.toLong to random.nextInt(mockSize/4).toLong: _*))
   assert(followers != null)
   //warning: very hacky and ugly!
   val srcSeq = Source.fromURL(getClass.getResource("/sample_piece.md")).getLines.take(5).toIndexedSeq

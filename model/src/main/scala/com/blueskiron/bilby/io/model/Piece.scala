@@ -4,7 +4,6 @@ import scala.language.implicitConversions
 
 import JsonConversions.pieceHeaderWrites
 import JsonConversions.pieceWrites
-import play.api.libs.json.Json
 
 object Piece {
 
@@ -45,7 +44,6 @@ case class Piece(
       (this.header.equals(that.header) && this.header.equals(that.header.source))
     case _ => false
   }
-  override def toString = Json.toJson(this).toString
 }
 
 /** this is used to do a source-less read-only listing projection **/
@@ -62,15 +60,14 @@ case class PieceHeader(
     case _                   => false
   }
   
-  override def toString = Json.toJson(this).toString
 }
 
 case class HashTag(xs: String) {
   override def toString() = xs
 }
 
-case class PieceMetrics(id: Long, views: Set[Long], likes: Int, dislikes: Int)
+case class PieceMetrics(id: Option[Long], views: Option[Set[Long]], likes: Int, dislikes: Int)
 
-case class PieceWithMetrics(id: Long, piece: Piece, pieceMetrics: PieceMetrics) {
+case class PieceWithMetrics(id: Option[Long], piece: Piece, pieceMetrics: PieceMetrics) {
   require(id == pieceMetrics.id)
 }

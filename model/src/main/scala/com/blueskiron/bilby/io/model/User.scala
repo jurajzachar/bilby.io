@@ -2,13 +2,18 @@ package com.blueskiron.bilby.io.model
 
 import scala.language.implicitConversions
 
-import JsonConversions._
-import play.api.libs.json.Json
-
 /**
  * @author juri
  *
  */
+
+object User {
+  
+  def userWithProfileAndVisitor(u: User, up: Option[UserProfile], v: Option[Visitor]) = {
+    User(u.firstName, u.lastName, u.userName, u.email, u.password, u.avatarUrl, u.authMethod, u.oAuth1Info, u.oAuth2Info, u.passwordInfo, up, v, u.id)
+  }
+  
+}
 
 /**
  * @param firstName
@@ -40,7 +45,6 @@ case class User(
     visitor: Option[Visitor] = None, //no visitor defined
     id: Option[Long] = None) { //new user
 
-  override def toString(): String = Json.toJson(this).toString
 }
 
 /**
@@ -53,16 +57,12 @@ case class UserProfile(
     country: Option[String],
     placeOfResidence: Option[String],
     age: Option[Short],
-    id: Option[Long]) {
+    id: Option[Long] = None) {
 
-  override def toString(): String = Json.toJson(this).toString
 }
 
 case class Visitor (
   host: String = "unknownHost",
   timestamp: Long = System.currentTimeMillis(),
   id: Option[Long] = None) {
-
-  override def toString(): String = Json.toJson(this).toString
-  
 }

@@ -16,7 +16,7 @@ trait DbSuite extends BeforeAndAfterAll with Matchers with OptionValues with Try
 
   def setupDb: jdbcProfile.backend.DatabaseDef
 
-  private lazy val database: jdbcProfile.backend.DatabaseDef = setupDb
+  lazy val database: jdbcProfile.backend.DatabaseDef = setupDb
 
   override protected def afterAll(): Unit = {
     database.close()

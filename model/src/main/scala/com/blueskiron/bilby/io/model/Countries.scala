@@ -1,4 +1,4 @@
-package models
+package com.blueskiron.bilby.io.model
 
 object Countries {
   
