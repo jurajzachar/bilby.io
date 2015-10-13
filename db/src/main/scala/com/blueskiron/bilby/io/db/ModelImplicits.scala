@@ -5,6 +5,7 @@ import com.blueskiron.bilby.io.model._
 import com.blueskiron.bilby.io.db.Tables.{UserRow, UserprofileRow, VisitorRow, PieceRow, PiecemetricsRow, FollowerRow}
 import com.blueskiron.bilby.io.db.Tables.PiecemetricsRow
 import com.blueskiron.bilby.io.db.Tables.UserprofileRow
+import com.blueskiron.bilby.io.db.Tables.PieceRow
 
 /**
  * bridge for the slick-generated case classes
@@ -97,6 +98,18 @@ object ModelImplicits {
        visitor,
        Some(ur.id))
  } 
+ 
+ implicit def pieceRowFromPiece(p: Piece) = {
+   PieceRow(
+       p.id.getOrElse(0L), 
+       p.header.title, 
+       p.header.shortSummary, 
+       p.header.titleCoverUrl,
+       p.published,
+       p.authorId,
+       Some(p.header.tags.mkString(",")), 
+       p.header.source)  
+ }
  
  implicit def pieceFromRow(pr: PieceRow) = {
    Piece.flattenedPiece(

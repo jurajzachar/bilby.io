@@ -1,25 +1,20 @@
-package test.com.blueskiron.bilby.io.db
-
-import org.scalatest.Suite
+package com.blueskiron.bilby.io.db
 import slick.driver.PostgresDriver
+import slick.driver
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import io.strongtyped.active.slick.JdbcProfileProvider
-
 /**
  * @author juri
  */
-trait PostgresSuite extends DbSuite with JdbcProfileProvider.PostgresProfileProvider {
-  self: Suite =>
-
+trait PostgresDatabase extends ApplicationDatabase with JdbcProfileProvider.PostgresProfileProvider {
+  
   import jdbcProfile.api._
-
-  def timeout = 2 seconds
-
   override def setupDb: jdbcProfile.backend.DatabaseDef = {
-    val db = Database.forConfig("test_db")
+    val db = Database.forConfig("prod_db")
     db.createSession().conn.setAutoCommit(true)
     db
   }
+  
 }

@@ -8,11 +8,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.FlatSpec
 import io.strongtyped.active.slick.JdbcProfileProvider
 import com.blueskiron.bilby.io.db.Tables.VisitorRow
+import com.blueskiron.bilby.io.db.Tables.UserRow
+import com.blueskiron.bilby.io.db.Tables.PieceRow
 import com.blueskiron.bilby.io.model.User
 import java.util.UUID
 import com.blueskiron.bilby.io.model.Countries
 import com.blueskiron.bilby.io.db.Tables
 import scala.concurrent.Future
+
 
 class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
 
@@ -25,8 +28,10 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
     conn.close()
     session.close()
   }
-
-  "Follower, Visitor, UserProfile and User repos" should "support all CRUD operations" in {
+  
+  behavior of "ActiveSlick Entities"
+  
+  "Visitor, UserProfile and User repos" should "support all CRUD operations" in {
     import ActiveSlickRepos._
     import User.userWithProfileAndVisitor
     import jdbcProfile.api._
@@ -50,8 +55,6 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
       //#3 user 
       val userRow = userRowFromUserAndForeignKeys(user, Some(savedEntities._1.id), Some(savedEntities._2.id))
       val savedUser = commit(UserRepo.save(userRow))
-      //#4 follower
-      //val savedFollower = commit(FollowerRepo.save(follower))
 
       //READ (confirm create)
       query {
@@ -102,5 +105,28 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
       query(UserRepo.findOptionById(savedUser.id)) shouldBe None
     }
   }
-
+  
+  "Piece" should "support all CRUD operations" in {
+    import ActiveSlickRepos.{UserRepo, PieceRepo, PiecemetricsRepo}
+    import jdbcProfile.api._
+    val initialCount = query(PieceRepo.count)
+    //CREATE
+    val savedUser = commit(UserRepo.save(userRowsFromUser(fixtures.users.head)._1))
+    val piece = fixtures.piece.copy(authorId = savedUser.id)
+    val savedPiece = commit(PieceRepo.save(piece))
+    //READ
+    query(PieceRepo.findById(savedPiece.id)) shouldBe savedPiece
+    //UPDATE
+    val _tags = Some(Set("foo", "bar").mkString(","))
+    commit(PieceRepo.save(savedPiece.copy(tags = _tags)))
+    //read (confirm update)
+    val queriedPiece = query(PieceRepo.findById(savedPiece.id))
+    queriedPiece.tags shouldBe _tags
+    //DELETE
+    commit(PieceRepo.deleteById(savedPiece.id))
+    query(PieceRepo.findOptionById(savedPiece.id)) shouldBe None
+    commit(UserRepo.deleteById(savedUser.id))
+    query(UserRepo.findOptionById(savedUser.id)) shouldBe None
+    
+  }
 }
