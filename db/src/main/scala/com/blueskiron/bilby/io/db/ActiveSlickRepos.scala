@@ -9,7 +9,7 @@ import slick.ast.BaseTypedType
  * See codegen_schema.sql for the schema that feeds into the codegen.
  */
 object ActiveSlickRepos {
-
+  
   abstract class UserRepo extends EntityActions with JdbcProfileProvider {
     //
     // Implement JdbcProfileProvider with JDBCProfile from generated Tables.scala

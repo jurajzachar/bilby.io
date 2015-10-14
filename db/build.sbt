@@ -1,6 +1,9 @@
 name := "db"
 scalaVersion := "2.11.7"
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+fork in Test := false
+parallelExecution in Test := false
+
 lazy val model = project.in(file("../model"))
 
 lazy val db = project.in(file("."))
@@ -22,6 +25,7 @@ lazy val db = project.in(file("."))
 lazy val slickGenerate = taskKey[Seq[File]]("Slick Code Generation")
 
 slickGenerate := {
+
   val dbName = "bilby_io"
   val userName = "play"
   val password = "play"

@@ -8,7 +8,10 @@ lazy val commonSettings = Seq(
   version := "0.0.1-SNAPSHOT",
   scalaVersion := "2.11.7",
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-  javaOptions += "-Xmx2G"
+  javaOptions += "-Xmx2G",
+  fork in Test := false,
+  parallelExecution in Test := false
+  
 )
 
 //api-like module with no dependencies
@@ -35,5 +38,6 @@ lazy val webapp = (project in file("webapp"))
  .dependsOn(model, core)
  
 lazy val root = (project in file("."))
+  .settings(commonSettings: _*)
   .dependsOn(model, db, core, webapp)
   .aggregate(model, db, core, webapp)

@@ -8,7 +8,8 @@ import scala.util.{ Failure, Success }
 import scala.concurrent.Future
 
 /**
- * Borrowed from Renato's ActiveSlick
+ * Borrowed from Renato's ActiveSlick Dbuite. 
+ * Instead of blocking on Await calls we let the futures shine through.
  */
 trait ApplicationDatabase extends JdbcProfileProvider {
 
@@ -25,10 +26,10 @@ trait ApplicationDatabase extends JdbcProfileProvider {
   def stream[T](dbAction: StreamingDBIO[T, T])(implicit ex: ExecutionContext): DatabasePublisher[T] = {
     database.stream(dbAction.transactionally)
   }
-  
+
   def commit[T](dbAction: DBIO[T])(implicit ex: ExecutionContext): Future[T] =
     runAction(dbAction.transactionally)
-    
+
   def rollback[T](dbAction: DBIO[T])(implicit ex: ExecutionContext) = {
 
     case class RollbackException(expected: T) extends RuntimeException("Rollback Exception")

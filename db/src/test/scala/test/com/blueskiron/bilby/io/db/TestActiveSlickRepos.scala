@@ -1,9 +1,7 @@
 package test.com.blueskiron.bilby.io.db
 import org.scalatest.Matchers
 import org.slf4j.LoggerFactory
-import com.blueskiron.bilby.io.db.ActiveSlickRepos
-import com.blueskiron.bilby.io.db.ActiveSlickRepos.VisitorRepo
-import com.blueskiron.bilby.io.db.ModelImplicits._
+import com.blueskiron.bilby.io.db.ActiveSlickRepos._
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.FlatSpec
 import io.strongtyped.active.slick.JdbcProfileProvider
@@ -18,7 +16,7 @@ import scala.concurrent.Future
 
 
 class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
-
+  import com.blueskiron.bilby.io.db.ModelImplicits._
   val log = LoggerFactory.getLogger(getClass)
   val fixtures = MockBilbyFixtures
   "This test" should " have access to test database" in {
@@ -32,7 +30,6 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
   behavior of "ActiveSlick Entities"
   
   "Visitor, UserProfile and User repos" should "support all CRUD operations" in {
-    import ActiveSlickRepos._
     import User.userWithProfileAndVisitor
     import jdbcProfile.api._
     val initialCount = query(UserRepo.count)
@@ -107,7 +104,6 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
   }
   
   "Piece" should "support all CRUD operations" in {
-    import ActiveSlickRepos.{UserRepo, PieceRepo, PiecemetricsRepo}
     import jdbcProfile.api._
     val initialCount = query(PieceRepo.count)
     //CREATE
