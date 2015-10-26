@@ -6,12 +6,19 @@ import org.slf4j.LoggerFactory
 import com.blueskiron.bilby.io.db.Tables
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.blueskiron.bilby.io.db.Tables.{UserRow, VisitorRow}
+import com.blueskiron.bilby.io.db.Tables.{ UserRow, VisitorRow }
 import scala.concurrent.Promise
-import com.blueskiron.bilby.io.model.{Visitor, UserProfile, User}
+import com.blueskiron.bilby.io.model.{ Visitor, UserProfile, User }
 import com.blueskiron.bilby.io.db.ar.ModelImplicits._
 import com.blueskiron.bilby.io.db.ActiveSlickRepos.VisitorRepo
+import com.blueskiron.bilby.io.db.ActiveSlickRepos.UserprofileRepo
 
+/**
+ * UserDao trait uses cake pattern to inject desired {@link ApplicationDatabase}
+ * and performs additional operations to CRUD provided by ActiveSlick.
+ * @author juri
+ *
+ */
 trait UserDao {
 
   /**
@@ -37,6 +44,7 @@ trait UserDao {
     val usernameTaken = "This username (%s) is already taken"
     val invalidLogin = "Wrong combination of username/email address and password"
 
+    /* RAW queries */
     private def userFromEmailQuery(email: Rep[String]) = {
       for (u <- Tables.User if u.email === email) yield u
     }
@@ -44,11 +52,17 @@ trait UserDao {
     private def userFromUserNameQuery(email: Rep[String]) = {
       for (u <- Tables.User if u.userName === email) yield u
     }
-    
+
     private def visitorFromHostQuery(host: Rep[String]) = {
-      for(v <- Tables.Visitor if v.host === host) yield v
+      for (v <- Tables.Visitor if v.host === host) yield v
     }
-    
+
+    private def userProfileFromAllQuery(country: Rep[Option[String]], placeOfRes: Rep[Option[String]], age: Rep[Option[Short]]) = {
+      for (up <- Tables.Userprofile if up.country === country && up.placeOfRes === placeOfRes && up.age === age)
+        yield up
+    }
+
+    /* COMPILED queries */
     /**
      * Compiled query for getting {@link UserRow} by email address
      */
@@ -58,14 +72,20 @@ trait UserDao {
      * Compiled query for getting {@link UserRow} by email address
      */
     val userFromUserName = Compiled(userFromUserNameQuery _)
-    
+
     /**
      * Compiled query for getting {@link VisitorRow} by host
      */
     val visitorFromHost = Compiled(visitorFromHostQuery _)
 
     /**
-     * Create a future of optional user based on provided username or email address.
+     * Compiled query for getting {@link UserprofileRow} by all its fields except of id
+     */
+    val userProfileFromAll = Compiled(userProfileFromAllQuery _)
+
+    /* DAO functions */
+    /**
+     * Create a future of optional user based on provided user name or email address.
      * @param key
      * @return
      */
@@ -73,28 +93,49 @@ trait UserDao {
       val userNameQ = userFromUserName(key).result.headOption
       val emailQ = userFromEmail(key).result.headOption
       //cake.runAction(userNameQ).on
-      val p =  Promise[Option[User]]()
+      val p = Promise[Option[User]]()
       val aggregateFuture = for {
         x <- cake.runAction(userNameQ)
         y <- cake.runAction(emailQ)
-      } yield(x, y)
-      aggregateFuture.map{
+      } yield (x, y)
+      aggregateFuture.map {
         case (Some(x), None) => p.success(Some(userFromRows(x, None, None)))
         case (None, Some(x)) => p.success(Some(userFromRows(x, None, None)))
-        case _ => p.success(None)
+        case _               => p.success(None)
       }
       p.future
     }
-    
+
+    /**
+     * Create a future of {@VisitorRow}. If visitor host exists then update its timestamp.
+     * @param visitor
+     * @return
+     */
     def handleVisitor(visitor: Visitor) = {
       val visitorF = cake.runAction {
         visitorFromHost(visitor.host).result.headOption
       }
-      visitorF.flatMap { 
-        //commit(UserRepo.save(savedUser.copy(password = _password)))
+      visitorF.flatMap {
         case Some(visitor) => cake.commit(VisitorRepo.save(visitor.copy(timestamp = System.currentTimeMillis())))
-        case None => cake.commit(VisitorRepo.save(visitorRowFromVisitor(visitor)))
+        case None          => cake.commit(VisitorRepo.save(visitor))
       }
     }
+
+    /**
+     * Create a future of {@link UserProfileRow}. If UserProfile exists, return it, if not then save it.
+     * @param userProfile
+     * @return
+     */
+    def handleUserProfile(userProfile: UserProfile) = {
+      val userProfileF = cake.runAction {
+        val tuples = UserProfile.unapply(userProfile).get
+        userProfileFromAll(tuples._1, tuples._2, tuples._3).result.headOption
+      }
+      userProfileF.flatMap {
+        case Some(up) => Future(up)
+        case None     => cake.commit(UserprofileRepo.save(userProfile))
+      }
+    }
+
   }
 }

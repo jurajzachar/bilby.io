@@ -11,6 +11,8 @@ import com.blueskiron.bilby.io.db.ar.ModelImplicits.userRowsFromUser
 import com.blueskiron.bilby.io.db.dao.UserDao
 import scala.concurrent.{ Await, ExecutionContext }
 import com.blueskiron.bilby.io.db.ApplicationDatabase
+import com.blueskiron.bilby.io.model.UserProfile
+
 
 /**
  * @author juri
@@ -20,7 +22,7 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
   val log = LoggerFactory.getLogger(getClass)
   val fixtures = MockBilbyFixtures
   import slick.driver.PostgresDriver.api._
-
+  
   override def beforeAll {
     fixtures.users.foreach { user => commit(UserRepo.save(userRowsFromUser(user)._1)) }
   }
@@ -50,7 +52,17 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
     user2.isDefined shouldBe true
     user1 shouldEqual user2
   }
-
+  
+  "UserDao" should " be able to save a new userprofile or retrieve an existing one" in new TestUserDao {
+    val userProf = fixtures.userProfiles.head
+    val saved = Await.result(userDao.handleUserProfile(userProf), timeout)
+    (saved.country.equals(userProf.country) && 
+        saved.placeOfRes.equals(userProf.placeOfResidence) && 
+        saved.age == userProf.age) shouldBe true
+    val unchanged = Await.result(userDao.handleUserProfile(userProf), timeout)
+    unchanged shouldEqual saved
+  }
+  
   "UserDao" should " be able to save a new visitor and update a returning one" in new TestUserDao {
     val visitor = fixtures.visitors.head
     val savedVisitor = userDao.handleVisitor(visitor)
