@@ -16,7 +16,7 @@ import scala.concurrent.Future
 
 
 class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
-  import com.blueskiron.bilby.io.db.ModelImplicits._
+  import com.blueskiron.bilby.io.db.ar.ModelImplicits._
   val log = LoggerFactory.getLogger(getClass)
   val fixtures = MockBilbyFixtures
   "This test" should " have access to test database" in {

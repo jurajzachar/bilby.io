@@ -6,6 +6,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import io.strongtyped.active.slick.JdbcProfileProvider
+import com.blueskiron.bilby.io.db.ApplicationDatabase
 
 /**
  * @author juri
@@ -21,5 +22,10 @@ trait PostgresSuite extends DbSuite with JdbcProfileProvider.PostgresProfileProv
     val db = Database.forConfig("test_db")
     db.createSession().conn.setAutoCommit(true)
     db
+  }
+  
+  //wrapper class for injecting application *test* database into nested dao objects
+  case class TestApplicationDatabase(db: jdbcProfile.backend.DatabaseDef) extends ApplicationDatabase with JdbcProfileProvider.PostgresProfileProvider {
+    override def setupDb = db
   }
 }

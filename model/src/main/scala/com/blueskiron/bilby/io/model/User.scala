@@ -8,11 +8,11 @@ import scala.language.implicitConversions
  */
 
 object User {
-  
+
   def userWithProfileAndVisitor(u: User, up: Option[UserProfile], v: Option[Visitor]) = {
     User(u.firstName, u.lastName, u.userName, u.email, u.password, u.avatarUrl, u.authMethod, u.oAuth1Info, u.oAuth2Info, u.passwordInfo, up, v, u.id)
   }
-  
+
 }
 
 /**
@@ -61,8 +61,8 @@ case class UserProfile(
 
 }
 
-case class Visitor (
-  host: String = "unknownHost",
-  timestamp: Long = System.currentTimeMillis(),
-  id: Option[Long] = None) {
+case class Visitor(
+    host: String = "unknownHost",
+    timestamp: Long,
+    id: Option[Long] = None) {
 }

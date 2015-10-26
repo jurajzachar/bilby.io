@@ -1,11 +1,18 @@
-package com.blueskiron.bilby.io.db
+package com.blueskiron.bilby.io.db.ar
 
 import scala.language.implicitConversions
-import com.blueskiron.bilby.io.model._
-import com.blueskiron.bilby.io.db.Tables.{UserRow, UserprofileRow, VisitorRow, PieceRow, PiecemetricsRow, FollowerRow}
-import com.blueskiron.bilby.io.db.Tables.PiecemetricsRow
-import com.blueskiron.bilby.io.db.Tables.UserprofileRow
+import com.blueskiron.bilby.io.db.Tables.FollowerRow
 import com.blueskiron.bilby.io.db.Tables.PieceRow
+import com.blueskiron.bilby.io.db.Tables.PiecemetricsRow
+import com.blueskiron.bilby.io.db.Tables.UserRow
+import com.blueskiron.bilby.io.db.Tables.UserprofileRow
+import com.blueskiron.bilby.io.db.Tables.VisitorRow
+import com.blueskiron.bilby.io.model.Follower
+import com.blueskiron.bilby.io.model.Piece
+import com.blueskiron.bilby.io.model.PieceMetrics
+import com.blueskiron.bilby.io.model.User
+import com.blueskiron.bilby.io.model.UserProfile
+import com.blueskiron.bilby.io.model.Visitor
 
 /**
  * bridge for the slick-generated case classes

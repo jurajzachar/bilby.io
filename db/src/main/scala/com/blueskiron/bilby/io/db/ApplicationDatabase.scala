@@ -8,8 +8,8 @@ import scala.util.{ Failure, Success }
 import scala.concurrent.Future
 
 /**
- * Borrowed from Renato's ActiveSlick Dbuite. 
- * Instead of blocking on Await calls we let the futures shine through.
+ * Idea borrowed from Renato's ActiveSlick Dbuite. 
+ * But instead of blocking on Await calls we let the futures shine through.
  */
 trait ApplicationDatabase extends JdbcProfileProvider {
 
