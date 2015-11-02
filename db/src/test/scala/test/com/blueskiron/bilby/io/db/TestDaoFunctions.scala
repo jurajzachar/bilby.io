@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 import org.slf4j.LoggerFactory
 import com.blueskiron.bilby.io.db.ActiveSlickRepos.UserRepo
 import com.blueskiron.bilby.io.db.Tables
-import com.blueskiron.bilby.io.db.ar.ModelImplicits.userRowsFromUser
+import com.blueskiron.bilby.io.db.ar.ModelImplicits.userRowFromUser
 import com.blueskiron.bilby.io.db.dao.UserDao
 import scala.concurrent.{ Await, ExecutionContext }
 import com.blueskiron.bilby.io.db.ApplicationDatabase
@@ -24,7 +24,7 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
   import slick.driver.PostgresDriver.api._
   
   override def beforeAll {
-    fixtures.users.foreach { user => commit(UserRepo.save(userRowsFromUser(user)._1)) }
+    fixtures.users.foreach { user => commit(UserRepo.save(userRowFromUser(user))) }
   }
 
   "ApplicationDatabase" should " be able to perform filter functions on User entity" in {
@@ -57,7 +57,7 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
     val userProf = fixtures.userProfiles.head
     val saved = Await.result(userDao.handleUserProfile(userProf), timeout)
     (saved.country.equals(userProf.country) && 
-        saved.placeOfRes.equals(userProf.placeOfResidence) && 
+        saved.placeOfResidence.equals(userProf.placeOfResidence) && 
         saved.age == userProf.age) shouldBe true
     val unchanged = Await.result(userDao.handleUserProfile(userProf), timeout)
     unchanged shouldEqual saved

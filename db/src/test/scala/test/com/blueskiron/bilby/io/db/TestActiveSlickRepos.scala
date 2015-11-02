@@ -107,7 +107,7 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
     import jdbcProfile.api._
     val initialCount = query(PieceRepo.count)
     //CREATE
-    val savedUser = commit(UserRepo.save(userRowsFromUser(fixtures.users.head)._1))
+    val savedUser = commit(UserRepo.save(userRowFromUser(fixtures.users.head)))
     val piece = fixtures.piece.copy(authorId = savedUser.id)
     val savedPiece = commit(PieceRepo.save(piece))
     //READ

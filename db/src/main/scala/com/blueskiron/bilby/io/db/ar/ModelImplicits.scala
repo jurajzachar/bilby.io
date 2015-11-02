@@ -45,10 +45,9 @@ object ModelImplicits {
    Follower(Some(fr.id), fr.fids.split(",").map(_.toLong).toSet)  
  }
  
- implicit def userRowsFromUser(u: User): Tuple3[UserRow, Option[UserprofileRow], Option[VisitorRow]] = {
+ implicit def userRowFromUser(u: User): UserRow = {
    val userProfileRow = u.userprofile map userprofileRowFromUserProfile
    val visitorRow =  u.visitor map visitorRowFromVisitor
-   Tuple3(
    UserRow(
        u.firstName,
        u.lastName,
@@ -63,9 +62,6 @@ object ModelImplicits {
        userProfileRow.map(_.id),
        visitorRow.map(_.id),
        u.id.getOrElse(0L)
-   ),
-   userProfileRow,
-   visitorRow
    )
  }
  
