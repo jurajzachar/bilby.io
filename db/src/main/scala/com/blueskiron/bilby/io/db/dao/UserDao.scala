@@ -24,7 +24,7 @@ trait UserDao {
   case class UserNameAlreadyTaken(userName: String) extends SignupRejection
   case class EmailAddressAleadyRegistered(email: String) extends SignupRejection
 
-  type SignupOutcome = Either[Future[UserRow], SignupRejection]
+  type SignupOutcome = Either[UserRow, SignupRejection]
 
   /**
    * Initialize this dao trait with a specific instance of ApplicationDatabase.
@@ -95,19 +95,20 @@ trait UserDao {
      * @return
      */
     def signupUser(user: User): Future[SignupOutcome] = {
+      val p = Promise[SignupOutcome]()
       //check for right-hand side: SignupRejection
       val userNameQ = userFromUserName(user.userName).result.headOption
       val emailQ = userFromEmail(user.email).result.headOption
-      val p = Promise[SignupOutcome]()
       val outerAggregate = for {
         x <- cake.runAction(userNameQ)
         y <- cake.runAction(emailQ)
       } yield (x, y)
       outerAggregate.map {
-        case (Some(x), None) => p.success(Right(UserNameAlreadyTaken(x.userName)))
-        case (None, Some(x)) => p.success(Right(EmailAddressAleadyRegistered(x.email)))
-        //valid new user --> save
-        case _               => p.success(Left(foldNewUser(user)))
+        //invalid registration --> complete with value
+        case (Some(x), _) => p.success(Right(UserNameAlreadyTaken(x.userName)))
+        case (_, Some(x)) => p.success(Right(EmailAddressAleadyRegistered(x.email)))
+        //valid new user --> complete with this future instead
+        case _    => p.completeWith( foldNewUser(user) map { Left(_) })
       }
       p.future
     }
@@ -117,7 +118,7 @@ trait UserDao {
      * @param user
      * @return
      */
-    private def foldNewUser(user: User) = {
+    private def foldNewUser(user: User): Future[UserRow] = {
       val extras = (
         user.visitor map { v => handleVisitor(v) },
         user.userprofile map { up => handleUserProfile(up) })

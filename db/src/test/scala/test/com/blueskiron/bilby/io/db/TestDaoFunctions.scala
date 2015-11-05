@@ -11,8 +11,7 @@ import com.blueskiron.bilby.io.db.ar.ModelImplicits.userRowFromUser
 import com.blueskiron.bilby.io.db.dao.UserDao
 import scala.concurrent.{ Await, ExecutionContext }
 import com.blueskiron.bilby.io.db.ApplicationDatabase
-import com.blueskiron.bilby.io.model.UserProfile
-
+import com.blueskiron.bilby.io.model.{ User, UserProfile, Visitor }
 
 /**
  * @author juri
@@ -22,7 +21,7 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
   val log = LoggerFactory.getLogger(getClass)
   val fixtures = MockBilbyFixtures
   import slick.driver.PostgresDriver.api._
-  
+
   override def beforeAll {
     fixtures.users.foreach { user => commit(UserRepo.save(userRowFromUser(user))) }
   }
@@ -52,29 +51,29 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
     user2.isDefined shouldBe true
     user1 shouldEqual user2
   }
-  
+
   "UserDao" should " be able to save a new userprofile or retrieve an existing one" in new TestUserDao {
     val userProf = fixtures.userProfiles.head
     val saved = Await.result(userDao.handleUserProfile(userProf), timeout)
-    (saved.country.equals(userProf.country) && 
-        saved.placeOfResidence.equals(userProf.placeOfResidence) && 
-        saved.age == userProf.age) shouldBe true
+    (saved.country.equals(userProf.country) &&
+      saved.placeOfResidence.equals(userProf.placeOfResidence) &&
+      saved.age == userProf.age) shouldBe true
     val unchanged = Await.result(userDao.handleUserProfile(userProf), timeout)
     unchanged shouldEqual saved
   }
-  
+
   "UserDao" should " be able to save a new visitor and update a returning one" in new TestUserDao {
     val visitor = fixtures.visitors.head
     val savedVisitor = userDao.handleVisitor(visitor)
     val updatedVisitor = savedVisitor.flatMap { _ => userDao.handleVisitor(visitor) }
     val readSavedVisitor = Await.result(savedVisitor, timeout)
-   
+
     //check it's the same visitor
     visitor.host shouldEqual readSavedVisitor.host
-   
+
     //check timestamp is updated
     visitor.timestamp == readSavedVisitor.timestamp shouldBe true
-    
+
     //now check updates
     val readUpdatedVisitor = Await.result(updatedVisitor, timeout)
     readSavedVisitor.id shouldEqual readUpdatedVisitor.id
@@ -82,16 +81,40 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
     readSavedVisitor.timestamp != readUpdatedVisitor.timestamp shouldBe true
   }
 
-  override def afterAll = {
+  "UserDao" should " be able to sign up a new user and reject duplicate registration" in new TestUserDao {
+    //explicitly call cleanup to prevent unique key constraints
+    cleanUp
+    val extras = (fixtures.visitors.head, fixtures.userProfiles.head)
+    val user = User.userWithProfileAndVisitor(fixtures.users.head, Some(extras._2), Some(extras._1))
+    log.info("new user attempting to sign up: {}", user)
+    val outcome1 = Await.result(userDao.signupUser(user), timeout)
+    outcome1 fold (
+      userRow => userRow.userName shouldEqual user.userName,
+      rejected => fail("New user failed to sign up because: " + rejected))
+    
+    //repeated signup should fail
+    val outcome2 = Await.result(userDao.signupUser(user), timeout)
+    outcome2 fold (
+      userRow => fail("User must never sign up twice using the same username or email address"),
+      rejected => (rejected.isInstanceOf[UserNameAlreadyTaken] ||
+          rejected.isInstanceOf[EmailAddressAleadyRegistered]) shouldBe true
+    )
+  }
+
+  private def cleanUp = {
     //clean up users, userprofiles and visitors (unique username constraint may fail next test)
     val tasks = List(
-        Tables.User.filter { u => u.id === u.id }.delete,
-        Tables.Userprofile.filter { v => v.id === v.id }.delete,
-        Tables.Visitor.filter { v => v.id === v.id }.delete)
+      Tables.User.filter { u => u.id === u.id }.delete,
+      Tables.Userprofile.filter { v => v.id === v.id }.delete,
+      Tables.Visitor.filter { v => v.id === v.id }.delete)
     tasks.foreach(commit(_))
+  }
+
+  override def afterAll = {
+    cleanUp
     super.afterAll()
   }
-  
+
   //helper trait to inject UserDao into test cases
   sealed trait TestUserDao extends UserDao {
     val testAppDb = new TestApplicationDatabase(database)

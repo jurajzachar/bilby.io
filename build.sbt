@@ -1,43 +1,28 @@
+import Dependencies._
+import BilbyIOBuild._
+
 name := "bilby.io"
-scalaVersion := "2.11.7"
+organization in ThisBuild := "com.blueskiron"
+scalaVersion in ThisBuild := "2.11.7"
+version in ThisBuild := "0.0.1"
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 lazy val commonSettings = Seq(
-  organization := "com.blueskiron",
-  version := "0.0.1-SNAPSHOT",
-  scalaVersion := "2.11.7",
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
   javaOptions += "-Xmx2G",
   fork in Test := false,
   parallelExecution in Test := false
-  
 )
 
-//api-like module with no dependencies
-lazy val model = (project in file("model"))
+lazy val root = (project in file("."))
   .settings(commonSettings: _*)
-  .settings(
-    // other settings
-  )
-
-//persistence layer
-lazy val db = (project in file("db"))
-  .settings(commonSettings: _*)
-  .dependsOn(model)
-
-//actor messaging layer
-lazy val core = (project in file("core"))
-  .settings(commonSettings: _*)
- .dependsOn(model, db)
-
+  .aggregate(model, db, core, webapp)
+  .dependsOn(model, db, core, webapp)
+  
 //play2 web app 	  
 lazy val webapp = (project in file("webapp"))
   .enablePlugins(PlayScala)
   .settings(commonSettings: _*)
- .dependsOn(model, core)
+  .dependsOn(model, core)
  
-lazy val root = (project in file("."))
-  .settings(commonSettings: _*)
-  .dependsOn(model, db, core, webapp)
-  .aggregate(model, db, core, webapp)

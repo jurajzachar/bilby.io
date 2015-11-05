@@ -1,5 +1,5 @@
 /**
- * package encapsulating active record extensions for active-slick
+ * package encapsulating active record extensions for active record
  */
 /**
  * @author juri
