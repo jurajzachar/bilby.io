@@ -16,7 +16,7 @@ trait PostgresDatabase extends ApplicationDatabase with JdbcProfileProvider.Post
   import jdbcProfile.api.Database
   
   override def setupDb: jdbcProfile.backend.DatabaseDef = {
-    val db = Database.forConfig("prod_db")
+    val db = Database.forConfig("app_db")
     db.createSession().conn.setAutoCommit(true)
     db
   }

@@ -34,9 +34,9 @@ trait ApplicationDatabase extends JdbcProfileProvider {
 
     case class RollbackException(expected: T) extends RuntimeException("Rollback Exception")
 
+    //dead code here!
     val markedForRollback = dbAction.flatMap { result =>
-      DBIO
-        .failed(RollbackException(result))
+      DBIO.failed(RollbackException(result))
         .map(_ => result) // map back to T
     }.transactionally.asTry
 

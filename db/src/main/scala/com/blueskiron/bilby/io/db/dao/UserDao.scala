@@ -1,16 +1,15 @@
 package com.blueskiron.bilby.io.db.dao
 
+import org.slf4j.LoggerFactory
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ Promise, Future }
 import com.blueskiron.bilby.io.db.ApplicationDatabase
 import com.blueskiron.bilby.io.db.PostgresDatabase
-import org.slf4j.LoggerFactory
 import com.blueskiron.bilby.io.db.Tables
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import com.blueskiron.bilby.io.db.Tables.{ UserRow, UserprofileRow, VisitorRow }
-import scala.concurrent.Promise
-import com.blueskiron.bilby.io.model.{ Visitor, UserProfile, User }
-import com.blueskiron.bilby.io.db.ar.ModelImplicits._
-import com.blueskiron.bilby.io.db.ActiveSlickRepos.{ UserRepo, VisitorRepo, UserprofileRepo }
+import com.blueskiron.bilby.io.db.Tables.{ AccountRow, UserRow, UserprofileRow, VisitorRow }
+import com.blueskiron.bilby.io.api.model.{ Account, Visitor, UserProfile, User }
+import com.blueskiron.bilby.io.db.ActiveSlickRepos.{ AccountRepo, UserRepo, VisitorRepo, UserprofileRepo }
+import com.blueskiron.bilby.io.api.UserService.{ SignupOutcome, EmailAddressAleadyRegistered, UserNameAlreadyTaken }
 
 /**
  * UserDao trait uses cake pattern to inject desired {@link ApplicationDatabase}
@@ -19,12 +18,6 @@ import com.blueskiron.bilby.io.db.ActiveSlickRepos.{ UserRepo, VisitorRepo, User
  *
  */
 trait UserDao {
-
-  sealed trait SignupRejection
-  case class UserNameAlreadyTaken(userName: String) extends SignupRejection
-  case class EmailAddressAleadyRegistered(email: String) extends SignupRejection
-
-  type SignupOutcome = Either[UserRow, SignupRejection]
 
   /**
    * Initialize this dao trait with a specific instance of ApplicationDatabase.
@@ -39,7 +32,7 @@ trait UserDao {
    */
   lazy val userDao = initWithApplicationDatabase()
 
-  class UserDao(val cake: ApplicationDatabase) {
+  protected class UserDao(val cake: ApplicationDatabase) {
 
     import cake.jdbcProfile.api._
 
@@ -51,7 +44,10 @@ trait UserDao {
 
     /* RAW queries */
     private def userFromEmailQuery(email: Rep[String]) = {
-      for (u <- Tables.User if u.email === email) yield u
+      for {
+        u <- Tables.User
+        a <- Tables.Account if a.email === email && u.accountId === a.id //inner join on account.id
+      } yield u
     }
 
     private def userFromUserNameQuery(email: Rep[String]) = {
@@ -61,13 +57,25 @@ trait UserDao {
     private def visitorFromHostQuery(host: Rep[String]) = {
       for (v <- Tables.Visitor if v.host === host) yield v
     }
-
+    
+    private def userFromIdQuery(id: Rep[Long]) = {
+      for {
+        (((u, a), up), vis) <- Tables.User join Tables.Account on (_.accountId === _.id) joinLeft Tables.Userprofile on (_._1.userprofileId === _.id) joinLeft Tables.Visitor on (_._1._1.visitorId === _.id) 
+        if u.id === id
+      } yield (u, a, up, vis)
+    }
+    
     private def userProfileFromAllQuery(country: Rep[Option[String]], placeOfRes: Rep[Option[String]], age: Rep[Option[Short]]) = {
       for (up <- Tables.Userprofile if up.country === country && up.placeOfRes === placeOfRes && up.age === age)
         yield up
     }
 
     /* COMPILED queries */
+    
+    /**
+     * Compiled query for getting {@link UserRow} by userId
+     */
+    val userFromId = Compiled(userFromIdQuery _)
     /**
      * Compiled query for getting {@link UserRow} by email address
      */
@@ -98,7 +106,7 @@ trait UserDao {
       val p = Promise[SignupOutcome]()
       //check for right-hand side: SignupRejection
       val userNameQ = userFromUserName(user.userName).result.headOption
-      val emailQ = userFromEmail(user.email).result.headOption
+      val emailQ = userFromEmail(user.account.email).result.headOption
       val outerAggregate = for {
         x <- cake.runAction(userNameQ)
         y <- cake.runAction(emailQ)
@@ -106,9 +114,9 @@ trait UserDao {
       outerAggregate.map {
         //invalid registration --> complete with value
         case (Some(x), _) => p.success(Right(UserNameAlreadyTaken(x.userName)))
-        case (_, Some(x)) => p.success(Right(EmailAddressAleadyRegistered(x.email)))
+        case (_, Some(x)) => p.success(Right(EmailAddressAleadyRegistered(user.account.email)))
         //valid new user --> complete with this future instead
-        case _    => p.completeWith( foldNewUser(user) map { Left(_) })
+        case _            => p.completeWith(foldNewUser(user) flatMap { case (ur: UserRow) => userAccountProfileVisitorById(ur.id) } map { Left(_) })
       }
       p.future
     }
@@ -119,6 +127,9 @@ trait UserDao {
      * @return
      */
     private def foldNewUser(user: User): Future[UserRow] = {
+      import com.blueskiron.bilby.io.db.ar.ModelImplicits._
+      val accF = cake.commit(AccountRepo.save(rowFromAccount(user.account)))
+
       val extras = (
         user.visitor map { v => handleVisitor(v) },
         user.userprofile map { up => handleUserProfile(up) })
@@ -128,23 +139,32 @@ trait UserDao {
         //both visitor and user profile are handled
         case (Some(vF), Some(upF)) => {
           val aggregate = for {
+            accR <- accF
             vis <- vF
             up <- upF
-          } yield (vis, up)
+          } yield (accR, vis, up)
           aggregate flatMap {
-            case (v: Visitor, up: UserProfile) =>
-              cake.commit(UserRepo.save(userRowFromUser(User.userWithProfileAndVisitor(user, Some(up), Some(v)))))
-          }
-        }
-        //only visitor is handled
-        case (Some(v), None) => {
-          v flatMap { visitor =>
-            cake.commit(UserRepo.save(userRowFromUser(User.userWithProfileAndVisitor(user, None, Some(visitor)))))
+            case (acc, vis, up) => {
+              cake.commit(UserRepo.save(rowFromUserAndForeignKeys(user, acc.id, Some(up.id), Some(vis.id))))
+            }
           }
         }
 
-        //neither is handled
-        case _ => cake.commit(UserRepo.save(userRowFromUser(User.userWithProfileAndVisitor(user, None, None))))
+        //only visitor is handled
+        case (Some(vF), None) => {
+          val aggregate = for {
+            accR <- accF
+            vis <- vF
+          } yield (accR, vis)
+          aggregate flatMap {
+            case (acc, vis) => {
+              cake.commit(UserRepo.save(rowFromUserAndForeignKeys(user, acc.id, None, Some(vis.id))))
+            }
+          }
+        }
+
+        //neither is handled, only map account
+        case _ => accF flatMap { acc => cake.commit(UserRepo.save(rowFromUserAndForeignKeys(user, acc.id, None, None))) }
       }
 
     }
@@ -153,27 +173,11 @@ trait UserDao {
       id map { x => cake.runAction(VisitorRepo.findById(x)) }
     }
 
-    def userProfileFromOption(id: Option[Long]) = {
-      id map { x => cake.runAction(UserprofileRepo.findById(x)) }
-    }
-
-    def userFromUserRow(userRow: UserRow) = {
-      (visitorFromOption(userRow.visitorId),
-        userProfileFromOption(userRow.userprofileId)) match {
-
-          case (Some(visitorF), Some(userProfileF)) => {
-            val aggregate = for {
-              vr <- visitorF
-              upr <- userProfileF
-            } yield (vr, upr)
-            aggregate.map {
-              case (v: VisitorRow, upr: UserprofileRow) => userFromRows(userRow, Some(upr), Some(v))
-            }
-          }
-          case (Some(visitorF), None) => visitorF.map { v => userFromRows(userRow, None, Some(v)) }
-          case (None, Some(userProfileF)) => userProfileF.map { upr => userFromRows(userRow, Some(upr), None) }
-          case _ => Future { userFromRows(userRow, None, None) }
-        }
+    def userAccountProfileVisitorById(id: Long) = {
+      import com.blueskiron.bilby.io.db.ar.ModelImplicits._
+      val sqlAction = userFromIdQuery(id).result.head
+      val q = cake.runAction(sqlAction)
+      q.map(x => User.create(Some(x._1.id), x._1.userName, accountFromRow(x._2), x._3 map userprofileFromRow, x._4 map visitorFromRow ))
     }
 
     /**
@@ -190,8 +194,8 @@ trait UserDao {
         y <- cake.runAction(emailQ)
       } yield (x, y)
       aggregateFuture.map {
-        case (Some(x), None) => p.success(Some(userFromRows(x, None, None)))
-        case (None, Some(x)) => p.success(Some(userFromRows(x, None, None)))
+        case (Some(x), None) => p.completeWith(userAccountProfileVisitorById(x.id) map { x => Some(x) })
+        case (None, Some(x)) => p.completeWith(userAccountProfileVisitorById(x.id) map { x => Some(x) })
         case _               => p.success(None)
       }
       p.future
@@ -202,14 +206,15 @@ trait UserDao {
      * @param visitor
      * @return
      */
-    def handleVisitor(visitor: Visitor): Future[Visitor] = {
+    def handleVisitor(visitor: Visitor): Future[VisitorRow] = {
+      import com.blueskiron.bilby.io.db.ar.ModelImplicits._
       val visitorF = cake.runAction {
         visitorFromHost(visitor.host).result.headOption
       }
       visitorF.flatMap {
         case Some(visitor) => cake.commit(VisitorRepo.save(visitor.copy(timestamp = System.currentTimeMillis())))
         case None          => cake.commit(VisitorRepo.save(visitor))
-      } map { visitorFromVisitorRow(_) }
+      }
     }
 
     /**
@@ -217,15 +222,9 @@ trait UserDao {
      * @param userProfile
      * @return
      */
-    def handleUserProfile(userProfile: UserProfile): Future[UserProfile] = {
-      val userProfileF = cake.runAction {
-        val tuples = UserProfile.unapply(userProfile).get
-        userProfileFromAll(tuples._1, tuples._2, tuples._3).result.headOption
-      }
-      userProfileF.flatMap {
-        case Some(up) => Future(up)
-        case None     => cake.commit(UserprofileRepo.save(userProfile))
-      } map { userprofileFromUserprofileRow(_) }
+    def handleUserProfile(userProfile: UserProfile): Future[UserprofileRow] = {
+      import com.blueskiron.bilby.io.db.ar.ModelImplicits._
+      cake.runAction(UserprofileRepo.save(userProfile))
     }
 
   }

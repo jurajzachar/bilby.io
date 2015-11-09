@@ -7,11 +7,12 @@ import org.scalatest.FlatSpec
 import org.slf4j.LoggerFactory
 import com.blueskiron.bilby.io.db.ActiveSlickRepos.UserRepo
 import com.blueskiron.bilby.io.db.Tables
-import com.blueskiron.bilby.io.db.ar.ModelImplicits.userRowFromUser
 import com.blueskiron.bilby.io.db.dao.UserDao
 import scala.concurrent.{ Await, ExecutionContext }
 import com.blueskiron.bilby.io.db.ApplicationDatabase
-import com.blueskiron.bilby.io.model.{ User, UserProfile, Visitor }
+import com.blueskiron.bilby.io.api.model.{ User, UserProfile, Visitor }
+import com.blueskiron.bilby.io.api.UserService.UserNameAlreadyTaken
+import com.blueskiron.bilby.io.api.UserService.EmailAddressAleadyRegistered
 
 /**
  * @author juri
@@ -23,13 +24,14 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
   import slick.driver.PostgresDriver.api._
 
   override def beforeAll {
-    fixtures.users.foreach { user => commit(UserRepo.save(userRowFromUser(user))) }
+    import com.blueskiron.bilby.io.db.ar.ModelImplicits._
+    fixtures.users.foreach { user => commit(UserRepo.save(user)) }
   }
 
   "ApplicationDatabase" should " be able to perform filter functions on User entity" in {
-    val amyQuery = Tables.User.filter { _.firstName === "Amy" }
+    val amyQuery = Tables.User.filter { _.userName === "jrichardsg6" }
     val result = query(amyQuery.result)
-    result.size shouldBe 7 //hacky magic number
+    result.size shouldBe 1 //hacky magic number
   }
 
   "UserDao" should " be able to compile and execute queries on User entity" in new UserDao {
@@ -72,6 +74,7 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
     visitor.host shouldEqual readSavedVisitor.host
 
     //check timestamp is updated
+    
     visitor.timestamp == readSavedVisitor.timestamp shouldBe true
 
     //now check updates
@@ -101,7 +104,7 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
     )
   }
 
-  private def cleanUp = {
+  private def cleanUp() = {
     //clean up users, userprofiles and visitors (unique username constraint may fail next test)
     val tasks = List(
       Tables.User.filter { u => u.id === u.id }.delete,

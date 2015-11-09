@@ -1,37 +1,43 @@
 import sbt._
 
 object Dependencies {
-  
-  // Versions
-  lazy val logbackVersion = "1.1.3"
-  lazy val akkaVersion = "2.3.13"
-  lazy val slickVersion = "3.0.3"
-  lazy val configVersion = "1.3.0"
 
+   // Versions
+  object Version {
+	  val logback = "1.1.3"
+	  val akka = "2.4.0"
+	  val slick = "3.1.0"
+	  val config = "1.3.0"
+	  val play = "2.4.3"
+  }
+  
   // Libraries
-  val logbackCore = "ch.qos.logback" % "logback-core" % logbackVersion
-  val logbackClassic = "ch.qos.logback" % "logback-classic" % logbackVersion
-  val config = "com.typesafe" % "config" % configVersion
-  val specs2core = "org.specs2" %% "specs2-core" % "2.4.14"
+  val logbackCore = "ch.qos.logback" % "logback-core" % Version.logback
+  val logbackClassic = "ch.qos.logback" % "logback-classic" % Version.logback
+  val config = "com.typesafe" % "config" % Version.config
+  //val specs2core = "org.specs2" %% "specs2-core" % "2.4.14"
   val scalaTest = "org.scalatest" % "scalatest_2.11" % "2.2.4" 
   val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.2"
-  val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-  val akkaLog = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
+  val akkaActor = "com.typesafe.akka" %% "akka-actor" % Version.akka
+  val akkaLog = "com.typesafe.akka" %% "akka-slf4j" % Version.akka
+  val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Version.akka
   val postgresql = "org.postgresql" %	"postgresql" % "9.4-1201-jdbc41" withSources() withJavadoc()
-  val slick = "com.typesafe.slick" %% "slick" % slickVersion withSources() withJavadoc()
-  val slickCodegen = "com.typesafe.slick" %% "slick-codegen" % slickVersion
-  val hikariCP = "com.zaxxer" % "HikariCP" % "2.4.1"
-  val activeSlick = "io.strongtyped" %% "active-slick" % "0.3.2"
-  val playJson = "com.typesafe.play" %% "play-json"	% "2.4.3"
+  val slick = "com.typesafe.slick" %% "slick" % Version.slick withSources() withJavadoc()
+  val slickHikariCP = "com.typesafe.slick" %% "slick-hikaricp" % Version.slick withSources() withJavadoc()
+  val slickCodegen = "com.typesafe.slick" %% "slick-codegen" % Version.slick
+  //val hikariCP = "com.zaxxer" % "HikariCP" % "2.4.1"
+  val activeSlick = "io.strongtyped" %% "active-slick" % "0.3.3"
+  val shapeless =	"com.chuusai" %% "shapeless" % "2.2.5"
+  val playJson = "com.typesafe.play" %% "play-json"	% Version.play
 
-  // Projects
-  val baseDeps = Seq(logbackCore, logbackClassic, config, specs2core % Test, scalaMock % Test)
+  // Project deps
+  val baseDeps = Seq(logbackCore, logbackClassic, config, scalaTest % Test, scalaMock % Test)
   
-  val modelDeps = baseDeps ++ Seq(playJson)
+  val apiDeps = baseDeps ++ Seq(playJson)
   
-  val slickDeps = Seq(slick, slickCodegen, activeSlick, hikariCP)
+  val slickDeps = Seq(slick, slickCodegen, activeSlick, slickHikariCP)
   
-  val dbDeps = baseDeps ++ slickDeps ++ Seq(postgresql)
+  val dbDeps = baseDeps ++ slickDeps ++ Seq(shapeless, postgresql)
   
-  val coreDeps = baseDeps ++ Seq(akkaActor, akkaLog)
+  val coreDeps = baseDeps ++ Seq(akkaActor, akkaLog, akkaTestkit % Test)
 }

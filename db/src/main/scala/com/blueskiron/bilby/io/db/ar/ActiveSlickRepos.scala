@@ -42,6 +42,38 @@ object ActiveSlickRepos {
 
   }
 
+    abstract class AccountRepo extends EntityActions with JdbcProfileProvider {
+    //
+    // Implement JdbcProfileProvider with JDBCProfile from generated Tables.scala
+    //
+    override type JP = Tables.profile.type
+    // Sucks that this is necessary. Did we have to define this type in JdbcProfileProvider? Why not just use JdbcProfile?
+    override val jdbcProfile = Tables.profile
+
+    //
+    // Implement EntityActions
+    //
+    import jdbcProfile.api._
+    
+    type Entity = Tables.AccountRow
+    type Id = Long
+    type EntityTable = Tables.Account
+
+    val baseTypedType = implicitly[BaseTypedType[Id]]
+    val tableQuery = Tables.Account
+    val idLens: Lens[Tables.AccountRow, Option[Long]] = {
+      // For the getter, use 0L as a sentinel value because generated ID is usually non-optional
+      Lens.lens { row: Tables.AccountRow => if (row.id == 0L) None else Some(row.id) } { (row, maybeId) => maybeId map { id => row.copy(id = id) } getOrElse row }
+    }
+
+    override def $id(table: EntityTable): Rep[Long] = {
+      table.id
+    }
+
+    implicit class EntryExtensions(val model: Tables.AccountRow) extends ActiveRecord(AccountRepo)
+
+  }
+    
   abstract class UserprofileRepo extends EntityActions with JdbcProfileProvider {
 
     override type JP = Tables.profile.type
@@ -68,55 +100,55 @@ object ActiveSlickRepos {
 
   }
 
-  abstract class PieceRepo extends EntityActions with JdbcProfileProvider {
+  abstract class AssetRepo extends EntityActions with JdbcProfileProvider {
 
     override type JP = Tables.profile.type
     override val jdbcProfile = Tables.profile
 
     import jdbcProfile.api._
 
-    type Entity = Tables.PieceRow
+    type Entity = Tables.AssetRow
     type Id = Long
-    type EntityTable = Tables.Piece
+    type EntityTable = Tables.Asset
 
     val baseTypedType = implicitly[BaseTypedType[Id]]
-    val tableQuery = Tables.Piece
-    val idLens: Lens[Tables.PieceRow, Option[Long]] = {
+    val tableQuery = Tables.Asset
+    val idLens: Lens[Tables.AssetRow, Option[Long]] = {
       // For the getter, use 0L as a sentinel value because generated ID is usually non-optional
-      Lens.lens { row: Tables.PieceRow => if (row.id == 0L) None else Some(row.id) } { (row, maybeId) => maybeId map { id => row.copy(id = id) } getOrElse row }
+      Lens.lens { row: Tables.AssetRow => if (row.id == 0L) None else Some(row.id) } { (row, maybeId) => maybeId map { id => row.copy(id = id) } getOrElse row }
     }
 
     override def $id(table: EntityTable): Rep[Long] = {
       table.id
     }
 
-    implicit class EntryExtensions(val model: Tables.PieceRow) extends ActiveRecord(PieceRepo)
+    implicit class EntryExtensions(val model: Tables.AssetRow) extends ActiveRecord(AssetRepo)
 
   }
   
-   abstract class PiecemetricsRepo extends EntityActions with JdbcProfileProvider {
+   abstract class AssetmetricsRepo extends EntityActions with JdbcProfileProvider {
 
     override type JP = Tables.profile.type
     override val jdbcProfile = Tables.profile
 
     import jdbcProfile.api._
 
-    type Entity = Tables.PiecemetricsRow
+    type Entity = Tables.AssetmetricsRow
     type Id = Long
-    type EntityTable = Tables.Piecemetrics
+    type EntityTable = Tables.Assetmetrics
 
     val baseTypedType = implicitly[BaseTypedType[Id]]
-    val tableQuery = Tables.Piecemetrics
-    val idLens: Lens[Tables.PiecemetricsRow, Option[Long]] = {
+    val tableQuery = Tables.Assetmetrics
+    val idLens: Lens[Tables.AssetmetricsRow, Option[Long]] = {
       // For the getter, use 0L as a sentinel value because generated ID is usually non-optional
-      Lens.lens { row: Tables.PiecemetricsRow => if (row.id == 0L) None else Some(row.id) } { (row, maybeId) => maybeId map { id => row.copy(id = id) } getOrElse row }
+      Lens.lens { row: Tables.AssetmetricsRow => if (row.id == 0L) None else Some(row.id) } { (row, maybeId) => maybeId map { id => row.copy(id = id) } getOrElse row }
     }
 
     override def $id(table: EntityTable): Rep[Long] = {
       table.id
     }
 
-    implicit class EntryExtensions(val model: Tables.PiecemetricsRow) extends ActiveRecord(PiecemetricsRepo)
+    implicit class EntryExtensions(val model: Tables.AssetmetricsRow) extends ActiveRecord(AssetmetricsRepo)
 
   }
    
@@ -173,9 +205,10 @@ object ActiveSlickRepos {
 
   }
   object UserRepo extends UserRepo
+  object AccountRepo extends AccountRepo
   object UserprofileRepo extends UserprofileRepo
-  object PieceRepo extends PieceRepo
-  object PiecemetricsRepo extends PiecemetricsRepo
+  object AssetRepo extends AssetRepo
+  object AssetmetricsRepo extends AssetmetricsRepo
   object VisitorRepo extends VisitorRepo
   object FollowerRepo extends FollowerRepo
 

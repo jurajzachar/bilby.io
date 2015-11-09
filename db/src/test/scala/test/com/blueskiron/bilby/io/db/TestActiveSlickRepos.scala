@@ -8,16 +8,19 @@ import io.strongtyped.active.slick.JdbcProfileProvider
 import com.blueskiron.bilby.io.db.Tables.VisitorRow
 import com.blueskiron.bilby.io.db.Tables.UserRow
 import com.blueskiron.bilby.io.db.Tables.PieceRow
-import com.blueskiron.bilby.io.model.User
+import com.blueskiron.bilby.io.api.model.User
+import com.blueskiron.bilby.io.api.model.Countries
 import java.util.UUID
-import com.blueskiron.bilby.io.model.Countries
 import com.blueskiron.bilby.io.db.Tables
 import scala.concurrent.Future
 
 
 class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
+  
   import com.blueskiron.bilby.io.db.ar.ModelImplicits._
+  
   val log = LoggerFactory.getLogger(getClass)
+  
   val fixtures = MockBilbyFixtures
   "This test" should " have access to test database" in {
     val session = fixtures.testDatabase.createSession()
@@ -35,13 +38,12 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
     val initialCount = query(UserRepo.count)
     for {
       packed <- (fixtures.users, fixtures.userProfiles, fixtures.visitors).zipped.toList
-
-    } yield {
+    } {
       val user = packed._1
       val userProfile = packed._2
       val visitor = packed._3
       val extendedUser = userWithProfileAndVisitor(user, Some(userProfile), Some(visitor))
-      log.info("testign CRUD on composite entity: {}", extendedUser)
+      log.info("testing CRUD operations on composite entity: {}", extendedUser)
 
       //CREATE
       val savedEntities = (
@@ -124,5 +126,20 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
     commit(UserRepo.deleteById(savedUser.id))
     query(UserRepo.findOptionById(savedUser.id)) shouldBe None
     
+  }
+  
+  private def cleanUp() = {
+    import jdbcProfile.api._
+    //clean up users, userprofiles and visitors (unique username constraint may fail next test)
+    val tasks = List(
+      Tables.User.filter { u => u.id === u.id }.delete,
+      Tables.Userprofile.filter { v => v.id === v.id }.delete,
+      Tables.Visitor.filter { v => v.id === v.id }.delete)
+    tasks.foreach(commit(_))
+  }
+
+  override def afterAll = {
+    cleanUp
+    super.afterAll()
   }
 }

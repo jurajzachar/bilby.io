@@ -9,5 +9,16 @@
     <nature>org.scala-ide.sdt.core.scalanature</nature>
     <nature>org.eclipse.jdt.core.javanature</nature>
   </natures>
-  <linkedResources> </linkedResources>
+  <linkedResources>
+    <link>
+      <name>-Users-juri-Documents-github_repos-bilby.io-src-test-resources</name>
+      <type>2</type>
+      <location>/Users/juri/Documents/github_repos/bilby.io/src/test/resources</location>
+    </link>
+    <link>
+      <name>-Users-juri-Documents-github_repos-bilby.io-src-test-resources</name>
+      <type>2</type>
+      <location>/Users/juri/Documents/github_repos/bilby.io/src/test/resources</location>
+    </link>
+  </linkedResources>
 </projectDescription>

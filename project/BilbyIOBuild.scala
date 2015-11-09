@@ -1,31 +1,32 @@
 import sbt._
 import Keys._
 import Tests._
-import Dependencies.{ modelDeps, dbDeps, coreDeps }
+import Dependencies.{ apiDeps, dbDeps, coreDeps }
 
 object BilbyIOBuild extends Build {
-
-  lazy val model = Project(
-    id = "model",
-    base = file("model"),
+ 
+  lazy val api = Project(
+    id = "api",
+    base = file("api"),
     settings = Project.defaultSettings ++ Seq(
       scalaVersion := "2.11.7",
-      libraryDependencies ++= modelDeps))
-
+      libraryDependencies ++= apiDeps))
+			      
   lazy val db = Project(
     id = "db",
     base = file("db"),
     settings = Project.defaultSettings ++ Seq(
       scalaVersion := "2.11.7",
       libraryDependencies ++= dbDeps,
+      unmanagedResourceDirectories in Test += baseDirectory.value / "../src/test/resources",
       slickCodeGen <<= slickCodeGenTask, // register manual sbt command
       sourceGenerators in Compile <+= slickCodeGenTask // register automatic code generation on every compile, remove for only manual use
-    )).dependsOn(model)
+    )).dependsOn(api)
 
   lazy val slickCodeGen = TaskKey[Seq[File]]("Slick Code Generation of Tables.scala")
 
   lazy val slickCodeGenTask = (sourceManaged, dependencyClasspath in Compile, runner in Compile, streams) map { (dir, cp, r, s) =>
-    val dbName = "bilby_io"
+    val dbName = "bilby_io_test"
     val userName = "play"
     val password = "play"
     val initScripts = Seq("create.sql", "populate.sql")
@@ -47,5 +48,8 @@ object BilbyIOBuild extends Build {
     base = file("core"),
     settings = Project.defaultSettings ++ Seq(
       scalaVersion := "2.11.7",
-      libraryDependencies ++= coreDeps)).dependsOn(model, db)
+      libraryDependencies ++= coreDeps,
+      unmanagedResourceDirectories in Test += baseDirectory.value / "../src/test/resources"
+      )
+   ).dependsOn(api, db)
 }
