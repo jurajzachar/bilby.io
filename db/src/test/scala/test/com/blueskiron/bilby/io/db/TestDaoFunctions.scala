@@ -35,13 +35,13 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
   }
 
   "UserDao" should " be able to compile and execute queries on User entity" in new UserDao {
-    val email = "lwilliamsonnw@csmonitor.com"
+    val userName = "whawkins2x"
     //confirm email is in json users
-    fixtures.users.filter { _.email.equals(email) }.size shouldBe 1
-    val sqlAction = userDao.userFromEmail(email).result.headOption
+    fixtures.users.filter { _.userName.equals(userName) }.size shouldBe 1
+    val sqlAction = userDao.userFromEmail(userName).result.headOption
     val q = query(sqlAction)
     q.isDefined shouldBe true
-    q.map { _.email shouldEqual email }
+    q.map { _.userName shouldEqual userName }
   }
 
   "UserDao" should " be able to retrieve user based on provided user name or email address" in new TestUserDao {
@@ -58,7 +58,7 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
     val userProf = fixtures.userProfiles.head
     val saved = Await.result(userDao.handleUserProfile(userProf), timeout)
     (saved.country.equals(userProf.country) &&
-      saved.placeOfResidence.equals(userProf.placeOfResidence) &&
+      saved.placeOfRes.equals(userProf.placeOfRes) &&
       saved.age == userProf.age) shouldBe true
     val unchanged = Await.result(userDao.handleUserProfile(userProf), timeout)
     unchanged shouldEqual saved
@@ -87,8 +87,8 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
   "UserDao" should " be able to sign up a new user and reject duplicate registration" in new TestUserDao {
     //explicitly call cleanup to prevent unique key constraints
     cleanUp
-    val extras = (fixtures.visitors.head, fixtures.userProfiles.head)
-    val user = User.userWithProfileAndVisitor(fixtures.users.head, Some(extras._2), Some(extras._1))
+    val extras = (fixtures.accounts.head, fixtures.userProfiles.head, fixtures.visitors.head)
+    val user = User.create(None, fixtures.users.head.userName, extras._1, Some(extras._2), Some(extras._3))
     log.info("new user attempting to sign up: {}", user)
     val outcome1 = Await.result(userDao.signupUser(user), timeout)
     outcome1 fold (

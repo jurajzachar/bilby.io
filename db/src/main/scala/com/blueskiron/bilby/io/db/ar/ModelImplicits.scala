@@ -12,7 +12,7 @@ import com.blueskiron.bilby.io.api.model._
 object ModelImplicits {
   
  implicit def rowFromUserProfile(up: UserProfile) = {
-   UserprofileRow(up.firstName, up.lastName, up.country, up.placeOfResidence, up.age, up.id.getOrElse(0L))
+   UserprofileRow(up.firstName, up.lastName, up.country, up.placeOfRes, up.age, up.id.getOrElse(0L))
  } 
  
  implicit def userprofileFromRow(upr: UserprofileRow) = {

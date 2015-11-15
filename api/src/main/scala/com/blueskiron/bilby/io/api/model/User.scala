@@ -60,7 +60,7 @@ case class Account(email: String,
 case class UserProfile(firstName: Option[String],
                        lastName: Option[String],
                        country: Option[String],
-                       placeOfResidence: Option[String],
+                       placeOfRes: Option[String],
                        age: Option[Short],
                        id: Option[Long] = None)
 
@@ -75,5 +75,5 @@ case class Visitor(host: String = "unknownHost", timestamp: Long, id: Option[Lon
  * @param leads
  * @param id
  */
-case class Follower(leads: List[User], id: Option[Long] = None)
+case class Follower(leads: Set[User], id: Option[Long] = None)
 
