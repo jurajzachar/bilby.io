@@ -1,6 +1,7 @@
 <configuration>
 	<logger name="com.zaxxer.hikari" level="INFO" />
 	 <logger name="slick" level="INFO" />
+	 <logger name="com.zaxxer.hikari" level="INFO" />
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder 
 			by default -->

@@ -11,8 +11,8 @@ drop table "reserved";
 drop table "assetmetrics";
 drop table "asset";
 drop table "follower";
-drop table "account";
 drop table "user";
 drop table "userprofile";
 drop table "visitor";
+drop table "account";
 

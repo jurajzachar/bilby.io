@@ -55,7 +55,6 @@ create table if not exists "countries" ("country_name" VARCHAR(254) NOT NULL PRI
 create unique index "unique_reserved" on "reserved" ("user_name");
 
 --- INDICES
-create unique index "unique_id" on "user" ("id");
 create unique index "unique_username" on "user" ("user_name");
 create unique index "unique_email" on "account" ("email");
 
@@ -66,3 +65,12 @@ alter table "user" add constraint "visitor_id" foreign key("visitor_id") referen
 alter table "follower" add constraint "id" foreign key("id") references "user"("id") on update NO ACTION on delete NO ACTION;
 alter table "asset" add constraint "author_id" foreign key("author_id") references "user"("id") on update NO ACTION on delete NO ACTION;
 alter table "assetmetrics" add constraint "id" foreign key("id") references "asset"("id") on update NO ACTION on delete NO ACTION;
+
+-- PERMS
+alter table "user" owner TO play;
+alter table account owner TO play;
+alter table userprofile owner TO play;
+alter table visitor owner TO play;
+alter table asset owner TO play;
+GRANT ALL on all tables in schema public to play;
+GRANT ALL on all sequences in schema public to play;

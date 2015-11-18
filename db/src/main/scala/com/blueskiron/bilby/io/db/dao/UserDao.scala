@@ -7,9 +7,11 @@ import com.blueskiron.bilby.io.db.ApplicationDatabase
 import com.blueskiron.bilby.io.db.PostgresDatabase
 import com.blueskiron.bilby.io.db.Tables
 import com.blueskiron.bilby.io.db.Tables.{ AccountRow, UserRow, UserprofileRow, VisitorRow }
+import com.blueskiron.bilby.io.db.ar.ModelImplicits
 import com.blueskiron.bilby.io.api.model.{ Account, Visitor, UserProfile, User }
 import com.blueskiron.bilby.io.db.ActiveSlickRepos.{ AccountRepo, UserRepo, VisitorRepo, UserprofileRepo }
 import com.blueskiron.bilby.io.api.UserService.{ SignupOutcome, EmailAddressAleadyRegistered, UserNameAlreadyTaken }
+import com.blueskiron.bilby.io.api.UserService.UnexpectedSignupError
 
 /**
  * UserDao trait uses cake pattern to inject desired {@link ApplicationDatabase}
@@ -45,56 +47,63 @@ trait UserDao {
     /* RAW queries */
     private def userFromEmailQuery(email: Rep[String]) = {
       for {
-        u <- Tables.User
-        a <- Tables.Account if a.email === email && u.accountId === a.id //inner join on account.id
+        (u, a) <- Tables.User join Tables.Account on (_.accountId === _.id) if (a.email === email)
       } yield u
     }
 
-    private def userFromUserNameQuery(email: Rep[String]) = {
-      for (u <- Tables.User if u.userName === email) yield u
+    private def userFromUserNameQuery(userName: Rep[String]) = {
+      for {
+        (u, a) <- Tables.User join Tables.Account on (_.accountId === _.id) if (u.userName === userName)
+      } yield u
     }
 
     private def visitorFromHostQuery(host: Rep[String]) = {
       for (v <- Tables.Visitor if v.host === host) yield v
     }
-    
-    private def userFromIdQuery(id: Rep[Long]) = {
+
+    private def fullUserFromIdQuery(id: Rep[Long]) = {
       for {
-        (((u, a), up), vis) <- Tables.User join Tables.Account on (_.accountId === _.id) joinLeft Tables.Userprofile on (_._1.userprofileId === _.id) joinLeft Tables.Visitor on (_._1._1.visitorId === _.id) 
+        (((u, a), up), vis) <- Tables.User join Tables.Account on (_.accountId === _.id) joinLeft Tables.Userprofile on (_._1.userprofileId === _.id) joinLeft Tables.Visitor on (_._1._1.visitorId === _.id)
         if u.id === id
       } yield (u, a, up, vis)
     }
-    
-    private def userProfileFromAllQuery(country: Rep[Option[String]], placeOfRes: Rep[Option[String]], age: Rep[Option[Short]]) = {
-      for (up <- Tables.Userprofile if up.country === country && up.placeOfRes === placeOfRes && up.age === age)
+
+    private def userProfileFromAllQuery(
+        firstName: Rep[Option[String]],
+        lastName: Rep[Option[String]],
+        country: Rep[Option[String]], 
+        placeOfRes: Rep[Option[String]], 
+        age: Rep[Option[Short]]) = {
+      for (up <- Tables.Userprofile 
+          if up.firstName === firstName && up.lastName === lastName && up.country === country && up.placeOfRes === placeOfRes && up.age === age)
         yield up
     }
 
     /* COMPILED queries */
-    
+
     /**
      * Compiled query for getting {@link UserRow} by userId
      */
-    val userFromId = Compiled(userFromIdQuery _)
+    val compiledFullUserFromId = Compiled(fullUserFromIdQuery _)
     /**
      * Compiled query for getting {@link UserRow} by email address
      */
-    val userFromEmail = Compiled(userFromEmailQuery _)
+    val compiledUserFromEmail = Compiled(userFromEmailQuery _)
 
     /**
      * Compiled query for getting {@link UserRow} by email address
      */
-    val userFromUserName = Compiled(userFromUserNameQuery _)
+    val compiledUserFromUserName = Compiled(userFromUserNameQuery _)
 
     /**
      * Compiled query for getting {@link VisitorRow} by host
      */
-    val visitorFromHost = Compiled(visitorFromHostQuery _)
+    val compiledVisitorFromHost = Compiled(visitorFromHostQuery _)
 
     /**
      * Compiled query for getting {@link UserprofileRow} by all its fields except of id
      */
-    val userProfileFromAll = Compiled(userProfileFromAllQuery _)
+    val compiledUserProfileFromAllParams = Compiled(userProfileFromAllQuery _)
 
     /* DAO functions */
 
@@ -105,18 +114,26 @@ trait UserDao {
     def signupUser(user: User): Future[SignupOutcome] = {
       val p = Promise[SignupOutcome]()
       //check for right-hand side: SignupRejection
-      val userNameQ = userFromUserName(user.userName).result.headOption
-      val emailQ = userFromEmail(user.account.email).result.headOption
+      val userNameQ = compiledUserFromUserName(user.userName).result.headOption
+      val emailQ = compiledUserFromEmail(user.account.email).result.headOption
       val outerAggregate = for {
         x <- cake.runAction(userNameQ)
         y <- cake.runAction(emailQ)
       } yield (x, y)
       outerAggregate.map {
+        
         //invalid registration --> complete with value
         case (Some(x), _) => p.success(Right(UserNameAlreadyTaken(x.userName)))
         case (_, Some(x)) => p.success(Right(EmailAddressAleadyRegistered(user.account.email)))
-        //valid new user --> complete with this future instead
-        case _            => p.completeWith(foldNewUser(user) flatMap { case (ur: UserRow) => userAccountProfileVisitorById(ur.id) } map { Left(_) })
+        
+        //valid new user --> complete with this future user instead
+        // if for whichever 
+        case _ => p.completeWith(foldNewUser(user) flatMap {
+          case (ur: UserRow) => fullUserFromId(ur.id)
+        } map {
+          case Some(success) => Left(success)
+          case None          => Right(UnexpectedSignupError("failed to signup user: " + user))
+        })
       }
       p.future
     }
@@ -127,7 +144,7 @@ trait UserDao {
      * @return
      */
     private def foldNewUser(user: User): Future[UserRow] = {
-      import com.blueskiron.bilby.io.db.ar.ModelImplicits._
+      import ModelImplicits.ToDataRow.{ rowFromUserNameAndForeignKeys, rowFromAccount }
       val accF = cake.commit(AccountRepo.save(rowFromAccount(user.account)))
 
       val extras = (
@@ -145,7 +162,7 @@ trait UserDao {
           } yield (accR, vis, up)
           aggregate flatMap {
             case (acc, vis, up) => {
-              cake.commit(UserRepo.save(rowFromUserAndForeignKeys(user, acc.id, Some(up.id), Some(vis.id))))
+              cake.commit(UserRepo.save(rowFromUserNameAndForeignKeys(user.userName, acc.id, Some(up.id), Some(vis.id), None)))
             }
           }
         }
@@ -158,13 +175,13 @@ trait UserDao {
           } yield (accR, vis)
           aggregate flatMap {
             case (acc, vis) => {
-              cake.commit(UserRepo.save(rowFromUserAndForeignKeys(user, acc.id, None, Some(vis.id))))
+              cake.commit(UserRepo.save(rowFromUserNameAndForeignKeys(user.userName, acc.id, None, Some(vis.id), None)))
             }
           }
         }
 
         //neither is handled, only map account
-        case _ => accF flatMap { acc => cake.commit(UserRepo.save(rowFromUserAndForeignKeys(user, acc.id, None, None))) }
+        case _ => accF flatMap { acc => cake.commit(UserRepo.save(rowFromUserNameAndForeignKeys(user.userName, acc.id, None, None, None))) }
       }
 
     }
@@ -173,11 +190,10 @@ trait UserDao {
       id map { x => cake.runAction(VisitorRepo.findById(x)) }
     }
 
-    def userAccountProfileVisitorById(id: Long) = {
-      import com.blueskiron.bilby.io.db.ar.ModelImplicits._
-      val sqlAction = userFromIdQuery(id).result.head
+    def fullUserFromId(id: Long): Future[Option[User]] = {
+      val sqlAction = fullUserFromIdQuery(id).result.headOption
       val q = cake.runAction(sqlAction)
-      q.map(x => User.create(Some(x._1.id), x._1.userName, accountFromRow(x._2), x._3 map userprofileFromRow, x._4 map visitorFromRow ))
+      q.map { maybe => maybe.map(x => ModelImplicits.ToModel.userFromRows(x._1, x._2, x._3, x._4)) }
     }
 
     /**
@@ -186,16 +202,16 @@ trait UserDao {
      * @return
      */
     def userFromEitherUserNameOrEmail(key: String): Future[Option[User]] = {
-      val userNameQ = userFromUserName(key).result.headOption
-      val emailQ = userFromEmail(key).result.headOption
+      val userNameQ = compiledUserFromUserName(key).result.headOption
+      val emailQ = compiledUserFromEmail(key).result.headOption
       val p = Promise[Option[User]]()
       val aggregateFuture = for {
         x <- cake.runAction(userNameQ)
         y <- cake.runAction(emailQ)
       } yield (x, y)
       aggregateFuture.map {
-        case (Some(x), None) => p.completeWith(userAccountProfileVisitorById(x.id) map { x => Some(x) })
-        case (None, Some(x)) => p.completeWith(userAccountProfileVisitorById(x.id) map { x => Some(x) })
+        case (Some(x), None) => p.completeWith(fullUserFromId(x.id))
+        case (None, Some(x)) => p.completeWith(fullUserFromId(x.id))
         case _               => p.success(None)
       }
       p.future
@@ -207,13 +223,12 @@ trait UserDao {
      * @return
      */
     def handleVisitor(visitor: Visitor): Future[VisitorRow] = {
-      import com.blueskiron.bilby.io.db.ar.ModelImplicits._
       val visitorF = cake.runAction {
-        visitorFromHost(visitor.host).result.headOption
+        compiledVisitorFromHost(visitor.host).result.headOption
       }
       visitorF.flatMap {
         case Some(visitor) => cake.commit(VisitorRepo.save(visitor.copy(timestamp = System.currentTimeMillis())))
-        case None          => cake.commit(VisitorRepo.save(visitor))
+        case None          => cake.commit(VisitorRepo.save(ModelImplicits.ToDataRow.rowFromVisitor(visitor)))
       }
     }
 
@@ -223,8 +238,13 @@ trait UserDao {
      * @return
      */
     def handleUserProfile(userProfile: UserProfile): Future[UserprofileRow] = {
-      import com.blueskiron.bilby.io.db.ar.ModelImplicits._
-      cake.runAction(UserprofileRepo.save(userProfile))
+      val userProfileF = cake.runAction {
+        compiledUserProfileFromAllParams(userProfile.firstName, userProfile.lastName, userProfile.country, userProfile.placeOfRes, userProfile.age).result.headOption
+      }
+      userProfileF.flatMap { 
+        case Some(userProfile) => Future(userProfile)
+        case None => cake.runAction(UserprofileRepo.save(ModelImplicits.ToDataRow.rowFromUserProfile(userProfile)))
+      }
     }
 
   }

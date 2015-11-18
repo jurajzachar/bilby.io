@@ -19,7 +19,7 @@ object UserService {
   sealed trait SignupRejection
   case class UserNameAlreadyTaken(userName: String) extends SignupRejection
   case class EmailAddressAleadyRegistered(email: String) extends SignupRejection
-
+  case class UnexpectedSignupError(error: String) extends SignupRejection
 }
 
 object PieceService {

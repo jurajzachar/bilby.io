@@ -8,6 +8,7 @@ import play.api.libs.json.JsPath
 import play.api.libs.json.JsString
 import play.api.libs.json.Reads
 import play.api.libs.json.Writes
+import play.api.libs.json.JsBoolean
 
 object JsonConversions extends JsonReadWrite
 

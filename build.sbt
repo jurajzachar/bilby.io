@@ -39,4 +39,4 @@ scalacOptions in ThisBuild ++= Seq(
 )
 
 parallelExecution in ThisBuild := false
-testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
+testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports") //-h is for html reporting, -u is for xml reporting

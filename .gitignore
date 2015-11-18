@@ -19,8 +19,8 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 .project
-/.target
-/bin
+target
+bin
 .cache
 .classpath
 .settings

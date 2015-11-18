@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 import akka.testkit.DefaultTimeout
 import com.blueskiron.bilby.io.api.model.User
 import com.blueskiron.bilby.io.api.UserService.SignupRequest
-import test.com.blueskiron.bilby.io.core.MockCoreFixtures
+import com.blueskiron.bilby.io.mock.MockBilbyFixtures._
 import org.slf4j.LoggerFactory
 
 class CoreSpec(testSystem: ActorSystem) 
@@ -29,9 +29,8 @@ class CoreSpec(testSystem: ActorSystem)
   }
   
   "A Signup service" must {
-    import MockCoreFixtures._
-    val t = (users.head, userProfiles.head, visitors.head)
-    val user = User.userWithProfileAndVisitor(t._1, Some(t._2), Some(t._3))
+    val t = (users.head.userName, accounts.head, userProfiles.head, visitors.head)
+    val user = User.create(None, t._1, t._2, Some(t._3), Some(t._4))
     "send back a SignupOutcome with a signed-up user" in {
       val signupService = testSystem.actorOf(Props[SignupWorker])
       signupService ! SignupRequest(user)

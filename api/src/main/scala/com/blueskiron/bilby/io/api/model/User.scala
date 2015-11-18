@@ -9,7 +9,7 @@ import scala.language.implicitConversions
 
 object User {
 
-  def create(id: Option[Long], userName: String, a: Account, up: Option[UserProfile], v: Option[Visitor]) = {
+  def create(id: Option[Long] = None, userName: String, a: Account, up: Option[UserProfile], v: Option[Visitor]) = {
     User(userName, a, up, v, id)
   }
 
