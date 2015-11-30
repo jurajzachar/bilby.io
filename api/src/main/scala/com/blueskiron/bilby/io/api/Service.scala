@@ -4,22 +4,20 @@ import com.blueskiron.bilby.io.api.model.User
 
 object UserService {
   
-  /*
-   * auth actor communication
-   */
   type UserCredentials = (String, String)
-  case class AuthRequest(secret: UserCredentials)
-  case class AuthResponse(user: Option[User])
   
-  /*
-   * signup actor communication 
-   */
-  case class SignupRequest(user: User)
-  type SignupOutcome = Either[User, SignupRejection]
-  sealed trait SignupRejection
+  sealed trait Request
+  case class Authenticate(secret: UserCredentials) extends Request
+  case class Signup(user: User) extends Request
+  case class Deactivate(user: User)extends Request
+
+  sealed trait Response
+  case class SignupOutcome(result: Either[User, SignupRejection]) extends Response 
+  sealed trait SignupRejection 
   case class UserNameAlreadyTaken(userName: String) extends SignupRejection
   case class EmailAddressAleadyRegistered(email: String) extends SignupRejection
   case class UnexpectedSignupError(error: String) extends SignupRejection
+  
 }
 
 object PieceService {

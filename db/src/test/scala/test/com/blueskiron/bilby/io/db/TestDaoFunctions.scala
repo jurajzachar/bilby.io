@@ -16,17 +16,19 @@ import com.blueskiron.bilby.io.api.UserService.EmailAddressAleadyRegistered
 import com.blueskiron.bilby.io.mock.MockBilbyFixtures
 import com.blueskiron.bilby.io.db.ActiveSlickRepos._
 import scala.util.Random
+import org.scalatest.DoNotDiscover
 
 /**
  * @author juri
  */
+@DoNotDiscover
 class TestDaoFunctions extends FlatSpec with PostgresSuite {
 
-  import TestDatabase._
-
+  import slick.driver.PostgresDriver.api._
+  import com.blueskiron.bilby.io.db.testkit.TestDatabase._
+  
   val log = LoggerFactory.getLogger(getClass)
   val fixtures = MockBilbyFixtures
-  import slick.driver.PostgresDriver.api._
 
   override def beforeAll {
     import jdbcProfile.api._
@@ -88,62 +90,50 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite {
     user1 shouldEqual user2
   }
 
-  //FIX-ME! 
-  ignore should " be able to save a new userprofile or retrieve an existing one" in new TestUserDao {
+  "UserDao" should " be able to save a new userprofile or retrieve an existing one" in new TestUserDao {
     val userProf = fixtures.userProfiles.head
     val saved = Await.result(userDao.handleUserProfile(userProf), timeout)
-    (saved.firstName == userProf.firstName && saved.lastName == userProf.lastName && 
-        saved.country.equals(userProf.country) && saved.placeOfRes.equals(userProf.placeOfRes) &&
-        saved.age == userProf.age) shouldBe true
+    log.debug("retrieved user profile: {}", saved)
     val unchanged = Await.result(userDao.handleUserProfile(userProf), timeout)
-    //unchanged shouldEqual saved
+    unchanged shouldEqual saved
   }
 
   //FIX-ME! 
-  ignore should " be able to save a new visitor and update a returning one" in new TestUserDao {
+  "UserDao" should " be able to save a new visitor and update a returning one" in new TestUserDao {
     val visitor = fixtures.visitors.head
-    val savedVisitor = userDao.handleVisitor(visitor)
-    val updatedVisitor = savedVisitor.flatMap { _ => userDao.handleVisitor(visitor) }
-    val readSavedVisitor = Await.result(savedVisitor, timeout)
-
-    //check it's the same visitor
-    visitor.host shouldEqual readSavedVisitor.host
-
-    //check timestamp is updated
-    //visitor.timestamp == readSavedVisitor.timestamp shouldBe true
-
-    //now check updates
-    val readUpdatedVisitor = Await.result(updatedVisitor, timeout)
-    readSavedVisitor.id shouldEqual readUpdatedVisitor.id
-    visitor.host shouldEqual readUpdatedVisitor.host
-    readSavedVisitor.timestamp != readUpdatedVisitor.timestamp shouldBe true
+    val saved = Await.result(userDao.handleVisitor(visitor), timeout)
+    log.debug("retrieved visitor: {}", saved)
+    val unchangedButTimestamp = Await.result(userDao.handleVisitor(visitor), timeout)
+    unchangedButTimestamp.host == saved.host &&
+      unchangedButTimestamp.id == saved.id &&
+      unchangedButTimestamp.timestamp > saved.timestamp shouldBe true
   }
 
-  "UserDao" should " be able to sign up a new user and reject duplicate registration" in new TestUserDao {
-    //explicitly call cleanup to prevent unique key constraints
-    TestDatabase.cleanUp
-    val extras = (fixtures.accounts.head, fixtures.userProfiles.head, fixtures.visitors.head)
-    val user = User.create(None, fixtures.users.head.userName, extras._1, Some(extras._2), Some(extras._3))
-    log.info("new user attempting to sign up: {}", user)
-    val outcome1 = Await.result(userDao.signupUser(user), timeout)
-    outcome1 fold (
-      userRow => userRow.userName shouldEqual user.userName,
-      rejected => fail("New user failed to sign up because: " + rejected))
-
-    //repeated signup should fail
-    val outcome2 = Await.result(userDao.signupUser(user), timeout)
-    outcome2 fold (
-      userRow => fail("User must never sign up twice using the same username or email address"),
-      rejected => (rejected.isInstanceOf[UserNameAlreadyTaken] ||
-        rejected.isInstanceOf[EmailAddressAleadyRegistered]) shouldBe true)
-  }
+  //  "UserDao" should " be able to sign up a new user and reject duplicate registration" in new TestUserDao {
+  //    //explicitly call cleanup to prevent unique key constraints
+  //    TestDatabase.cleanUp
+  //    val extras = (fixtures.accounts.head, fixtures.userProfiles.head, fixtures.visitors.head)
+  //    val user = User.create(None, fixtures.users.head.userName, extras._1, Some(extras._2), Some(extras._3))
+  //    log.info("new user attempting to sign up: {}", user)
+  //    val outcome1 = Await.result(userDao.signupUser(user), timeout)
+  //    outcome1 fold (
+  //      userRow => userRow.userName shouldEqual user.userName,
+  //      rejected => fail("New user failed to sign up because: " + rejected))
+  //
+  //    //repeated signup should fail
+  //    val outcome2 = Await.result(userDao.signupUser(user), timeout)
+  //    outcome2 fold (
+  //      userRow => fail("User must never sign up twice using the same username or email address"),
+  //      rejected => (rejected.isInstanceOf[UserNameAlreadyTaken] ||
+  //        rejected.isInstanceOf[EmailAddressAleadyRegistered]) shouldBe true)
+  //  }
 
   private def randomUser = {
     fixtures.users(new Random(System.currentTimeMillis()).nextInt(fixtures.users.size))
   }
 
   override def afterAll = {
-    TestDatabase.cleanUp
+    cleanUp
     super.afterAll()
   }
 

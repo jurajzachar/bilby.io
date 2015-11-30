@@ -72,20 +72,6 @@ trait JsonReadWrite {
     (JsPath \ "active").write[Boolean] and
     (JsPath \ "id").writeNullable[Long])(unlift(Account.unapply))
 
-  implicit val userReads: Reads[User] = (
-    (JsPath \ "userName").read[String] and
-    (JsPath \ "account").read[Account] and
-    (JsPath \ "user_profile").readNullable[UserProfile] and
-    (JsPath \ "visitor").readNullable[Visitor] and
-    (JsPath \ "id").readNullable[Long])(User.apply _)
-
-  implicit val userWrites: Writes[User] = (
-    (JsPath \ "user_name").write[String] and
-    (JsPath \ "account").write[Account] and
-    (JsPath \ "user_profile").writeNullable[UserProfile] and
-    (JsPath \ "visitor").writeNullable[Visitor] and
-    (JsPath \ "id").writeNullable[Long])(unlift(User.unapply))
-
   implicit val userProfileReads: Reads[UserProfile] = (
     (JsPath \ "first_name").readNullable[String] and
     (JsPath \ "last_name").readNullable[String] and
@@ -111,4 +97,18 @@ trait JsonReadWrite {
     (JsPath \ "host").write[String] and
     (JsPath \ "timestamp").write[Long] and
     (JsPath \ "id").writeNullable[Long])(unlift(Visitor.unapply))
+
+  implicit val userReads: Reads[User] = (
+    (JsPath \ "userName").read[String] and
+    (JsPath \ "account").read[Account] and
+    (JsPath \ "user_profile").readNullable[UserProfile] and
+    (JsPath \ "visitor").readNullable[Visitor] and
+    (JsPath \ "id").readNullable[Long])(User.apply _)
+
+  implicit val userWrites: Writes[User] = (
+    (JsPath \ "user_name").write[String] and
+    (JsPath \ "account").lazyWrite[Account](accountWrites) and
+    (JsPath \ "user_profile").lazyWriteNullable[UserProfile](userProfileWrites) and
+    (JsPath \ "visitor").lazyWriteNullable[Visitor](visitorWrites) and
+    (JsPath \ "id").writeNullable[Long])(unlift(User.unapply))
 }

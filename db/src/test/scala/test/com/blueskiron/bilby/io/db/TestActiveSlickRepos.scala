@@ -15,11 +15,17 @@ import java.util.UUID
 import com.blueskiron.bilby.io.db.Tables
 import scala.concurrent.Future
 import com.blueskiron.bilby.io.mock.MockBilbyFixtures
+import org.scalatest.DoNotDiscover
 
+
+/**
+ * @author juri
+ */
+@DoNotDiscover
 class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
 
   import com.blueskiron.bilby.io.db.ar.ModelImplicits._
-  import TestDatabase._
+  import com.blueskiron.bilby.io.db.testkit.TestDatabase._
 
   val log = LoggerFactory.getLogger(getClass)
 
@@ -106,28 +112,28 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
     }
   }
 
-  //  "Asset" should "support all CRUD operations" in {
-  //    import jdbcProfile.api._
-  //    val initialCount = query(AssetRepo.count)
-  //    //CREATE
-  //    val savedUser = commit(UserRepo.save(rowFromUser(fixtures.users.head)))
-  //    val piece = fixtures.asset.copy(authorId = savedUser.id)
-  //    val savedPiece = commit(AssetRepo.save(piece))
-  //    //READ
-  //    query(AssetRepo.findById(savedPiece.id)) shouldBe savedPiece
-  //    //UPDATE
-  //    val _tags = Some(Set("foo", "bar").mkString(","))
-  //    commit(AssetRepo.save(savedPiece.copy(tags = _tags)))
-  //    //read (confirm update)
-  //    val queriedPiece = query(AssetRepo.findById(savedPiece.id))
-  //    queriedPiece.tags shouldBe _tags
-  //    //DELETE
-  //    commit(AssetRepo.deleteById(savedPiece.id))
-  //    query(AssetRepo.findOptionById(savedPiece.id)) shouldBe None
-  //    commit(UserRepo.deleteById(savedUser.id))
-  //    query(UserRepo.findOptionById(savedUser.id)) shouldBe None
-  //
-  //  }
+//    "Asset" should "support all CRUD operations" in {
+//      import jdbcProfile.api._
+//      val initialCount = query(AssetRepo.count)
+//      //CREATE
+//      val savedUser = commit(UserRepo.save(rowFromUser(fixtures.users.head)))
+//      val piece = fixtures.asset.copy(authorId = savedUser.id)
+//      val savedPiece = commit(AssetRepo.save(piece))
+//      //READ
+//      query(AssetRepo.findById(savedPiece.id)) shouldBe savedPiece
+//      //UPDATE
+//      val _tags = Some(Set("foo", "bar").mkString(","))
+//      commit(AssetRepo.save(savedPiece.copy(tags = _tags)))
+//      //read (confirm update)
+//      val queriedPiece = query(AssetRepo.findById(savedPiece.id))
+//      queriedPiece.tags shouldBe _tags
+//      //DELETE
+//      commit(AssetRepo.deleteById(savedPiece.id))
+//      query(AssetRepo.findOptionById(savedPiece.id)) shouldBe None
+//      commit(UserRepo.deleteById(savedUser.id))
+//      query(UserRepo.findOptionById(savedUser.id)) shouldBe None
+//  
+//    }
 
   private def countAll = {
     query {
@@ -143,7 +149,7 @@ class TestActiveSlickRepos extends FlatSpec with PostgresSuite {
   }
 
   override def afterAll = {
-    TestDatabase.cleanUp
+    cleanUp
     super.afterAll()
   }
 }

@@ -1,5 +1,6 @@
 import Dependencies._
 import BilbyIOBuild._
+import Tests._
 
 scalaVersion := "2.11.7"
 name := "bilby.io"
@@ -16,15 +17,15 @@ lazy val commonSettings = Seq(
 
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
-  .aggregate(api, db, core, webapp)
-  .dependsOn(api, db, core, webapp)
-  
+  .aggregate(api, db, graph, core, webapp)
+  .dependsOn(api, db, graph, core, webapp)
+
 //play2 web app 	  
 lazy val webapp = (project in file("webapp"))
   .enablePlugins(PlayScala)
   .settings(commonSettings: _*)
   .dependsOn(api, core)
- 
+   
 scalacOptions in ThisBuild ++= Seq(
   "-target:jvm-1.8",
   "-encoding", "UTF-8",
@@ -38,5 +39,6 @@ scalacOptions in ThisBuild ++= Seq(
   "-Ywarn-dead-code"
 )
 
-parallelExecution in ThisBuild := false
+concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
+parallelExecution in Test := false
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports") //-h is for html reporting, -u is for xml reporting

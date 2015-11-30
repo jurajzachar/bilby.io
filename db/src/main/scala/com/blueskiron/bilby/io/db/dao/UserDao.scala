@@ -12,6 +12,7 @@ import com.blueskiron.bilby.io.api.model.{ Account, Visitor, UserProfile, User }
 import com.blueskiron.bilby.io.db.ActiveSlickRepos.{ AccountRepo, UserRepo, VisitorRepo, UserprofileRepo }
 import com.blueskiron.bilby.io.api.UserService.{ SignupOutcome, EmailAddressAleadyRegistered, UserNameAlreadyTaken }
 import com.blueskiron.bilby.io.api.UserService.UnexpectedSignupError
+import com.blueskiron.bilby.io.api.UserService.SignupOutcome
 
 /**
  * UserDao trait uses cake pattern to inject desired {@link ApplicationDatabase}
@@ -106,7 +107,14 @@ trait UserDao {
     val compiledUserProfileFromAllParams = Compiled(userProfileFromAllQuery _)
 
     /* DAO functions */
-
+    def deactivateUser(user: User): Future[User] = {
+      ???  
+    }
+    
+    def purgeFullUser(user: User): Future[Unit] = {
+      ???  
+    }
+    
     /**
      * @param user
      * @return
@@ -123,16 +131,16 @@ trait UserDao {
       outerAggregate.map {
         
         //invalid registration --> complete with value
-        case (Some(x), _) => p.success(Right(UserNameAlreadyTaken(x.userName)))
-        case (_, Some(x)) => p.success(Right(EmailAddressAleadyRegistered(user.account.email)))
+        case (Some(x), _) => p.success(SignupOutcome(Right(UserNameAlreadyTaken(x.userName))))
+        case (_, Some(x)) => p.success(SignupOutcome(Right(EmailAddressAleadyRegistered(user.account.email))))
         
         //valid new user --> complete with this future user instead
         // if for whichever 
         case _ => p.completeWith(foldNewUser(user) flatMap {
           case (ur: UserRow) => fullUserFromId(ur.id)
         } map {
-          case Some(success) => Left(success)
-          case None          => Right(UnexpectedSignupError("failed to signup user: " + user))
+          case Some(success) => SignupOutcome(Left(success))
+          case None          => SignupOutcome(Right(UnexpectedSignupError("failed to signup user: " + user)))
         })
       }
       p.future

@@ -1,25 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>db</name>
-	<comment></comment>
-	<projects>
-	</projects>
-	<buildSpec>
-		<buildCommand>
-			<name>org.scala-ide.sdt.core.scalabuilder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
-	</buildSpec>
-	<natures>
-		<nature>org.scala-ide.sdt.core.scalanature</nature>
-		<nature>org.eclipse.jdt.core.javanature</nature>
-	</natures>
-	<linkedResources>
-		<link>
-			<name>-Users-juri-Documents-github_repos-bilby.io-mock-src-test-resources</name>
-			<type>2</type>
-			<location>/Users/juri/Documents/github_repos/bilby.io/mock/src/test/resources</location>
-		</link>
-	</linkedResources>
+  <name>db</name>
+  <buildSpec>
+    <buildCommand>
+      <name>org.scala-ide.sdt.core.scalabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.scala-ide.sdt.core.scalanature</nature>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+  <linkedResources>
+    <link>
+      <name>-Users-juri-Documents-github_repos-bilby.io-mock-src-test-resources</name>
+      <type>2</type>
+      <location>/Users/juri/Documents/github_repos/bilby.io/mock/src/test/resources</location>
+    </link>
+    <link>
+      <name>-Users-juri-Documents-github_repos-bilby.io-mock-src-test-resources</name>
+      <type>2</type>
+      <location>/Users/juri/Documents/github_repos/bilby.io/mock/src/test/resources</location>
+    </link>
+  </linkedResources>
 </projectDescription>

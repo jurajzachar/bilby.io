@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 import Tests._
-import Dependencies.{ apiDeps, dbDeps, coreDeps }
+import Dependencies.{ apiDeps, graphDeps, dbDeps, coreDeps }
 
 object BilbyIOBuild extends Build {
  
@@ -50,7 +50,17 @@ object BilbyIOBuild extends Build {
     Seq(file(fname))
   }
   
-  lazy val core = Project(
+  lazy val graph = Project(
+    id = "graph",
+    base = file("graph"),
+    settings = Project.defaultSettings ++ Seq(
+      scalaVersion := "2.11.7",
+      libraryDependencies ++= graphDeps,
+      unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources"
+      )
+   ).dependsOn(api, mock % "test->test")
+   
+   lazy val core = Project(
     id = "core",
     base = file("core"),
     settings = Project.defaultSettings ++ Seq(
@@ -59,4 +69,5 @@ object BilbyIOBuild extends Build {
       unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources"
       )
    ).dependsOn(api, db, mock % "test->test")
+   
 }
