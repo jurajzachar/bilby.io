@@ -50,9 +50,9 @@ create table if not exists "assetmetrics" (
 	"likes" INTEGER NOT NULL,
 	"dislikes" INTEGER NOT NULL);
 	
-create table if not exists "reserved" ("user_name" VARCHAR(254) NOT NULL PRIMARY KEY);
+create table if not exists "reserved" ("name" VARCHAR(254) NOT NULL PRIMARY KEY);
 create table if not exists "countries" ("country_name" VARCHAR(254) NOT NULL PRIMARY KEY);
-create unique index "unique_reserved" on "reserved" ("user_name");
+create unique index "unique_reserved" on "reserved" ("name");
 
 --- INDICES
 create unique index "unique_username" on "user" ("user_name");
