@@ -25,6 +25,7 @@ object BilbyIOBuild extends Build {
     settings = Project.defaultSettings ++ Seq(
       scalaVersion := "2.11.7",
       libraryDependencies ++= dbDeps,
+      unmanagedResourceDirectories in Compile += baseDirectory.value / "target/scala-2.11/src_managed",
       unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources",
       slickCodeGen <<= slickCodeGenTask, // register manual sbt command
       sourceGenerators in Compile <+= slickCodeGenTask // register automatic code generation on every compile, remove for only manual use

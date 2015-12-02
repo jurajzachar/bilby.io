@@ -24,9 +24,11 @@ object Dependencies {
   val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Version.akka
   val orientDbEnterprise = "com.orientechnologies" % "orientdb-enterprise" % Version.orientDb
   val orientDbServer = "com.orientechnologies" % "orientdb-server" % Version.orientDb
-  val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41" withSources () withJavadoc ()
-  val slick = "com.typesafe.slick" %% "slick" % Version.slick withSources () withJavadoc ()
-  val slickHikariCP = "com.typesafe.slick" %% "slick-hikaricp" % Version.slick withSources () withJavadoc ()
+  val orientDbTools = "com.orientechnologies" % "orientdb-tools" % Version.orientDb
+  val orientDbGraphdb = "com.orientechnologies" % "orientdb-graphdb" % Version.orientDb withJavadoc ()
+  val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41" withJavadoc ()
+  val slick = "com.typesafe.slick" %% "slick" % Version.slick withJavadoc ()
+  val slickHikariCP = "com.typesafe.slick" %% "slick-hikaricp" % Version.slick withJavadoc ()
   val slickCodegen = "com.typesafe.slick" %% "slick-codegen" % Version.slick
   //val hikariCP = "com.zaxxer" % "HikariCP" % "2.4.1"
   val activeSlick = "io.strongtyped" %% "active-slick" % "0.3.3"
@@ -43,7 +45,7 @@ object Dependencies {
 
   val dbDeps = baseDeps ++ slickDeps ++ Seq(shapeless, postgresql)
 
-  val graphDeps = baseDeps ++ Seq(orientDbEnterprise, orientDbServer)
+  val graphDeps = baseDeps ++ Seq(orientDbEnterprise, orientDbServer, orientDbGraphdb, orientDbTools)
 
   val coreDeps = baseDeps ++ Seq(akkaActor, akkaLog, akkaTestkit % Test)
 }
