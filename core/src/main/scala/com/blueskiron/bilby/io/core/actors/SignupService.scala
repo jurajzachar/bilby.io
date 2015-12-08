@@ -20,8 +20,6 @@ class SignupWorker extends Actor with UserDao with ActorLogging {
 
   import context.dispatcher
 
-  private val salt = BCrypt.gensalt(12)
-  
   def receive = {
     case Signup(user) => {
       log.debug("Received signup request for: {}", user)
@@ -33,8 +31,8 @@ class SignupWorker extends Actor with UserDao with ActorLogging {
       if(!work.isDefined) sender ! UnexpectedSignupError("failed when hashing user's password: " + user)
     }
   }
-
-  private def hashPassword(passwd: String): String = BCrypt.hashpw(passwd, salt);
+  
+  private def hashPassword(passwd: String): String = BCrypt.hashpw(passwd, BCrypt.gensalt(12));
 
 }
 

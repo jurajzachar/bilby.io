@@ -20,12 +20,6 @@ lazy val root = (project in file("."))
   .aggregate(api, db, graph, core, webapp)
   .dependsOn(api, db, graph, core, webapp)
 
-//play2 web app 	  
-lazy val webapp = (project in file("webapp"))
-  .enablePlugins(PlayScala)
-  .settings(commonSettings: _*)
-  .dependsOn(api, core)
-   
 scalacOptions in ThisBuild ++= Seq(
   "-target:jvm-1.8",
   "-encoding", "UTF-8",

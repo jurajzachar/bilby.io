@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 import Tests._
-import Dependencies.{ apiDeps, graphDeps, dbDeps, coreDeps }
+import Dependencies.{ apiDeps, graphDeps, dbDeps, coreDeps, webAppDeps }
 
 object BilbyIOBuild extends Build {
 
@@ -67,4 +67,11 @@ object BilbyIOBuild extends Build {
       libraryDependencies ++= coreDeps,
       unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources")).dependsOn(api, db, mock % "test->test")
 
+  lazy val webapp = Project(
+    id = "webapp",
+    base = file("webapp"),
+    settings = Project.defaultSettings ++ Seq(
+      scalaVersion := "2.11.7",
+      libraryDependencies ++= webAppDeps,
+      unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources")).dependsOn(api, core, mock % "test->test").enablePlugins(play.PlayScala)
 }
