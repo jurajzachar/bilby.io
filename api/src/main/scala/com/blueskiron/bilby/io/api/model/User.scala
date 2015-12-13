@@ -1,79 +1,58 @@
 package com.blueskiron.bilby.io.api.model
 
-import scala.language.implicitConversions
+import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
+import org.joda.time.LocalDateTime
 
-/**
- * @author juri
- *
- */
+case class User(
+    id: Option[Long],
+    username: Option[String],
+    profiles: Seq[LoginInfo],
+    roles: Set[Role] = Set(Role.User),
+    active: Boolean,
+    created: LocalDateTime) extends Identity {
 
-object User {
+  /**
+   * Check if user is guest
+   * @return
+   */
+  def isGuest = profiles.isEmpty
 
-  def create(id: Option[Long] = None, userName: String, a: Account, up: Option[UserProfile], v: Option[Visitor]) = {
-    User(userName, a, up, v, id)
-  }
+  /**
+   * Check if user is admin
+   * @return
+   */
+  def isAdmin = roles.contains(Role.Admin)
 
 }
 
-/**
- * @param firstName
- * @param lastName
- * @param username
- * @param email
- * @param password
- * @param avatarUrl
- * @param authMethod
- * @param oAuth1Info
- * @param oAuth2Info
- * @param passwordInfo
- * @param userprofile_id
- * @param visitor_id
- * @param id
- */
-case class User(userName: String,
-                account: Account,
-                userprofile: Option[UserProfile] = None, //no profile defined
-                visitor: Option[Visitor] = None, //no visitor defined
-                id: Option[Long] = None)
+sealed trait Role extends Serializable {
+  def name: String
+}
 
-/**
- * @author juri
- *
- */
-case class Account(email: String,
-                   password: String,
-                   avatarUrl: String,
-                   authMethod: String,
-                   oAuth1Info: Option[String],
-                   oAuth2Info: Option[String],
-                   passwordInfo: Option[String],
-                   verified: Boolean,
-                   active: Boolean,
-                   id: Option[Long])
+object Role {
+  def apply(role: String): Role = role match {
+    case Admin.name    => Admin
+    case User.name     => User
+    case Customer.name => Customer
+    case _ => Unknown
+  }
 
-/**
- * @param country
- * @param placeOfResidence
- * @param age
- * @param id
- */
-case class UserProfile(firstName: Option[String],
-                       lastName: Option[String],
-                       country: Option[String],
-                       placeOfRes: Option[String],
-                       age: Option[Short],
-                       id: Option[Long] = None)
+  def unapply(role: Role): Option[String] = Some(role.name)
 
-/**
- * @param host
- * @param timestamp
- * @param id
- */
-case class Visitor(host: String = "unknownHost", timestamp: Long, id: Option[Long] = None) 
+  object Admin extends Role {
+    val name = "administrator"
+  }
 
-/**
- * @param leads
- * @param id
- */
-case class Follower(leads: Set[User], id: Option[Long] = None)
+  object User extends Role {
+    val name = "user"
+  }
+
+  object Customer extends Role {
+    val name = "customer"
+  }
+
+  object Unknown extends Role {
+    val name = "unknown"
+  }
+}
 

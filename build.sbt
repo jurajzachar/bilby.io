@@ -1,10 +1,11 @@
 import Dependencies._
-import BilbyIOBuild._
+import Build._
 import Tests._
 
 scalaVersion := "2.11.7"
 name := "bilby.io"
-organization in ThisBuild := "com.blueskiron"
+organization := "com.blueskiron"
+
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
@@ -14,6 +15,17 @@ lazy val commonSettings = Seq(
   scalaVersion in ThisBuild := "2.11.7",
   version in ThisBuild := "0.0.1"
 )
+
+lazy val webapp = (project in file("webapp"))
+  .settings(commonSettings: _*)
+  .settings(Seq(
+  	libraryDependencies ++= webappDeps,
+  	routesGenerator := InjectedRoutesGenerator,
+  	LessKeys.compress in Assets := true,
+  	pipelineStages := Seq(digest, gzip),
+  	includeFilter in (Assets, LessKeys.less) := "*.less"))
+  .dependsOn(api, core, mock % "test->test")
+  .enablePlugins(PlayScala)
 
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)

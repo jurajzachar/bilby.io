@@ -9,8 +9,9 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success}
 import com.blueskiron.bilby.io.db.ApplicationDatabase
 import scala.concurrent.Future
+import com.blueskiron.bilby.io.db.PostgresDatabase
 
-trait DbSuite extends ApplicationDatabase with BeforeAndAfterAll with Matchers with OptionValues with TryValues {
+trait DbSuite extends PostgresDatabase with BeforeAndAfterAll with Matchers with OptionValues with TryValues {
 
   self: Suite with JdbcProfileProvider =>
 
@@ -29,7 +30,7 @@ trait DbSuite extends ApplicationDatabase with BeforeAndAfterAll with Matchers w
   def rollback[T](dbAction: DBIO[T])(implicit ex: ExecutionContext, timeout: FiniteDuration = 5 seconds): T =
     awaitResult(super.rollback(dbAction))
 
-  private def awaitResult[T](dbAction: Future[T])(implicit ex: ExecutionContext, timeout: FiniteDuration): T = 
+  def awaitResult[T](dbAction: Future[T])(implicit ex: ExecutionContext, timeout: FiniteDuration): T = 
     Await.result(dbAction, timeout)
 
 }

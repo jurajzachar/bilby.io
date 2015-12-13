@@ -1,7 +1,8 @@
 package com.blueskiron.bilby.io.db.testkit
 
+/*
 import slick.jdbc.JdbcBackend.Database
-import com.blueskiron.bilby.io.db.Tables
+import com.blueskiron.bilby.io.db.generated.Tables
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -41,3 +42,4 @@ object TestDatabase {
     Await.result(testDatabase.run(resetSequences), 1 second)
   }
 }
+*/

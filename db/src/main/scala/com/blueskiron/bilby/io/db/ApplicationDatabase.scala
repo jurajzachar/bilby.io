@@ -27,9 +27,10 @@ trait ApplicationDatabase extends JdbcProfileProvider {
     database.stream(dbAction.transactionally)
   }
 
-  def commit[T](dbAction: DBIO[T])(implicit ex: ExecutionContext): Future[T] =
+  def commit[T](dbAction: DBIO[T])(implicit ex: ExecutionContext): Future[T] = {
     runAction(dbAction.transactionally)
-
+  }
+    
   def rollback[T](dbAction: DBIO[T])(implicit ex: ExecutionContext) = {
 
     case class RollbackException(expected: T) extends RuntimeException("Rollback Exception")
