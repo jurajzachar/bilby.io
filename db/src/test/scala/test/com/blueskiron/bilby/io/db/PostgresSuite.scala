@@ -40,7 +40,8 @@ trait PostgresSuite extends DbSuite with SlickPgJdbcProfileProvider {
     }
     //clean up users, userprofiles and visitors (unique username constraint may fail next test)
     val tasks = List(
-      Tables.Users.filter { u => u.id === u.id }.delete
+      Tables.Users.filter { u => u.id === u.id }.delete,
+      Tables.UserProfiles.filter { up => up.provider === up.provider }.delete
       //...  
     )
     tasks.foreach(statement => Await.result(testDb.run(statement), 1 second))

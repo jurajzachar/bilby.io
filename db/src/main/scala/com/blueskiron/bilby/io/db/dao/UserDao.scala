@@ -96,10 +96,8 @@ trait UserDao {
         yield ur map ToModel.userFromRow _
     }
 
-    private def userFromUserNameQuery(userName: Rep[Option[String]]) = {
-      for {
-        (u) <- Tables.Users if (u.username === userName)
-      } yield u
+    private def userFromUserNameQuery(username: Rep[Option[String]]) = {
+      for ((u) <- Tables.Users if (u.username === username)) yield u
     }
 
     private def userFromProfileQuery(linfo: Rep[Map[String, String]]) = {

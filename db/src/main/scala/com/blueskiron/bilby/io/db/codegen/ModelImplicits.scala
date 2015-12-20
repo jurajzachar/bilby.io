@@ -1,12 +1,15 @@
 package com.blueskiron.bilby.io.db.codegen
 
-import com.blueskiron.bilby.io.api.model.User
-import com.blueskiron.bilby.io.db.codegen.Tables.UsersRow
 import scala.language.implicitConversions
-import com.mohiva.play.silhouette.api.LoginInfo
-import com.blueskiron.bilby.io.api.model.Role
+
 import org.joda.time.DateTime
 import org.joda.time.LocalDateTime
+
+import com.blueskiron.bilby.io.api.model.Role
+import com.blueskiron.bilby.io.api.model.{ User, UserProfile }
+import com.blueskiron.bilby.io.db.codegen.Tables.UserProfilesRow
+import com.blueskiron.bilby.io.db.codegen.Tables.UsersRow
+import com.mohiva.play.silhouette.api.LoginInfo
 
 object ModelImplicits {
 
@@ -26,6 +29,20 @@ object ModelImplicits {
         u.active,
         new java.sql.Timestamp(u.created.toDateTime().getMillis))
     }
+
+    implicit def rowFromUserProfile(up: UserProfile): UserProfilesRow = {
+      UserProfilesRow(
+        up.provider,
+        up.key,
+        up.email,
+        up.firstName,
+        up.lastName,
+        up.fullName,
+        up.avatarUrl,
+        up.verified,
+        new java.sql.Timestamp(up.created.toDateTime().getMillis)) 
+    }
+
   }
 
   object ToModel {
@@ -43,6 +60,18 @@ object ModelImplicits {
         ur.roles.map(Role(_)).toSet,
         ur.active,
         LocalDateTime.fromDateFields(ur.created))
+    }
+    
+    implicit def userProfileFromRow(up: UserProfilesRow): UserProfile = {
+      UserProfile(
+        LoginInfo(up.provider, up.key),
+        up.email,
+        up.firstName,
+        up.lastName,
+        up.fullName,
+        up.avatarUrl,
+        up.verified,
+        LocalDateTime.fromDateFields(up.created))
     }
   }
 

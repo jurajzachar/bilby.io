@@ -27,7 +27,7 @@ import com.blueskiron.bilby.io.mock.MockBilbyFixtures
 /**
  * @author juri
  */
-class TestDaoFunctions extends FlatSpec with PostgresSuite with UserDao {
+class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   import Driver.api._
 
@@ -45,7 +45,7 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite with UserDao {
 
   override lazy val userDao = initWithApplicationDatabase(this)
 
-  "UserDao" should " be able to create a new user" in {
+  "UserDao" should "be able to create a new user" in {
     for (mockUser <- users) {
       val saved = awaitResult(userDao.cake.commit(UsersRepo.save(ModelImplicits.ToDataRow.rowFromUser(mockUser))))
       log.debug(s"saved user: $saved")
@@ -55,8 +55,27 @@ class TestDaoFunctions extends FlatSpec with PostgresSuite with UserDao {
     count shouldBe mockSize
 
   }
-  
-  "UserDao" should " be able to user by its user profile" in {
+
+  "UserDao" should "be able to add role to the existing user" in {
+    val id = 1L
+    val found = awaitResult(userDao.cake.runAction(UsersRepo.findById(id)))
+    val existingRoles = found.roles.map(Role(_))
+    log.debug(s"found user: $found")
+    val _newRole = Role("user")
+    existingRoles.contains(_newRole) shouldBe false
+    val updated = awaitResult(userDao.addRole(id, _newRole))
+    updated.roles.toSet shouldBe (_newRole :: existingRoles).toSet
+  }
+
+  "UserDao" should "be able to find user by username" in {
+    val username = "howensl7"
+    val found = awaitResult(userDao.findUserByUserName(username))
+    log.debug(s"found user: $found")
+    found.isDefined shouldBe true
+    found.map { _.username shouldBe Some(username) }
+  }
+
+  "UserDao" should "be able to find user by user profile" in {
     val linfo = LoginInfo("zoiw", "fcwhve")
     val found = awaitResult(userDao.findUserByProfile(linfo))
     log.debug(s"found user: $found")
