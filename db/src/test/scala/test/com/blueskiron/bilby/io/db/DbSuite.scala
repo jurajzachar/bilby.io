@@ -15,6 +15,8 @@ trait DbSuite extends PostgresDatabase with BeforeAndAfterAll with Matchers with
 
   self: Suite with JdbcProfileProvider =>
 
+  override val configPath = "test_db"
+  
   import jdbcProfile.api._
 
   override protected def afterAll(): Unit = {

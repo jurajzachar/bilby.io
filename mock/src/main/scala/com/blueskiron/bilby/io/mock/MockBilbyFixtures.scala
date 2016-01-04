@@ -9,14 +9,26 @@ import scala.runtime.ZippedTraversable2.zippedTraversable2ToTraversable
 import com.blueskiron.bilby.io.api.model.AssetHeader
 import com.blueskiron.bilby.io.api.model.Asset
 import com.blueskiron.bilby.io.api.model.JsonConversions
+import com.blueskiron.bilby.io.api.model.UserProfile
+import com.mohiva.play.silhouette.api.LoginInfo
+import org.joda.time.LocalDateTime
 
 /**
  * @author juri
  */
 object MockBilbyFixtures extends JsonConversions {
-
+  
+  val dbConfigPath = "test_db"
+    
   //read mock data from fs
-  val users = Json.parse(Source.fromURL(getClass.getResource("/mock_users.json")).mkString).validate[Seq[User]].get
+  val userProfiles = Json.parse(Source.fromURL(getClass.getResource("/mock_userprofiles.json")).mkString).validate[Seq[UserProfile]].get
+  assert(userProfiles != null)
+  
+  val moreUserProfiles = Json.parse(Source.fromURL(getClass.getResource("/mock_userprofiles2.json")).mkString).validate[Seq[UserProfile]].get
+  assert(moreUserProfiles != null)
+
+  //just a placeholder, profiles will be overriden
+  private val users = Json.parse(Source.fromURL(getClass.getResource("/mock_users.json")).mkString).validate[Seq[User]].get
   assert(users != null)
 
   //warning: very hacky and ugly!
@@ -29,7 +41,12 @@ object MockBilbyFixtures extends JsonConversions {
     srcSeq.dropWhile(x => x.contains("---")).mkString)
   val asset = Asset(assetHeader, None, 1, None)
   println("DEBUG: mock piece initialized: " + asset)
-  
+
   def mockSize = users.size
 
+  //create map of User -> UserProfiles
+  def usersWithProfiles(profiles: Seq[UserProfile]) = {
+    for {
+      (user, userProfile) <- users.zip(profiles)
+    } yield user.copy(profiles = Seq(userProfile.loginInfo)) -> Seq(userProfile) }.toMap
 }

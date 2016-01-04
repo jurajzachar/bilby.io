@@ -1,4 +1,4 @@
---- TABLES
+﻿--- TABLES
 create table oauth1_info (
        provider character varying(64) not null,
        key text not null,
@@ -41,7 +41,7 @@ create table password_info (
 
 create table users (
       id bigserial primary key,
-      username character varying(256),
+      username character varying(256) not null,
       profiles hstore not null,
       roles character varying(64)[] not null,
       active boolean not null,
@@ -97,9 +97,10 @@ create table user_profiles (
       first_name character varying(512),
       last_name character varying(512),
       full_name character varying(512),
-      avatar_url character varying(512),
+      avatar_url text,
       verified boolean not null,
-      created timestamp not null
+      created timestamp not null,
+      constraint pk_user_profile primary key (provider, key)
     ) with (oids=false);
 
 create index user_profiles_email_idx on user_profiles using btree (email collate pg_catalog."default");

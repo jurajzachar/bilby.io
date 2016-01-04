@@ -5,7 +5,7 @@ import org.joda.time.LocalDateTime
 
 case class User(
     id: Option[Long],
-    username: Option[String],
+    username: String,
     profiles: Seq[LoginInfo],
     roles: Set[Role] = Set(Role.User),
     active: Boolean,

@@ -23,6 +23,9 @@ import com.mohiva.play.silhouette.api.LoginInfo
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.blueskiron.bilby.io.db.codegen.ModelImplicits
 import com.blueskiron.bilby.io.mock.MockBilbyFixtures
+import scala.concurrent.Promise
+import com.blueskiron.bilby.io.api.model.UserProfile
+import com.blueskiron.bilby.io.api.model.UserProfile
 
 /**
  * @author juri
@@ -34,6 +37,7 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
   val log = LoggerFactory.getLogger(getClass)
   val fixtures = MockBilbyFixtures
   import fixtures._
+  val usersWithProfiles = fixtures.usersWithProfiles(fixtures.userProfiles)
 
   override def beforeAll = {
 
@@ -43,56 +47,85 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   }
 
-  override lazy val userDao = initWithApplicationDatabase(this)
+  lazy val userDao = initUserDao(this)
 
   "UserDao" should "be able to create a new user" in {
-    for (mockUser <- users) {
-      val saved = awaitResult(userDao.cake.commit(UsersRepo.save(ModelImplicits.ToDataRow.rowFromUser(mockUser))))
+    for (userAndProfile <- usersWithProfiles) {
+      val saved = awaitResult(userDao.create(userAndProfile._1, userAndProfile._2.head))
       log.debug(s"saved user: $saved")
     }
-
     val count = awaitResult(userDao.cake.runAction(UsersRepo.count))
     count shouldBe mockSize
 
   }
 
+  "UserDao" should "be able to update an exiting user" in {
+    val id = 1L
+    val found = awaitResult(userDao.findUser(id))
+    val linfo = LoginInfo("native", "1234567890")
+    val profile = UserProfile(linfo, None, None, None, None, None, false, new LocalDateTime())
+    val updated = awaitResult(userDao.update(found, profile))
+    updated.map { user =>
+      user.profiles.contains(linfo) shouldBe true
+    }
+  }
+
   "UserDao" should "be able to add role to the existing user" in {
     val id = 1L
     val found = awaitResult(userDao.cake.runAction(UsersRepo.findById(id)))
-    val existingRoles = found.roles.map(Role(_))
+    val expectedRoles = Set(Role.Admin, Role.User, Role.Customer)
     log.debug(s"found user: $found")
-    val _newRole = Role("user")
-    existingRoles.contains(_newRole) shouldBe false
-    val updated = awaitResult(userDao.addRole(id, _newRole))
-    updated.roles.toSet shouldBe (_newRole :: existingRoles).toSet
+    val currentRoles = found.roles
+    currentRoles.size should not be expectedRoles.size
+    expectedRoles foreach { r => awaitResult(userDao.addRole(id, r)) }
+    val updated = awaitResult(userDao.cake.runAction(UsersRepo.findById(id)))
+    updated.roles.map { Role.apply _ }.toSet shouldBe expectedRoles.toSet
   }
 
   "UserDao" should "be able to find user by username" in {
-    val username = "howensl7"
-    val found = awaitResult(userDao.findUserByUserName(username))
+    val username = usersWithProfiles.keys.tail.head.username
+    val found = awaitResult(userDao.findOptionUser(username))
     log.debug(s"found user: $found")
     found.isDefined shouldBe true
-    found.map { _.username shouldBe Some(username) }
+    found.map { _.username shouldBe username }
   }
 
   "UserDao" should "be able to find user by user profile" in {
-    val linfo = LoginInfo("zoiw", "fcwhve")
-    val found = awaitResult(userDao.findUserByProfile(linfo))
+    val linfo = usersWithProfiles.values.tail.head.head.loginInfo
+    val found = awaitResult(userDao.findOptionUser(linfo))
     log.debug(s"found user: $found")
     found.isDefined shouldBe true
-    found.map { _.username shouldBe Some("drogersq1") }
+    //found.map { _.username shouldBe Some("wwellshx") }
   }
 
-  private def generateFakeUsers(size: Int) = {
-    for (i <- 1 to size) yield User(
-      None,
-      Some(randomString(5)),
-      List(LoginInfo(randomString(4), randomString(6)), LoginInfo(randomString(4), randomString(8))),
-      Set(Role.Admin, Role.User),
-      true,
-      LocalDateTime.now)
+  "UserDao" should "be able to find user profile by login info" in {
+    import ModelImplicits.ToModel
+    for {
+      expectedUser <- usersWithProfiles.keys
+      profiles = usersWithProfiles(expectedUser)
+      p <- profiles
+    } awaitResult(userDao.findUserProfile(p.loginInfo.providerID, p.loginInfo.providerKey)) map {
+      up => up shouldBe p
+    }
   }
 
-  private def randomString(length: Int) = java.util.UUID.randomUUID().toString().substring(0, length + 1)
+  "UserDao" should "be able to find user profile by email" in {
+    import ModelImplicits.ToModel
+    for {
+      expectedUser <- usersWithProfiles.keys
+      profiles = usersWithProfiles(expectedUser)
+      p <- profiles
+    } awaitResult(userDao.findUserProfile(p.email)) map {
+      up => up shouldBe p
+    }
+  }
 
+  "UserDao" should "be able to find all user profiles by username" in {
+    import ModelImplicits.ToModel
+    for (expectedUser <- usersWithProfiles.keys) {
+      val expectedUsername = expectedUser.username
+      val profiles = usersWithProfiles(expectedUser).toSet
+      awaitResult(userDao.findAllUserProfiles(expectedUsername)).intersect(profiles) shouldBe profiles
+    }
+  }
 } 

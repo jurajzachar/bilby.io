@@ -1,15 +1,17 @@
 package com.blueskiron.bilby.io.db.codegen
 
 import scala.language.implicitConversions
-
 import org.joda.time.DateTime
 import org.joda.time.LocalDateTime
-
 import com.blueskiron.bilby.io.api.model.Role
 import com.blueskiron.bilby.io.api.model.{ User, UserProfile }
 import com.blueskiron.bilby.io.db.codegen.Tables.UserProfilesRow
 import com.blueskiron.bilby.io.db.codegen.Tables.UsersRow
 import com.mohiva.play.silhouette.api.LoginInfo
+import com.blueskiron.bilby.io.db.codegen.Tables.PasswordInfoRow
+import com.mohiva.play.silhouette.api.util.PasswordInfo
+import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
+import com.blueskiron.bilby.io.db.codegen.Tables.SessionInfoRow
 
 object ModelImplicits {
 
@@ -30,19 +32,47 @@ object ModelImplicits {
         new java.sql.Timestamp(u.created.toDateTime().getMillis))
     }
 
+    /**
+     * @param up
+     * @return
+     */
     implicit def rowFromUserProfile(up: UserProfile): UserProfilesRow = {
       UserProfilesRow(
-        up.provider,
-        up.key,
+        up.loginInfo.providerID,
+        up.loginInfo.providerKey,
         up.email,
-        up.firstName,
-        up.lastName,
-        up.fullName,
+        up.firstname,
+        up.lastname,
+        up.fullname,
         up.avatarUrl,
         up.verified,
-        new java.sql.Timestamp(up.created.toDateTime().getMillis)) 
+        new java.sql.Timestamp(up.created.toDateTime().getMillis))
     }
 
+    /**
+     * ! not an implicit -> composite tuple3
+     * @param pwi
+     * @return
+     */
+    def rowFromPasswordInfo(pwi: PasswordInfo, linfo: LoginInfo, created: LocalDateTime): PasswordInfoRow = {
+      PasswordInfoRow(
+        linfo.providerID, linfo.providerKey, pwi.hasher, pwi.password, pwi.salt, new java.sql.Timestamp(created.toDateTime().getMillis))
+    }
+
+    /**
+     * @param ca
+     * @return
+     */
+    implicit def rowFromCookieAuthenticator(ca: CookieAuthenticator): SessionInfoRow = {
+      SessionInfoRow(
+        ca.id,
+        ca.loginInfo.providerID,
+        ca.loginInfo.providerKey,
+        new java.sql.Timestamp(ca.lastUsedDateTime.toDateTime().getMillis),
+        new java.sql.Timestamp(ca.expirationDateTime.toDateTime().getMillis),
+        ca.fingerprint,
+        new java.sql.Timestamp(new LocalDateTime().toDateTime().getMillis))
+    }
   }
 
   object ToModel {
@@ -61,7 +91,11 @@ object ModelImplicits {
         ur.active,
         LocalDateTime.fromDateFields(ur.created))
     }
-    
+
+    /**
+     * @param up
+     * @return
+     */
     implicit def userProfileFromRow(up: UserProfilesRow): UserProfile = {
       UserProfile(
         LoginInfo(up.provider, up.key),
@@ -72,6 +106,29 @@ object ModelImplicits {
         up.avatarUrl,
         up.verified,
         LocalDateTime.fromDateFields(up.created))
+    }
+
+    /**
+     * @param pwir
+     * @return
+     */
+    implicit def passwordInfoFromRow(pwir: PasswordInfoRow): PasswordInfo = {
+      PasswordInfo(pwir.hasher, pwir.password, pwir.salt)
+    }
+
+    /**
+     * @param sir
+     * @return
+     */
+    implicit def cookieAuthenticatorFromRow(sir: SessionInfoRow): CookieAuthenticator = {
+      CookieAuthenticator(
+        sir.id,
+        LoginInfo(sir.provider, sir.key),
+        LocalDateTime.fromDateFields(sir.lastUsed).toDateTime(),
+        LocalDateTime.fromDateFields(sir.expiration).toDateTime(),
+        idleTimeout = None,
+        cookieMaxAge = None,
+        sir.fingerprint)
     }
   }
 

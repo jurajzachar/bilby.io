@@ -1,32 +1,26 @@
-package test.com.blueskiron.bilby.io.db
+package com.blueskiron.bilby.io.db.testkit
 
-import org.scalatest.Suite
-import slick.driver.PostgresDriver
+import com.blueskiron.bilby.io.db.PostgresDatabase
+import com.blueskiron.bilby.io.db.SlickPgJdbcProfileProvider
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.language.postfixOps
-import io.strongtyped.active.slick.JdbcProfileProvider
-import com.blueskiron.bilby.io.db.ApplicationDatabase
-import com.blueskiron.bilby.io.db.SlickPgJdbcProfileProvider
-import slick.jdbc.JdbcBackend.DatabaseDef
+import slick.driver.PostgresDriver
 import com.blueskiron.bilby.io.db.codegen.Tables
+import scala.language.postfixOps
 
-/**
- * @author juri
- */
-trait PostgresSuite extends DbSuite with SlickPgJdbcProfileProvider {
-  self: Suite =>
+trait DefaultTestDatabase extends PostgresDatabase with SlickPgJdbcProfileProvider {
 
   import jdbcProfile.api._
 
-  implicit def timeout = 2 seconds
+  implicit def defaultTimeout = 2 seconds
 
+  override val configPath = "test_db"
   override def setupDb = testDb
   
   override val executionContext = scala.concurrent.ExecutionContext.Implicits.global
   
   lazy val testDb: jdbcProfile.backend.DatabaseDef = {
-    val db = Database.forConfig("test_db")
+    val db = Database.forConfig(configPath)
     db.createSession().conn.setAutoCommit(true)
     db
   }
@@ -52,4 +46,3 @@ trait PostgresSuite extends DbSuite with SlickPgJdbcProfileProvider {
   }
 
 }
-

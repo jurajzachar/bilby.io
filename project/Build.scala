@@ -35,7 +35,7 @@ object Build extends Build {
       libraryDependencies ++= dbDeps,
       unmanagedResourceDirectories in Compile += baseDirectory.value / "target/scala-2.11/src_managed",
       unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources",
-      sourceGenerators in Compile <+= slickCodeGenTask, // register automatic code generation on every compile, remove for only manual use
+      //sourceGenerators in Compile <+= slickCodeGenTask, // register automatic code generation on every compile, remove for only manual use
       slick <<= slickCodeGenTask // register manual sbt command
       )).dependsOn(api, codegen, mock % "test->test")
 

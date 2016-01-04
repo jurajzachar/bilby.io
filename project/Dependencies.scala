@@ -12,7 +12,6 @@ object Dependencies {
     val orientDbEmbedded = "0.1.0"
   }
 
-  // Libraries
   val logbackCore = "ch.qos.logback" % "logback-core" % Version.logback
   val logbackClassic = "ch.qos.logback" % "logback-classic" % Version.logback
   val config = "com.typesafe" % "config" % Version.config
@@ -23,6 +22,10 @@ object Dependencies {
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % Version.akka
   val akkaLog = "com.typesafe.akka" %% "akka-slf4j" % Version.akka
   val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Version.akka
+  
+  //val guice = "com.google.inject" % "guice" % "4.0"
+  //val inject = "javax.inject" % "javax.inject" % "1"
+  val scalaGuice = "net.codingwell" %% "scala-guice" % "4.0.1"
   
   val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41" withJavadoc ()
   val slick = "com.typesafe.slick" %% "slick" % Version.slick withJavadoc ()
@@ -50,9 +53,9 @@ object Dependencies {
   val baseDeps = Seq(logbackCore, logbackClassic, config, scalaMock % Test, scalaTest % Test)
   val apiDeps = baseDeps ++ Seq(playJson, playSilhouette)
   val slickDeps = Seq(slick, slickPgDriver, slickCodegen, activeSlick, slickHikariCP) 
-  val dbDeps = baseDeps ++ slickDeps ++ Seq(shapeless, postgresql)
+  val dbDeps = baseDeps ++ slickDeps ++ Seq(shapeless, scalaGuice, postgresql)
   val akkaDeps = Seq(akkaActor, akkaLog, akkaTestkit % Test)
   val graphDeps = baseDeps ++ akkaDeps ++ Seq(orientDbEmbedded, gremlinScala)
-  val coreDeps = baseDeps ++ akkaDeps ++ Seq(playSilhouette)
+  val coreDeps = baseDeps ++ akkaDeps ++ Seq(scalaGuice, playSilhouette)
   val webappDeps = baseDeps ++ playDeps
 }
