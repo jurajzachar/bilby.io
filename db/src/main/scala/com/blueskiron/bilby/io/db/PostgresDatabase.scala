@@ -9,6 +9,7 @@ import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 import javax.inject.Inject
 import com.typesafe.config.Config
+import com.mohiva.play.silhouette.api.util.ExecutionContextProvider
 
 /**
  * @author juri
@@ -29,16 +30,5 @@ trait PostgresDatabase extends ApplicationDatabase with SlickPgJdbcProfileProvid
   }
   
   def closeDatabase() = database.close()
-  
-}
-
-/**
- * A utility trait to pass Execution context to Dao objects
- * @author juri
- *
- */
-trait ExecutionContextProvider {
-  
-  def executionContext: ExecutionContext
   
 }

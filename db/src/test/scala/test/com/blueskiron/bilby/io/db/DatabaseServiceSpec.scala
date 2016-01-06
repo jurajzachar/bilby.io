@@ -12,7 +12,6 @@ import com.blueskiron.bilby.io.db.service.PasswordInfoService
 import com.blueskiron.bilby.io.db.PostgresDatabase
 import com.blueskiron.bilby.io.db.service.SessionInfoService
 import com.blueskiron.bilby.io.db.service.UserService
-import scala.concurrent.ExecutionContext.Implicits.global
 import com.blueskiron.bilby.io.api.model.SupportedAuthProviders
 
 class DatabaseServiceSpec extends FlatSpec with PostgresSuite {
@@ -51,7 +50,7 @@ class DatabaseServiceSpec extends FlatSpec with PostgresSuite {
 
     //1st cycle should succeed
     workA.foreach {
-      _ match {
+      _.result match {
         case Left(user)    => //ok
         case Right(reject) => fail("Failed to sign up a new user: " + reject)
       }
@@ -59,7 +58,7 @@ class DatabaseServiceSpec extends FlatSpec with PostgresSuite {
 
     //2nd cycle should fail
     workA.foreach {
-      _ match {
+      _.result match {
         case Left(user)    => if (user.profiles.filter(_.providerID == SupportedAuthProviders.NATIVE.id).isEmpty) fail("Native provider cannot be signed up twice!") //else ok
         case Right(reject) => log.debug("User sign up failed due to: " + reject)
       }

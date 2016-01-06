@@ -23,7 +23,7 @@ trait SessionInfoDao {
    */
   def initSessionInfoDao[T <: PostgresDatabase](cake: T) = new SessionInfoDao(cake)(cake.executionContext)
 
-  protected class SessionInfoDao[T](val cake: PostgresDatabase)(implicit ex: ExecutionContext) {
+  protected class SessionInfoDao[+T](val cake: PostgresDatabase)(implicit ex: ExecutionContext) {
 
     import cake.jdbcProfile.api._
 

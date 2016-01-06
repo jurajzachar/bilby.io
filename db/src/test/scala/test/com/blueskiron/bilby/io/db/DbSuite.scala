@@ -18,7 +18,9 @@ trait DbSuite extends PostgresDatabase with BeforeAndAfterAll with Matchers with
   override val configPath = "test_db"
   
   import jdbcProfile.api._
-
+  
+  override implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
+  
   override protected def afterAll(): Unit = {
     database.close()
   }

@@ -20,7 +20,7 @@ trait PasswordInfoDao {
    */
   def initPasswordInfoDao[T <: PostgresDatabase](cake: T) = new PasswordInfoDao(cake)(cake.executionContext)
 
-  protected class PasswordInfoDao[T](val cake: PostgresDatabase)(implicit ex: ExecutionContext) {
+  protected class PasswordInfoDao[+T](val cake: PostgresDatabase)(implicit ex: ExecutionContext) {
 
     import cake.jdbcProfile.api._
 

@@ -17,14 +17,14 @@ import akka.actor.ActorRef
 import com.blueskiron.bilby.io.db.DefaultDatabase
 import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
 import com.google.inject.Guice
-import com.blueskiron.bilby.io.core.auth.AuthenticationService
 import com.blueskiron.bilby.io.core.testkit.WsTestClientModule
 import com.google.inject.util.Modules
-import com.blueskiron.bilby.io.core.auth.module.AuthModule
+import com.blueskiron.bilby.io.core.auth.module.RegModule
 import com.blueskiron.bilby.io.db.testkit.DefaultTestDatabase
 import com.blueskiron.bilby.io.mock.MockBilbyFixtures
+import com.blueskiron.bilby.io.core.auth.RegistrationServiceImpl
 
-class AuthServiceSpec(testSystem: ActorSystem)
+class RegServiceSpec(testSystem: ActorSystem)
     extends TestKit(testSystem)
     with DefaultTestDatabase
     with DefaultTimeout 
@@ -33,7 +33,7 @@ class AuthServiceSpec(testSystem: ActorSystem)
     with Matchers 
     with BeforeAndAfterAll {
   
-  def this() = this(ActorSystem("AuthServiceSpec"))
+  def this() = this(ActorSystem("RegServiceSpec"))
   val log = LoggerFactory.getLogger(this.getClass)
   val fixtures = MockBilbyFixtures
   val promiseActor = Promise[ActorRef]() //promise fulfilled in beforeAll
@@ -41,7 +41,7 @@ class AuthServiceSpec(testSystem: ActorSystem)
    
    override def beforeAll {
     cleanUp()
-    val authModule = AuthModule.apply(executionContext, fixtures.dbConfigPath)
+    val authModule = RegModule.apply(executionContext, fixtures.dbConfigPath)
     WsTestClient.withClient { client =>
       val wsModule = new WsTestClientModule(client)
       val injector = Guice.createInjector(Modules.combine(wsModule, authModule))
@@ -49,7 +49,7 @@ class AuthServiceSpec(testSystem: ActorSystem)
       import net.codingwell.scalaguice.InjectorExtensions._
       val defaultDb = injector.instance[DefaultDatabase]
       val authEnv = injector.instance[AuthenticationEnvironment]
-      promiseActor.success(AuthenticationService.startOn(testSystem, authEnv))
+      promiseActor.success(RegistrationServiceImpl.startOn(testSystem, authEnv))
     }
   }
   

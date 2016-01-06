@@ -23,8 +23,6 @@ trait PostgresSuite extends DbSuite with SlickPgJdbcProfileProvider {
 
   override def setupDb = testDb
   
-  override val executionContext = scala.concurrent.ExecutionContext.Implicits.global
-  
   lazy val testDb: jdbcProfile.backend.DatabaseDef = {
     val db = Database.forConfig("test_db")
     db.createSession().conn.setAutoCommit(true)

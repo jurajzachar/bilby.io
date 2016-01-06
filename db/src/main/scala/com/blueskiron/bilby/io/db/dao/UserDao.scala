@@ -36,7 +36,7 @@ trait UserDao {
    */
   def initUserDao[T <: PostgresDatabase](cake: T) = new UserDao(cake)(cake.executionContext)
 
-  protected class UserDao[T](val cake: PostgresDatabase)(implicit ex: ExecutionContext) {
+  protected class UserDao[+T](val cake: PostgresDatabase)(implicit ex: ExecutionContext) {
 
     import cake.jdbcProfile.api._
 

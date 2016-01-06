@@ -93,10 +93,10 @@ create index idx_session_info_provider_key on session_info (provider, key);
 create table user_profiles (
       provider character varying(64) not null,
       key text not null,
-      email character varying(256),
+      email character varying(512),
       first_name character varying(512),
       last_name character varying(512),
-      full_name character varying(512),
+      full_name character varying(1024),
       avatar_url text,
       verified boolean not null,
       created timestamp not null,
@@ -108,7 +108,7 @@ alter table user_profiles add constraint user_profiles_provider_key_idx unique (
 
 create table assets (
 	id bigserial not null primary key,
-	title varchar(254) not null,
+	title varchar(256) not null,
 	short_summary text,
 	title_cover text,
 	published timestamp,
