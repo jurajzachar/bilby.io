@@ -36,8 +36,8 @@ class UserService[T <: PostgresDatabase] @Inject() (override protected val cake:
         checkUserName <- userDao.findOptionUser(u.username)
       } yield (checkEmail, checkUserName)
       nativeChecks.flatMap {
-        case (Some(profile), _) => Future.successful(outcomeFromRejection(EmailAddressAleadyRegistered(profile.email.get)))
-        case (_, Some(user))    => Future.successful(outcomeFromRejection(UserNameAlreadyTaken(user.username)))
+        case (Some(profile), _) => Future.successful(outcomeFromRejection(EmailAddressAlreadyRegistered(profile.email.get)))
+        case (_, Some(user))    => Future.successful(outcomeFromRejection(UserNameAlreadyRegistered(user.username)))
         case (None, None)       => Future.successful(outcomeFromUser(u))
       }
     } else {
@@ -51,7 +51,7 @@ class UserService[T <: PostgresDatabase] @Inject() (override protected val cake:
   def count = userDao.count
   
   /**
-   * Sign up of a new user
+   * Creation of a new user
    * @param u
    * @param profile
    * @return

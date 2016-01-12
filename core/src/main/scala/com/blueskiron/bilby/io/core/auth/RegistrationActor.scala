@@ -6,21 +6,35 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.routing.FromConfig
 import akka.actor.ActorRef
-import akka.actor.PoisonPill
+import akka.pattern.pipe
 import com.blueskiron.bilby.io.api.service.RegistrationService
+import com.mohiva.play.silhouette.api.Silhouette
+import play.api.i18n.I18nSupport
+import com.blueskiron.bilby.io.api.model.User
+import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
+import com.mohiva.play.silhouette.api.LoginInfo
+import play.api.i18n.{ Messages, MessagesApi }
+import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+import com.blueskiron.bilby.io.api.model.SupportedAuthProviders
+import play.api.mvc.{ Result, AnyContent }
+import scala.concurrent.Future
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
+import scala.concurrent.Promise
+import scala.util.Try
+import scala.concurrent.ExecutionContext
+import com.mohiva.play.silhouette.api.SignUpEvent
+import com.mohiva.play.silhouette.api.LoginEvent
 
 object RegistrationServiceImpl extends RegistrationService {
-  
-  def authProps(authEnv: AuthenticationEnvironment): Props = Props(new RegWorker(authEnv))
-  
-  def startOn(system: ActorSystem, authEnv: AuthenticationEnvironment) = {
+
+  def authProps(authEnv: AuthenticationEnvironment, messagesApi: MessagesApi): Props = Props(new RegWorker(authEnv, messagesApi))
+
+  def startOn(system: ActorSystem, authEnv: AuthenticationEnvironment, messagesApi: MessagesApi) = {
     //this is counter-intuitive as workers may be created separately, prior 
     // and on different systems to the parent service
     //in this scenario (development), they are created on one system.
-    system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w1")
-    system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w2")
-    system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w3")
-    system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w4")
+    system.actorOf(authProps(authEnv, messagesApi).withDispatcher("dbio-dispatch"), name = "reg_w1")
+    system.actorOf(authProps(authEnv, messagesApi).withDispatcher("dbio-dispatch"), name = "reg_w2")
     //finally -> interceptor (parent)
     system.actorOf(Props[RegistrationActor], name = "reg")
   }
@@ -35,57 +49,73 @@ class RegistrationActor extends Actor with ActorLogging {
 
   def receive = {
     // just route the message to the routees...
-    case msg: Any => router.tell(msg, sender())  
+    case msg: Any => router.tell(msg, sender())
   }
 
 }
 
-class RegWorker(authEnv: AuthenticationEnvironment) extends Actor with ActorLogging with RegistrationService {
+class RegWorker(override val env: AuthenticationEnvironment, override val messagesApi: MessagesApi) extends Actor with ActorLogging
+    with Silhouette[User, CookieAuthenticator]
+    with I18nSupport
+    with RegistrationService {
+
+  import context.dispatcher
 
   def receive = {
-    
-    case RegistrationRequest(data, request) => //authEnv.userService.
-    
+
+    case rc: RegistrationRequest[_] => {
+      saveProfile(rc.asInstanceOf[RegistrationRequest[SecuredRequest[AnyContent]]]) pipeTo sender
+    }
+
     case msg: Any => {
       log.debug("received: {}", msg)
-      sender ! ("yay! " + self.path.name + " is alive!" )
+      sender ! ("yay! " + self.path.name + " is alive!")
     }
   }
-  
-  private def saveProfile() = {
-    ???
+
+  private def saveProfile(registrationRequest: RegistrationRequest[SecuredRequest[AnyContent]]): Future[AuthenticatorResult] = {
+    implicit val request = registrationRequest.request.asInstanceOf[SecuredRequest[AnyContent]]
+    val data = registrationRequest.data
+    val linfo = LoginInfo(CredentialsProvider.ID, data.email)
+    val authInfo = env.hasher.hash(data.password)
+    val user = request.identity
+    request.identity.copy(
+      username = if (data.username.isEmpty) { request.identity.username } else { "Guest" },
+      profiles = request.identity.profiles :+ linfo)
+    val profile = data.profile.copy(loginInfo = linfo, email = Some(data.email))
+
+    //1. phase: persist
+    val dbOutcome = for {
+      avatar <- env.avatarService.retrieveURL(data.email)
+      outcome <- env.userService.create(user, profile.copy(avatarUrl = avatar))
+    } yield outcome
+
+    //2. create auth onSuccess or return result on failure
+    dbOutcome.flatMap { regOutcome =>
+      regOutcome.result match {
+        case Left(user) => registerAndPublishEvents(user, linfo, registrationRequest.onSuccess)
+        case Right(rejection) => {
+          Future {
+            AuthenticatorResult(registrationRequest.onFailure[RegistrationRejection]
+            (rejection.asInstanceOf[RegistrationRejection]))
+          }
+        }
+      }
+    }
   }
-  
-//  private[this] def saveProfile(data: RegistrationData)(implicit request: SecuredRequest[AnyContent]) = {
-//    if (request.identity.profiles.exists(_.providerID == "credentials")) {
-//      throw new IllegalStateException("You're already registered.") // TODO Fix?
-//    }
-//
-//    val loginInfo = LoginInfo(CredentialsProvider.ID, data.email)
-//    val authInfo = env.hasher.hash(data.password)
-//    val user = request.identity.copy(
-//      username = if (data.username.isEmpty) { request.identity.username } else { Some(data.username) },
-//      profiles = request.identity.profiles :+ loginInfo
-//    )
-//    val profile = CommonSocialProfile(
-//      loginInfo = loginInfo,
-//      email = Some(data.email)
-//    )
-//    val r = Redirect(controllers.routes.HomeController.index())
-//    for {
-//      avatar <- env.avatarService.retrieveURL(data.email)
-//      profile <- env.userService.create(user, profile.copy(avatarURL = avatar.orElse(Some("default"))))
-//      u <- env.userService.save(user, update = true)
-//      authInfo <- env.authInfoService.save(loginInfo, authInfo)
-//      authenticator <- env.authenticatorService.create(loginInfo)
-//      value <- env.authenticatorService.init(authenticator)
-//      result <- env.authenticatorService.embed(value, r)
-//    } yield {
-//      env.eventBus.publish(SignUpEvent(u, request, request2Messages))
-//      env.eventBus.publish(LoginEvent(u, request, request2Messages))
-//      result
-//    }
-//  }
-  
-  override def postStop = authEnv.userService.shutDown()
+
+  private def registerAndPublishEvents(user: User, linfo: LoginInfo, onSuccess: Result)(implicit request: SecuredRequest[AnyContent]) = {
+    for {
+      cookieAuth <- env.authenticatorService.create(linfo)
+      cookie <- env.authenticatorService.init(cookieAuth)
+      result <- env.authenticatorService.embed(cookie, onSuccess)
+    } yield {
+      env.eventBus.publish(SignUpEvent(user, request, request2Messages))
+      env.eventBus.publish(LoginEvent(user, request, request2Messages))
+      result
+    }
+  }
+
+  override def postStop = env.userService.shutDown()
+
 }

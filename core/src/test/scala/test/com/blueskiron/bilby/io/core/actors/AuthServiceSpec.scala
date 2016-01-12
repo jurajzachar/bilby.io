@@ -49,15 +49,16 @@ class RegServiceSpec(testSystem: ActorSystem)
       import net.codingwell.scalaguice.InjectorExtensions._
       val defaultDb = injector.instance[DefaultDatabase]
       val authEnv = injector.instance[AuthenticationEnvironment]
-      promiseActor.success(RegistrationServiceImpl.startOn(testSystem, authEnv))
+      //FIXME!
+      //promiseActor.success(RegistrationServiceImpl.startOn(testSystem, authEnv))
     }
   }
   
-  "AuthenticationService" must {
-    "deliver a valid AuthenticationActor ref" in {
+  "RegistrationService" must {
+    "deliver a valid RegistrationActor ref" in {
       promiseActor.isCompleted shouldBe true
-      val authService = Await.result(promiseActor.future, defaultTimeout)
-      for(i <- 1 to 1000) authService ! "Hello workers!"
+      val regService = Await.result(promiseActor.future, defaultTimeout)
+      for(i <- 1 to 1000) regService ! "Hello workers!"
       expectMsgPF(defaultTimeout) {
           case msg: Any => log.info("received={}", msg)
         }
