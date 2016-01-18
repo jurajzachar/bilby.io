@@ -15,14 +15,15 @@ import play.api.UnexpectedException
 import scala.concurrent.Promise
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.blueskiron.bilby.io.api.service.RegistrationService
-import com.blueskiron.bilby.io.api.model.SupportedAuthProviders.NATIVE
+import com.blueskiron.bilby.io.api.model.SupportedAuthProviders.CREDENTIALS
 
 @Singleton
-class UserService[T <: PostgresDatabase] @Inject() (override protected val cake: T)(implicit ex: ExecutionContext) 
-  extends IdentityService[User] with ClosableDatabase[T] with RegistrationService
+class UserService[T <: PostgresDatabase] @Inject() (override protected val cake: T)
+    extends IdentityService[User] with ClosableDatabase[T] 
+    with RegistrationService
     with UserDao {
-
-  private val log = LoggerFactory.getLogger(getClass)
+    
+  implicit val executionContext: ExecutionContext = cake.database.executor.executionContext
   
   lazy protected val userDao = initUserDao(cake)
 
@@ -30,7 +31,7 @@ class UserService[T <: PostgresDatabase] @Inject() (override protected val cake:
 
   private def checkNativeProfiles[U >: RegistrationOutcome](u: User, profile: UserProfile): Future[U] = {
     //check if email was already used in previous registrations
-    if (profile.loginInfo.providerID.equals(NATIVE.id)) {
+    if (profile.loginInfo.providerID.equals(CREDENTIALS.id)) {
       val nativeChecks = for {
         checkEmail <- userDao.findUserProfile(profile.email)
         checkUserName <- userDao.findOptionUser(u.username)
@@ -44,12 +45,12 @@ class UserService[T <: PostgresDatabase] @Inject() (override protected val cake:
       Future.successful(outcomeFromUser(u))
     }
   }
-  
+
   /**
    * @return total count of all users
    */
   def count = userDao.count
-  
+
   /**
    * Creation of a new user
    * @param u
@@ -64,10 +65,11 @@ class UserService[T <: PostgresDatabase] @Inject() (override protected val cake:
       }
       case None => {
         //if NATIVE, check if email or username was already used in previous registrations
-        checkNativeProfiles(u, profile) flatMap { outcome => outcome.result match {
-          case Right(reject) => Future.successful(outcome)
-          case Left(user)    => handle(user, profile, true).map { outcomeFromUser(_) }
-        }
+        checkNativeProfiles(u, profile) flatMap { outcome =>
+          outcome.result match {
+            case Right(reject) => Future.successful(outcome)
+            case Left(user)    => handle(user, profile, true).map { outcomeFromUser(_) }
+          }
         }
       }
     }
@@ -86,26 +88,17 @@ class UserService[T <: PostgresDatabase] @Inject() (override protected val cake:
         hasUserName <- userDao.findOptionUser(currentUser.username)
       } yield (hasProfile, hasUserName)
       agg.flatMap {
-        case (None, None)    => getFutureValueOrFail(userDao.create(currentUser, profile)) 
+        case (None, None)    => userDao.create(currentUser, profile)
         //this should have never happened... F
         case (Some(u), None) => Future.failed(new Exception("updating unkown user with existing profile is prohibited."))
-        case (_, Some(u)) => getFutureValueOrFail(userDao.update(u, profile))
+        case (_, Some(u))    => userDao.update(u, profile)
       }
     } else {
-      checkNativeProfiles(currentUser, profile).flatMap { outcome => outcome.result match {
-        case Right(reject) => Future.successful(currentUser)
-        case Left(user)    => handle(user, profile, true)
-      }
-      }
-    }
-  }
-
-  //Wrapper call that yields value from option fails fast
-  private def getFutureValueOrFail[U](f: Future[Option[U]]): Future[U] = {
-    f.flatMap {
-      case Some(x) => Future.successful(x)
-      case None => { //emit warning
-        Future.failed(new Exception("operation: " + f + " has failed!"))
+      checkNativeProfiles(currentUser, profile).flatMap { outcome =>
+        outcome.result match {
+          case Right(reject) => Future.successful(currentUser)
+          case Left(user)    => handle(user, profile, true)
+        }
       }
     }
   }

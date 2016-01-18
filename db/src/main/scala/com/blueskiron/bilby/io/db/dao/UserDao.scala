@@ -10,18 +10,20 @@ import com.blueskiron.bilby.io.api.model.SupportedAuthProviders
 import com.blueskiron.bilby.io.db.PostgresDatabase
 import com.blueskiron.bilby.io.db.PostgresDatabase
 import com.blueskiron.bilby.io.db.activeslick.ActiveSlickRepos.UsersRepo
-import com.blueskiron.bilby.io.db.codegen.ModelImplicits.{ToDataRow, ToModel}
+import com.blueskiron.bilby.io.db.codegen.ModelImplicits.{ ToDataRow, ToModel }
 import com.blueskiron.bilby.io.db.codegen.Tables
 import com.blueskiron.bilby.io.db.codegen.Tables.UsersRow
 import com.blueskiron.postgresql.slick.Driver
 import com.mohiva.play.silhouette.api.LoginInfo
 import scala.concurrent.Promise
+import scala.util.Success
+import scala.util.Failure
 
 /**
- * This data access object handles all queries and statements pertinent to 
+ * This data access object handles all queries and statements pertinent to
  *  {@link com.blueskiron.bilby.io.api.model.User} and {@link com.blueskiron.bilby.io.api.model.UserProfile}.
  *  In doing so, it fully relies on compiled slick queries that join tables using Postgresql's HSTORE extension.
- *  
+ *
  * @author juri
  *
  */
@@ -52,15 +54,20 @@ trait UserDao {
      * @param user, profile
      * @return
      */
-    def create(user: User, profile: UserProfile): Future[Option[User]] = {
+     def create(user: User, profile: UserProfile): Future[User] = {
       import ToDataRow.{ rowFromUserProfile, rowFromUser }
       val userWithProfile = user.copy(
         profiles = user.profiles.filterNot(_.providerID == profile.loginInfo.providerID) :+ profile.loginInfo)
       //persist both transactionally
-      val action = DBIO.seq(
-        Tables.UserProfiles += profile,
-        UsersRepo.save(user)).transactionally
-      cake.runAction(action).flatMap { x => findOptionUser(profile.loginInfo) }
+      val saveAction = for {
+        profile <- Tables.UserProfiles += profile
+        user <- UsersRepo.save(user)
+      } yield user
+      cake.commit(saveAction) map ToModel.userFromRow _  
+//       val action = DBIO.seq(
+//        Tables.UserProfiles += profile,
+//        UsersRepo.save(user)).transactionally
+//      cake.runAction(action.andThen(retrieveAction(profile.loginInfo))) map ToModel.userFromRow _
     }
 
     /**
@@ -68,12 +75,11 @@ trait UserDao {
      * @param u
      * @return
      */
-    def update(user: User, profile: UserProfile): Future[Option[User]] = {
+    def update(user: User, profile: UserProfile): Future[User] = {
       import ToDataRow.{ rowFromUserProfile, rowFromUser }
       val userWithProfile = user.copy(
         profiles = user.profiles.filterNot(_.providerID == profile.loginInfo.providerID) :+ profile.loginInfo)
-      println(s"updating $user with $userWithProfile")  
-      val promise = Promise[Unit]()
+      println(s"updating $user with $userWithProfile")
       val tx = findUserProfile(profile.loginInfo.providerID, profile.loginInfo.providerKey).map {
         case Some(p) => {
           DBIO.seq(
@@ -86,8 +92,13 @@ trait UserDao {
             Tables.UserProfiles += profile).transactionally
         }
       }
-      tx.map {a => promise.completeWith(cake.runAction(a))}
-      promise.future flatMap  { x => findOptionUser(profile.loginInfo) }
+      val userRowFuture = tx.flatMap { updateAction => cake.runAction(updateAction.andThen(retrieveAction(profile.loginInfo))) }
+      userRowFuture map ToModel.userFromRow _
+    }
+
+    private def retrieveAction(linfo: LoginInfo) = {
+      val repMap = Map(linfo.providerID -> linfo.providerKey)
+      compiledUserFromProfile(repMap).result.head
     }
 
     def deactivate(user: User): Future[User] = {
@@ -107,7 +118,7 @@ trait UserDao {
       val _username = username
       cake.runAction(UsersRepo.findById(userId)) flatMap { model =>
         {
-          if (model.profiles.contains(SupportedAuthProviders.NATIVE.id)) Future.successful(model)
+          if (model.profiles.contains(SupportedAuthProviders.CREDENTIALS.id)) Future.successful(model)
           else {
             val copied = model.copy(username = _username)
             cake.runAction(UsersRepo.save(copied))

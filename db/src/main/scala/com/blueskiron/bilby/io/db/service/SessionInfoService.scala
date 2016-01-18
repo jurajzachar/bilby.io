@@ -13,11 +13,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SessionInfoService[T <: PostgresDatabase] @Inject() (override protected val cake: T)(implicit ex: ExecutionContext) extends AuthenticatorDAO[CookieAuthenticator] with ClosableDatabase[T]
+class SessionInfoService[T <: PostgresDatabase] @Inject() (override protected val cake: T)
+    extends AuthenticatorDAO[CookieAuthenticator] with ClosableDatabase[T]
     with SessionInfoDao {
 
-  private val logger = LoggerFactory.getLogger(getClass)
-
+  implicit val executionContext: ExecutionContext = cake.database.executor.executionContext
+  
   lazy protected val dao = initSessionInfoDao(cake)
 
   override def find(id: String) = dao.findById(id)
@@ -26,6 +27,6 @@ class SessionInfoService[T <: PostgresDatabase] @Inject() (override protected va
 
   override def update(session: CookieAuthenticator) = dao.upsert(session)
 
-  override def remove(id: String) = dao.removeById(id).map { x => logger.trace("removed {} sessionInfo={}", x, id) }
+  override def remove(id: String) = dao.removeById(id).map { _ => () } //unit
 
 }

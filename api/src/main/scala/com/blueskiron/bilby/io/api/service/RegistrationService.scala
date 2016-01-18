@@ -1,15 +1,14 @@
 package com.blueskiron.bilby.io.api.service
 
 import com.blueskiron.bilby.io.api.model.User
-import play.mvc.Http.RequestHeader
-import play.api.mvc.Request
+import play.api.mvc.RequestHeader
 import com.blueskiron.bilby.io.api.model.UserProfile
 import play.api.mvc.Result
 
 trait RegistrationService {
 
   case class RegistrationData(
-    username: String,
+    user: User,
     password: String,
     email: String,
     profile: UserProfile)
@@ -19,27 +18,27 @@ trait RegistrationService {
    * @author juri
    *
    */
-  abstract class RegistrationRequest[+A] {
+  abstract class RegistrationRequest {
     
     /**
      * @return
      */
-    def data: RegistrationData 
+    val data: RegistrationData 
     
     /**
      * @return
      */
-    def request: Request[A]
+    val header: RequestHeader
     
     /**
      * @return Result that is used to embed A's authenticated result
      */
-    def onSuccess: Result
+    val onSuccess: Result
     
     /**
      * @return function that is used to process registration failure
      */
-    def onFailure[B <: RegistrationRejection]: B => Result
+    val onFailure: RegistrationRejection => Result
     
   }
   
@@ -74,3 +73,6 @@ trait RegistrationService {
    */
   def outcomeFromUser(user: User) = RegistrationOutcome(Left(user))
 }
+
+//pimp my library
+object RegistrationService extends RegistrationService

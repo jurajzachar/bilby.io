@@ -29,13 +29,15 @@ import scala.language.postfixOps
 
 @Singleton
 class AuthenticationEnvironment @Inject() (
-    override implicit val executionContext: ExecutionContext,
     val wsClient: WSClient,
     val configuration: Config,
     val userService: UserService[PostgresDatabase],
     val passwordInfoService: PasswordInfoService[PostgresDatabase],
     val sessionInfoService: SessionInfoService[PostgresDatabase]) extends Environment[User, CookieAuthenticator] {
-   
+  
+  //link from to Slick's AsyncExecutor all of the services share the same...
+  override implicit val executionContext: ExecutionContext = userService.executionContext
+  
   private[this] val fingerprintGenerator = new DefaultFingerprintGenerator(false)
   
   private[this] val httpLayer = new PlayHTTPLayer(wsClient)

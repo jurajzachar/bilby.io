@@ -16,7 +16,7 @@ import com.blueskiron.bilby.io.db.codegen.ModelImplicits
 /**
  * @author juri
  */
-class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
+class UserDaoSpec extends FlatSpec with DbSuite with UserDao {
 
   import Driver.api._
 
@@ -33,15 +33,13 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   }
 
-  //lazy val userDao = initUserDao(this)
-
   def withUserDao[S, T <: PostgresDatabase](testBlock: UserDao[T] => S): S = {
     testBlock(initUserDao(this))
   }
 
   "UserDao" should "be able to create a new user" in {
     withUserDao {
-      userDao: UserDao[PostgresSuite] =>
+      userDao: UserDao[DbSuite] =>
         {
           for (userAndProfile <- usersWithProfiles) {
             val saved = awaitResult(userDao.create(userAndProfile._1, userAndProfile._2.head))
@@ -56,23 +54,21 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   "UserDao" should "be able to update an exiting user" in {
     withUserDao {
-      userDao: UserDao[PostgresSuite] =>
+      userDao: UserDao[DbSuite] =>
         {
           val id = 1L
           val found = awaitResult(userDao.findUser(id))
           val linfo = LoginInfo("native", "1234567890")
           val profile = UserProfile(linfo, None, None, None, None, None, false, new LocalDateTime())
           val updated = awaitResult(userDao.update(found, profile))
-          updated.map { user =>
-            user.profiles.contains(linfo) shouldBe true
-          }
+          updated.profiles.contains(linfo) shouldBe true
         }
     }
   }
 
   "UserDao" should "be able to add role to the existing user" in {
     withUserDao {
-      userDao: UserDao[PostgresSuite] =>
+      userDao: UserDao[DbSuite] =>
         {
           val id = 1L
           val found = awaitResult(userDao.cake.runAction(UsersRepo.findById(id)))
@@ -89,7 +85,7 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   "UserDao" should "be able to find user by username" in {
     withUserDao {
-      userDao: UserDao[PostgresSuite] =>
+      userDao: UserDao[DbSuite] =>
         {
           val username = usersWithProfiles.keys.tail.head.username
           val found = awaitResult(userDao.findOptionUser(username))
@@ -102,7 +98,7 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   "UserDao" should "be able to find user by user profile" in {
     withUserDao {
-      userDao: UserDao[PostgresSuite] =>
+      userDao: UserDao[DbSuite] =>
         {
           val linfo = usersWithProfiles.values.tail.head.head.loginInfo
           val found = awaitResult(userDao.findOptionUser(linfo))
@@ -115,7 +111,7 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   "UserDao" should "be able to find user profile by login info" in {
     withUserDao {
-      userDao: UserDao[PostgresSuite] =>
+      userDao: UserDao[DbSuite] =>
         {
           import ModelImplicits.ToModel
           for {
@@ -131,7 +127,7 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   "UserDao" should "be able to find user profile by email" in {
     withUserDao {
-      userDao: UserDao[PostgresSuite] =>
+      userDao: UserDao[DbSuite] =>
         {
           import ModelImplicits.ToModel
           for {
@@ -147,7 +143,7 @@ class UserDaoSpec extends FlatSpec with PostgresSuite with UserDao {
 
   "UserDao" should "be able to find all user profiles by username" in {
     withUserDao {
-      userDao: UserDao[PostgresSuite] =>
+      userDao: UserDao[DbSuite] =>
         {
           import ModelImplicits.ToModel
           for (expectedUser <- usersWithProfiles.keys) {

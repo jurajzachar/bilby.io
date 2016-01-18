@@ -9,18 +9,16 @@ import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 import javax.inject.Inject
 import com.typesafe.config.Config
-import com.mohiva.play.silhouette.api.util.ExecutionContextProvider
 
 /**
  * @author juri
  */
-@Singleton
-class DefaultDatabase @Inject() (override val executionContext: ExecutionContext, override val configPath: String) extends PostgresDatabase
-
-trait PostgresDatabase extends ApplicationDatabase with SlickPgJdbcProfileProvider with ExecutionContextProvider {
+trait PostgresDatabase extends ApplicationDatabase with SlickPgJdbcProfileProvider {
   
   import jdbcProfile.api._
   
+  implicit def executionContext: ExecutionContext
+    
   def configPath: String
   
   override def setupDb: jdbcProfile.backend.DatabaseDef = {
@@ -29,6 +27,8 @@ trait PostgresDatabase extends ApplicationDatabase with SlickPgJdbcProfileProvid
     db
   }
   
-  def closeDatabase() = database.close()
+  def closeDatabase() = {
+    database.shutdown
+  }
   
 }

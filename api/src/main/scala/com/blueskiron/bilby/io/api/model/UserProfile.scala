@@ -39,7 +39,7 @@ sealed abstract class AuthProvider(val id: String)
  *
  */
 object SupportedAuthProviders {
-  case object NATIVE extends AuthProvider("native")
+  case object CREDENTIALS extends AuthProvider("credentials") //native cookie authenticator
   case object FACEBOOK extends AuthProvider("facebook")
   case object GOOGLE extends AuthProvider("google")
   case object TWITTER extends AuthProvider("twitter")

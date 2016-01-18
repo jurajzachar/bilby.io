@@ -15,10 +15,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PasswordInfoService [T <: PostgresDatabase] @Inject() (override val cake: T)(implicit ex: ExecutionContext) extends DelegableAuthInfoDAO[PasswordInfo] with ClosableDatabase[T]
+class PasswordInfoService [T <: PostgresDatabase] @Inject() (override val cake: T) extends DelegableAuthInfoDAO[PasswordInfo] with ClosableDatabase[T]
 with PasswordInfoDao {
   
   private val logger = LoggerFactory.getLogger(getClass)
+  
+  implicit val executionContext: ExecutionContext = cake.database.executor.executionContext
   
   lazy val dao = initPasswordInfoDao(cake)
   

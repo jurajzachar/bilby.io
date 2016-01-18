@@ -7,30 +7,25 @@ import scala.concurrent.duration._
 import slick.driver.PostgresDriver
 import com.blueskiron.bilby.io.db.codegen.Tables
 import scala.language.postfixOps
+import com.typesafe.config.ConfigFactory
 
 trait DefaultTestDatabase extends PostgresDatabase with SlickPgJdbcProfileProvider {
-
+  
   import jdbcProfile.api._
 
-  implicit def defaultTimeout = 2 seconds
-
   override val configPath = "test_db"
-  override def setupDb = testDb
   
-  override val executionContext = scala.concurrent.ExecutionContext.Implicits.global
+  private lazy val config = ConfigFactory.load()
   
-  lazy val testDb: jdbcProfile.backend.DatabaseDef = {
-    val db = Database.forConfig(configPath)
-    db.createSession().conn.setAutoCommit(true)
-    db
-  }
+  implicit def defaultTimeout = FiniteDuration(config.getInt("test_db.defaultTimeout"), "seconds")
   
   def cleanUp() {
     import Tables.profile.api._
 
     def resetSequences: DBIO[Unit] = {
       DBIO.seq(
-        sqlu"""alter sequence users_id_seq restart"""
+        sqlu"""alter sequence users_id_seq restart""",
+        sqlu"""alter sequence assets_id_seq restart"""
         //...
       )
     }
@@ -40,9 +35,9 @@ trait DefaultTestDatabase extends PostgresDatabase with SlickPgJdbcProfileProvid
       Tables.UserProfiles.filter { up => up.provider === up.provider }.delete
       //...  
     )
-    tasks.foreach(statement => Await.result(testDb.run(statement), 1 second))
+    tasks.foreach(statement => Await.result(database.run(statement), defaultTimeout))
     //finally reset sequences
-    Await.result(testDb.run(resetSequences), 1 second)
+    Await.result(database.run(resetSequences), defaultTimeout)
   }
 
 }

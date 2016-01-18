@@ -8,11 +8,11 @@ import akka.actor.{Actor, ActorSystem, ActorRef}
 import com.blueskiron.bilby.io.db.service.DbModule
 import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
 
-object RegModule {
-  def apply(ex: ExecutionContext, dbConfigPath: String) = 
-    com.google.inject.util.Modules.combine(new ConfigModule, new DbModule(ex, dbConfigPath), new RegModule)
+object CoreModule {
+  def apply(ec: ExecutionContext, dbConfigPath: String) = 
+    com.google.inject.util.Modules.combine(new ConfigModule, new DbModule(ec, dbConfigPath), new CoreModule)
 }
-class RegModule extends AbstractModule with ScalaModule {
+class CoreModule extends AbstractModule with ScalaModule {
   
   override def configure = {
     bind[AuthenticationEnvironment]

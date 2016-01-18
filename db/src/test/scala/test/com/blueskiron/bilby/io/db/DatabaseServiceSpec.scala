@@ -13,12 +13,13 @@ import com.blueskiron.bilby.io.db.PostgresDatabase
 import com.blueskiron.bilby.io.db.service.SessionInfoService
 import com.blueskiron.bilby.io.db.service.UserService
 import com.blueskiron.bilby.io.api.model.SupportedAuthProviders
+import com.blueskiron.bilby.io.db.testkit.DefaultTestDatabase
 
-class DatabaseServiceSpec extends FlatSpec with PostgresSuite {
+class DatabaseServiceSpec extends FlatSpec with DbSuite {
 
   val log = LoggerFactory.getLogger(getClass)
   val fixtures = MockBilbyFixtures
-  val injector = Guice.createInjector(new DbModule(executionContext, configPath))
+  val injector = Guice.createInjector(new DbModule(scala.concurrent.ExecutionContext.global, configPath))
   //Wrap the injector in a ScalaInjector for even more rich scala magic
   import net.codingwell.scalaguice.InjectorExtensions._
   val passwordInfoService = injector.instance[PasswordInfoService[PostgresDatabase]]
@@ -59,7 +60,7 @@ class DatabaseServiceSpec extends FlatSpec with PostgresSuite {
     //2nd cycle should fail
     workA.foreach {
       _.result match {
-        case Left(user)    => if (user.profiles.filter(_.providerID == SupportedAuthProviders.NATIVE.id).isEmpty) fail("Native provider cannot be signed up twice!") //else ok
+        case Left(user)    => if (user.profiles.filter(_.providerID == SupportedAuthProviders.CREDENTIALS.id).isEmpty) fail("Native provider cannot be signed up twice!") //else ok
         case Right(reject) => log.debug("User sign up failed due to: " + reject)
       }
     }

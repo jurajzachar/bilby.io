@@ -45,7 +45,7 @@ object MockBilbyFixtures extends JsonConversions {
   def mockSize = users.size
 
   //create map of User -> UserProfiles
-  def usersWithProfiles(profiles: Seq[UserProfile]) = {
+  def usersWithProfiles(profiles: Seq[UserProfile] = userProfiles) = {
     for {
       (user, userProfile) <- users.zip(profiles)
     } yield user.copy(profiles = Seq(userProfile.loginInfo)) -> Seq(userProfile) }.toMap
