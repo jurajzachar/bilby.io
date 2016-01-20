@@ -20,15 +20,11 @@ object MockBilbyFixtures extends JsonConversions {
   
   val dbConfigPath = "test_db"
     
-  //read mock data from fs
-  val userProfiles = Json.parse(Source.fromURL(getClass.getResource("/mock_userprofiles.json")).mkString).validate[Seq[UserProfile]].get
+  //read mock data from the fs
+  val userProfiles = Json.parse(Source.fromURL(getClass.getResource("/mock_data.json")).mkString).validate[Seq[UserProfile]].get
   assert(userProfiles != null)
   
-  val moreUserProfiles = Json.parse(Source.fromURL(getClass.getResource("/mock_userprofiles2.json")).mkString).validate[Seq[UserProfile]].get
-  assert(moreUserProfiles != null)
-
-  //just a placeholder, profiles will be overriden
-  private val users = Json.parse(Source.fromURL(getClass.getResource("/mock_users.json")).mkString).validate[Seq[User]].get
+  private val users = Json.parse(Source.fromURL(getClass.getResource("/mock_data.json")).mkString).validate[Seq[User]].get
   assert(users != null)
 
   //warning: very hacky and ugly!

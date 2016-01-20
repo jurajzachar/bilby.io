@@ -17,7 +17,8 @@ object TestUtils {
     new RegistrationRequest {
       override val header = FakeRequest(method, route)
         .withHeaders(
-          ("Date", java.time.LocalDateTime.now.toString()))
+          ("Date", java.time.LocalDateTime.now.toString()),
+          ("Cookie", "empty"))
       override val data = RegistrationData(u, testPassword, profile.email.getOrElse("noemail@bilby.io"), profile)
       
       override val onSuccess = Results.Ok("on success called")

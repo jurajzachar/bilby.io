@@ -37,7 +37,7 @@ object RegistrationServiceImpl extends RegistrationService {
     system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w3")
     system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w4")
     //finally -> interceptor (parent)
-    system.actorOf(Props[RegistrationActor], name = "reg")
+    system.actorOf(Props[RegistrationActor]().withDispatcher("dbio-dispatch"), name = "reg")
   }
 }
 
@@ -91,10 +91,7 @@ class RegWorker(env: AuthenticationEnvironment) extends Actor {
     val authPromise = Promise[AuthenticatorResult]()
     dbAction.onComplete {
       case Success(regOut) => regOut.result match {
-        case Left(user) =>  {
-          log.debug("success, we have a new user {}", user)
-          authPromise.completeWith(registerAndPublishEvents(user, linfo, registrationRequest.onSuccess))
-        }
+        case Left(user) =>  authPromise.completeWith(registerAndPublishEvents(user, linfo, registrationRequest.onSuccess))
         case Right(rejection) => {
           authPromise.success(
             AuthenticatorResult(
@@ -113,18 +110,9 @@ class RegWorker(env: AuthenticationEnvironment) extends Actor {
   private def registerAndPublishEvents(user: User, linfo: LoginInfo, onSuccess: Result)(implicit rh: RequestHeader) = {
     implicit val executionContext = env.executionContext
     for {
-      cookieAuth <- {
-        log.debug("creating login info = {}", linfo)
-        env.authenticatorService.create(linfo)
-      }
-      cookie <- {
-        log.debug("init cookie")
-        env.authenticatorService.init(cookieAuth)
-      }
-      result <- {
-        log.debug("creating final result")
-        env.authenticatorService.embed(cookie, onSuccess)
-      }
+      cookieAuth <- env.authenticatorService.create(linfo)
+      cookie <- env.authenticatorService.init(cookieAuth)
+      result <- env.authenticatorService.embed(cookie, onSuccess)
     } yield {
       //this must happen on the controller side by chaining the returned future...
       //env.eventBus.publish(SignUpEvent(user, request, request2Messages))

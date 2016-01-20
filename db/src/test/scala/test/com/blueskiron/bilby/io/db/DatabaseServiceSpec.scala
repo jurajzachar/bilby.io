@@ -68,13 +68,14 @@ class DatabaseServiceSpec extends FlatSpec with DbSuite {
     awaitResult(userService.count) shouldBe usersWithProfiles.size
   }
 
-  "UserService" must "be able to update existing user profiles" in {
-    val expectedCount = awaitResult(userService.count)
-    log.debug("existing user count: {}", expectedCount) 
-    val workB = for (entry <- fixtures.usersWithProfiles(fixtures.moreUserProfiles)) yield {
-      
-      awaitResult(userService.handle(entry._1, entry._2.head, false))
-    }
-    workB.size shouldBe expectedCount
-  }
+// disabled
+//  "UserService" must "be able to update existing user profiles" in {
+//    val expectedCount = awaitResult(userService.count)
+//    log.debug("existing user count: {}", expectedCount) 
+//    val workB = for (entry <- fixtures.usersWithProfiles(fixtures.moreUserProfiles)) yield {
+//      
+//      awaitResult(userService.handle(entry._1, entry._2.head, false))
+//    }
+//    workB.size shouldBe expectedCount
+//  }
 }

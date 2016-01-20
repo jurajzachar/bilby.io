@@ -28,6 +28,9 @@ import com.blueskiron.bilby.io.db.service.UserService
 import com.blueskiron.bilby.io.db.PostgresDatabase
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 import com.blueskiron.bilby.io.db.service.DefaultDatabase
+import com.mohiva.play.silhouette.api.LoginInfo
+import play.api.libs.json.Json
+import com.blueskiron.bilby.io.api.model.JsonConversions._
 
 class RegistrationServiceSpec(testSystem: ActorSystem)
     extends TestKit(testSystem)
@@ -53,7 +56,7 @@ class RegistrationServiceSpec(testSystem: ActorSystem)
   val userService = injector.instance[UserService[PostgresDatabase]]
   val regService = RegistrationServiceImpl.startOn(testSystem, authEnv)
 
-  override val defaultTimeout = 40 seconds //more time allowed to bootstrap the whole akka system
+  override val defaultTimeout = 40 * 5 seconds //more time allowed to bootstrap the whole akka system
 
   override def beforeAll {
     cleanUp()
@@ -61,11 +64,12 @@ class RegistrationServiceSpec(testSystem: ActorSystem)
 
   "RegistrationService" must {
     "deliver a valid RegistrationActor with workers" in {
-      for (i <- 1 to 1000) regService ! "Hello workers!"
+      val rounds = 10
+      for (i <- 1 to rounds+1) regService ! "Hello workers!"
       expectMsgPF(defaultTimeout) {
         case msg: Any => log.info("received={}", msg)
       }
-      receiveN(999, defaultTimeout)
+      receiveN(rounds, defaultTimeout)
     }
   }
 
@@ -74,7 +78,7 @@ class RegistrationServiceSpec(testSystem: ActorSystem)
       userService.count.map(_ shouldBe 0)
       val regRequests = fixtures.usersWithProfiles().map(e => TestUtils.buildFakeRegistrationRequest(e._1, e._2.head))
       regRequests foreach { regService ! _ }
-      val collected = receiveWhile(defaultTimeout) {
+      val collected = receiveWhile(defaultTimeout, defaultTimeout/10, fixtures.mockSize) { //max, min, total nr. messages
         case res: AuthenticatorResult =>
           log.info("received={}", res); res //OK 
         case msg: Any                 => log.error("received={}", msg)
@@ -82,7 +86,7 @@ class RegistrationServiceSpec(testSystem: ActorSystem)
       collected.size shouldBe fixtures.mockSize
     }
   }
-
+  
   override def afterAll {
     Await.ready(closeDatabase(), defaultTimeout) 
   }
