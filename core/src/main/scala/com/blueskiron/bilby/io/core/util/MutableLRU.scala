@@ -1,12 +1,15 @@
 package com.blueskiron.bilby.io.core.util
 
 import scala.collection.mutable.Map
+import scala.collection.mutable.LongMap
 import scala.collection.mutable.SortedSet
+import java.util.concurrent.atomic.AtomicLong
+import scala.concurrent.Future
 
 /**
  * A simple implementation of a mutable LRU cache.
  *
- * Since Actors share nothing this mutable implementation is fine.
+ * Since Actors share nothing this mutable implementation is acceptable.
  *
  * @author juri
  */
@@ -15,13 +18,8 @@ object MutableLRU {
   /**
    * Build an immutable LRU key/value store that cannot grow larger than `maxSize`
    */
-  def apply[K, V](maxSize: Int): MutableLRU[K, V] = {
-
-    implicit val keyOrd: Ordering[(Long, K)] = new Ordering[(Long, K)] {
-      def compare(a: (Long, K), b: (Long, K)) = a._1 compare b._1
-    }
-
-    new MutableLRU(maxSize, Map[K, (Long, V)](), SortedSet[(Long, K)]())
+  def apply[K, V](maxSize: Int) = {
+    new MutableLRU(maxSize, Map[K, (Long, V)](), LongMap[(K, Long)]())
   }
 }
 
@@ -29,8 +27,9 @@ object MutableLRU {
  * An mutable key/value store that evicts the least recently accessed elements
  * to stay constrained in a maximum size bound.
  */
-class MutableLRU[K, V] private (maxSize: Int, map: Map[K, (Long, V)], ord: SortedSet[(Long, K)])(implicit cmp: Ordering[(Long, K)]) {
+class MutableLRU[K, V] private (maxSize: Int, map: Map[K, (Long, V)], ord: LongMap[(K, Long)]) {
 
+  val insertIdx = new AtomicLong()
   /**
    * the number of entries in the cache
    */
@@ -42,7 +41,19 @@ class MutableLRU[K, V] private (maxSize: Int, map: Map[K, (Long, V)], ord: Sorte
    */
   def keySet: Set[K] = Set() ++ map.keySet
 
-  def idx: Long = if (ord.isEmpty) 0 else ord.firstKey._1
+  private def lessThan(a: (K, Long), b: (K, Long)) = a._2 < b._2
+
+  private def moreThan(a: (K, Long), b: (K, Long)) = a._2 > b._2
+
+  private def firstKey = ord.values.toSeq.sortWith(lessThan).head
+
+  private def lastKey = ord.values.toSeq.sortWith(moreThan).head
+
+  def leastRecentEntry: Option[K] = if (ord.isEmpty) None else Some(firstKey._1)
+
+  def mostRecentEntry: Option[K] = if (ord.isEmpty) None else Some(lastKey._1)
+
+  private def idx: Long = if (ord.isEmpty) 0 else firstKey._2
 
   /**
    * add operation
@@ -51,22 +62,15 @@ class MutableLRU[K, V] private (maxSize: Int, map: Map[K, (Long, V)], ord: Sorte
    */
   def +(kv: (K, V)): Option[(K, V)] = {
     val (key, value) = kv
-    getWithIdx(key) match {
-      case Some((k, v)) => {
-        val newIdx = k
-        map.put(key, (newIdx, value))
-      }
-      case None => {
-        map.put(key, (idx, value))
-      }
-    }
+    val index = insertIdx.incrementAndGet()
+    map.put(key, (index, value))
+    ord.put(index, (key, 0L))
     // Do we need to remove an old key?
     if (size > maxSize) {
-      println("evicting from: " + ord)
-      val lru = ord.firstKey._2
+      val lru = firstKey._1
       val evicted = map.get(lru)
       evicted.flatMap(x => {
-        destroy(lru)
+        destroy(lru, x._1)
         Some((lru, x._2))
       })
     } else {
@@ -75,22 +79,15 @@ class MutableLRU[K, V] private (maxSize: Int, map: Map[K, (Long, V)], ord: Sorte
   }
 
   /**
-   * If the key is present in the cache, return the pair of Some(value)
+   * If the key is present in the cache, return Some(value)
    * Increment the counter for the key.
    * Else, return None.
    */
-  private def getWithIdx(key: K): Option[(Long, V)] = {
-    val opt = map.get(key)
-    opt.map(x => {
-      val eKey = (x._1, key)
-      val eVal = x._2
-      incrementAccess(eKey, eVal)
-      x
-    })
-  }
-
   def get(key: K): Option[V] = {
-    getWithIdx(key).map(_._2)
+    map.get(key).map(e => {
+      incrementAccess(e._1)
+      e._2
+    })
   }
 
   /**
@@ -101,31 +98,26 @@ class MutableLRU[K, V] private (maxSize: Int, map: Map[K, (Long, V)], ord: Sorte
   def -(k: K): Option[V] = {
     val opt = map.get(k)
     opt.map(x => {
-      destroy(k)
+      destroy(k, x._1)
       x._2
     })
   }
 
-  private def incrementAccess(eKey: (Long, K), eVal: V) {
-    ord.find(x => x._2 == eKey).map {
-      entry =>
-        {
-          val updated = (entry._1 + 1, entry._2)
-          ord ++ ((ord diff Set(entry)) ++ Set(updated)) //handle ord
-          map.put(updated._2, (updated._1, eVal)) //handle map
-        }
+  private def incrementAccess(ordKey: Long) {
+    ord.get(ordKey).map(e => ord.put(ordKey, (e._1, e._2 + 1)))
+  }
+
+  private def destroy(mapKey: K, ordKey: Long) {
+    ord.get(ordKey).map { kRef =>
+      map.remove(kRef._1)
+      ord.remove(ordKey)
     }
   }
 
-  private def destroy(key: K) {
-    ord.find(x => x._2 == key).map {
-      entry =>
-        {
-          ord ++ (ord diff Set(entry)) //handle ord
-          map.remove(key) //handle map
-        }
-    }
+  def toMap: scala.collection.immutable.Map[K, V] = {
+    //return a copy of the underlying map
+    scala.collection.immutable.Map[K, V]() ++ this.map.map(x => x._1 -> x._2._2)
   }
 
-  override def toString = { "MutableLRU(" + map.toList.mkString(",\n") + ")" }
+  override def toString = { s"MutableLRU(size=$size, lru=$leastRecentEntry, mru=$mostRecentEntry)" }
 }

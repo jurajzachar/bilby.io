@@ -12,7 +12,10 @@ import com.blueskiron.bilby.io.core.util.MutableLRU
 class AuthWorker(env: AuthenticationEnvironment) extends Actor with ActorLogging {
 
   implicit val executionContext = context.dispatcher
-
+  implicit object CredentialsOrdering extends Ordering[Credentials] {
+    def compare(a: Credentials, b: Credentials) = 
+      (a.identifier + a.password) compare (b.identifier + b.password)
+  }
   val cache: MutableLRU[Credentials, User] = MutableLRU(1000) //TODO make me configurable
   
   def receive = {
