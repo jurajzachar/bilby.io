@@ -13,11 +13,11 @@ trait DefaultTestDatabase extends PostgresDatabase with SlickPgJdbcProfileProvid
   
   import jdbcProfile.api._
 
-  override val configPath = "test_db"
+  override val configPath = "bilby.io.test-db"
   
-  private lazy val config = ConfigFactory.load()
+  private lazy val config = ConfigFactory.load().getConfig(configPath)
   
-  implicit def defaultTimeout = FiniteDuration(config.getInt("test_db.defaultTimeout"), "seconds")
+  implicit def defaultTimeout = FiniteDuration(config.getInt("defaultTimeout"), "seconds")
   
   def cleanUp() {
     import Tables.profile.api._

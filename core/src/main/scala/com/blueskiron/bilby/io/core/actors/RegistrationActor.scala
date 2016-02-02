@@ -26,16 +26,16 @@ import play.api.mvc.Result
 
 object RegistrationServiceImpl extends RegistrationService {
 
-  def authProps(authEnv: AuthenticationEnvironment): Props = Props(new RegWorker(authEnv))
+  def regProps(authEnv: AuthenticationEnvironment): Props = Props(new RegWorker(authEnv))
 
   def startOn(system: ActorSystem, authEnv: AuthenticationEnvironment) = {
     //this is counter-intuitive as workers may be created separately, prior 
     // and on different systems to the parent service
     //in this scenario (development), they are created on one system.
-    system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w1")
-    system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w2")
-    system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w3")
-    system.actorOf(authProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w4")
+    system.actorOf(regProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w1")
+    system.actorOf(regProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w2")
+    system.actorOf(regProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w3")
+    system.actorOf(regProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w4")
     //finally -> interceptor (parent)
     system.actorOf(Props[RegistrationActor]().withDispatcher("dbio-dispatch"), name = "reg")
   }
@@ -59,20 +59,20 @@ class RegWorker(env: AuthenticationEnvironment) extends Actor {
 
   import RegistrationServiceImpl._
   import akka.event.Logging;
-  
+
   val log = Logging(context.system, this)
   implicit val executionContext = context.dispatcher
-  
+
   def receive = {
     case rc: RegistrationRequest => pipe(registerNewUser(rc)) to sender
-	  case msg: Any                => sender ! ("yay! " + self.path.name + " is alive!")
+    case msg: Any                => sender ! ("yay! " + self.path.name + " is alive!")
   }
 
-  private def registerNewUser(registrationRequest: RegistrationRequest): Future[AuthenticatorResult] = {
+  private [this] def registerNewUser(registrationRequest: RegistrationRequest): Future[AuthenticatorResult] = {
     implicit val requestHeader = registrationRequest.header
     val data = registrationRequest.data
     val user = data.user
-    log.debug("registering a new user={} with email={}", user.username, data.email)
+    log.debug("registering a new user={} with email={} and password={}", user.username, data.email, data.password)
     val linfo = LoginInfo(CredentialsProvider.ID, data.email)
     val authInfo = env.hasher.hash(data.password)
 
@@ -85,13 +85,15 @@ class RegWorker(env: AuthenticationEnvironment) extends Actor {
       //FIXME!
       //avatar <- env.avatarService.retrieveURL(data.email)
       //outcome <- env.userService.create(user, profile.copy(avatarUrl = avatar))
-      outcome <- env.userService.create(user, profile.copy(avatarUrl = None))
-    } yield outcome
+      authInfo <- env.authInfoService.save(linfo, authInfo) 
+      regOutcome <- env.userService.create(user, profile.copy(avatarUrl = None))
+      
+    } yield regOutcome
 
     val authPromise = Promise[AuthenticatorResult]()
     dbAction.onComplete {
-      case Success(regOut) => regOut.result match {
-        case Left(user) =>  authPromise.completeWith(registerAndPublishEvents(user, linfo, registrationRequest.onSuccess))
+      case Success(outcome) => outcome.result match {
+        case Left(user) => authPromise.completeWith(registerAndPublishEvents(user, linfo, registrationRequest.onSuccess))
         case Right(rejection) => {
           authPromise.success(
             AuthenticatorResult(
@@ -107,7 +109,7 @@ class RegWorker(env: AuthenticationEnvironment) extends Actor {
     authPromise.future
   }
 
-  private def registerAndPublishEvents(user: User, linfo: LoginInfo, onSuccess: Result)(implicit rh: RequestHeader) = {
+  private [this] def registerAndPublishEvents(user: User, linfo: LoginInfo, onSuccess: Result)(implicit rh: RequestHeader) = {
     implicit val executionContext = env.executionContext
     for {
       cookieAuth <- env.authenticatorService.create(linfo)

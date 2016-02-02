@@ -69,13 +69,21 @@ class DatabaseServiceSpec extends FlatSpec with DbSuite {
   }
 
 // disabled
-//  "UserService" must "be able to update existing user profiles" in {
-//    val expectedCount = awaitResult(userService.count)
-//    log.debug("existing user count: {}", expectedCount) 
-//    val workB = for (entry <- fixtures.usersWithProfiles(fixtures.moreUserProfiles)) yield {
-//      
-//      awaitResult(userService.handle(entry._1, entry._2.head, false))
-//    }
+  "PasswordService" must "be able to able to find LoginInfo" in {
+    val usersWithCredentials = fixtures.usersWithProfiles()
+    .map(x => x._1 -> x._2.filter(profile => profile.loginInfo.providerID.equals(SupportedAuthProviders.CREDENTIALS.id)))
+    .filter(!_._2.isEmpty)
+    val expectedCount = usersWithCredentials.size
+    log.debug("existing user count: {}", expectedCount) 
+//    val workB = for (user <- usersWithCredentials) yield {
+//      awaitResult {
+//        passwordInfoService.find(user._2.head.loginInfo).flatMap { 
+//          case Some(passwordInfo) => passwordInfo.  
+//        
+//        }
+//      ???
+//      }
+//    
 //    workB.size shouldBe expectedCount
-//  }
+  }
 }

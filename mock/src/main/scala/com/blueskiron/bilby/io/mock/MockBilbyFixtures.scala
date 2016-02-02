@@ -18,7 +18,7 @@ import org.joda.time.LocalDateTime
  */
 object MockBilbyFixtures extends JsonConversions {
   
-  val dbConfigPath = "test_db"
+  val dbConfigPath = "bilby.io.test-db"
     
   //read mock data from the fs
   val userProfiles = Json.parse(Source.fromURL(getClass.getResource("/mock_data.json")).mkString).validate[Seq[UserProfile]].get
@@ -41,7 +41,7 @@ object MockBilbyFixtures extends JsonConversions {
   def mockSize = users.size
 
   //create map of User -> UserProfiles
-  def usersWithProfiles(profiles: Seq[UserProfile] = userProfiles) = {
+  def usersWithProfiles(profiles: Seq[UserProfile] = userProfiles): Map[User, Seq[UserProfile]] = {
     for {
       (user, userProfile) <- users.zip(profiles)
     } yield user.copy(profiles = Seq(userProfile.loginInfo)) -> Seq(userProfile) }.toMap

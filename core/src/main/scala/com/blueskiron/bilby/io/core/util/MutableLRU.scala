@@ -89,6 +89,13 @@ class MutableLRU[K, V] private (maxSize: Int, map: Map[K, (Long, V)], ord: LongM
       e._2
     })
   }
+  
+  /**
+   * Check if the given key is contained in this cache.
+   * @param key
+   * @return
+   */
+  def contains(key: K): Boolean = map.contains(key)
 
   /**
    * If the key is present in the cache, returns the pair of

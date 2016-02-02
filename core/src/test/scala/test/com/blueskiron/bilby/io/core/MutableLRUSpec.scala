@@ -12,7 +12,7 @@ class MutableLRUSpec extends FlatSpec with Matchers {
     def compare(a: Key, b: Key) = a.x compare b.x
   }
 
-  private val maxSize = 1000000 
+  private val maxSize = 10 * 10 * 10 * 10 *10 * 10 
 
   private val cache: MutableLRU[Key, Value] = MutableLRU[Key, Value](maxSize);
 
