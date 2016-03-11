@@ -1,6 +1,5 @@
 package com.blueskiron.bilby.io.api.model
 
-import play.api.libs.functional.syntax.functionalCanBuildApplicative
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.functional.syntax.unlift
 import play.api.libs.json._

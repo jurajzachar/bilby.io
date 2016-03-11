@@ -8,8 +8,13 @@ object Build extends Build {
   lazy val api = Project(
     id = "api",
     base = file("api"),
-    settings = Project.defaultSettings ++ Seq(
+    settings = Project.defaultSettings 
+      ++ Seq(
       scalaVersion := "2.11.7",
+      resolvers ++= Seq(
+        "Atlassian Releases" at "https://maven.atlassian.com/public",
+        "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+      ),
       libraryDependencies ++= apiDeps))
 
   lazy val mock = Project(

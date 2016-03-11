@@ -7,13 +7,15 @@ name := "bilby.io"
 organization := "com.blueskiron"
 
 
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
-
 lazy val commonSettings = Seq(
   javaOptions += "-Xmx2G",
   fork in Test := false,
   scalaVersion in ThisBuild := "2.11.7",
-  version in ThisBuild := "0.0.1"
+  version in ThisBuild := "1.0.0",
+  resolvers ++=Seq(
+    "Atlassian Releases" at "https://maven.atlassian.com/public",
+    "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+    )
 )
 
 lazy val webapp = (project in file("webapp"))

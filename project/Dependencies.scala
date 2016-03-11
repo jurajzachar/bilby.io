@@ -5,10 +5,10 @@ object Dependencies {
   // Versions
   object Version {
     val logback = "1.1.3"
-    val akka = "2.3.11"
+    val akka = "2.4.2"
     val slick = "3.1.1"
     val config = "1.3.0"
-    val play = "2.4.6"
+    val play = "2.5.0"
     val orientDbEmbedded = "0.1.0"
     val playSilhouette = "3.0.4"
   }
@@ -17,9 +17,9 @@ object Dependencies {
   val logbackClassic = "ch.qos.logback" % "logback-classic" % Version.logback
   val config = "com.typesafe" % "config" % Version.config
   
-  val scalaTest = "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+  val scalaTest = "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test"
   val mockito = "org.mockito" % "mockito-core" % "1.10.19" % "test"
-  val scalaTestPlay = "org.scalatestplus" %% "play" % "1.4.0" % "test"
+  val scalaTestPlay = "com.typesafe.play" % "play-test_2.11" % Version.play % "test"
   
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % Version.akka
   val akkaLog = "com.typesafe.akka" %% "akka-slf4j" % Version.akka
