@@ -24,7 +24,7 @@ trait PasswordInfoDao {
 
     import cake.jdbcProfile.api._
 
-    type PasswordInfoData = (LoginInfo, PasswordInfo, LocalDateTime)
+    type PasswordInfoData = (PasswordInfo, LoginInfo, LocalDateTime)
     
     def findById(linfo: LoginInfo): Future[Option[PasswordInfo]] = {
       import ModelImplicits.ToModel
@@ -34,12 +34,21 @@ trait PasswordInfoDao {
     
     def upsert(data: PasswordInfoData): Future[PasswordInfo] = {
       import ModelImplicits.ToDataRow
-      val passwordInfoRow =  ToDataRow.rowFromPasswordInfo(data._2, data._1, data._3)
-      cake.runAction(Tables.PasswordInfo.insertOrUpdate(passwordInfoRow)).flatMap { 
+      val passwordInfoRow =  ToDataRow.rowFromPasswordInfo(data._1, data._2, data._3)
+      val q = getByIdQuery(data._2.providerID, data._2.providerKey)
+      val insertIfExists = q.exists.result.flatMap { exists =>
+        //update
+        if(!exists) {
+          Tables.PasswordInfo += passwordInfoRow 
+        } else {
+          q.update(passwordInfoRow)
+        }
+      }
+      cake.commit(insertIfExists).flatMap { 
          //must affect one row only  
-         case 1 => Future.successful(data._2) 
+         case 1 => Future.successful(data._1) 
          case _ => Future.failed(new Exception("failed to save password info: " + data)) 
-        }  
+      }
     }
     
     /**
@@ -56,5 +65,6 @@ trait PasswordInfoDao {
     private def getByIdQuery(providerId: Rep[String], providerKey: Rep[String]) = {
       for (pwinfo <- Tables.PasswordInfo.filter { x => x.provider === providerId && x.key === providerKey }) yield pwinfo
     }
+    
   }
 }

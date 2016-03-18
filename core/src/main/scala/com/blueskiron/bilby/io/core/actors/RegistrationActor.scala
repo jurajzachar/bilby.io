@@ -1,12 +1,13 @@
 package com.blueskiron.bilby.io.core.actors
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.util.Failure
 import scala.util.Success
 
 import com.blueskiron.bilby.io.api.model.User
+import com.blueskiron.bilby.io.api.service.BackedByActorService
+import com.blueskiron.bilby.io.api.service.ConfiguredService
 import com.blueskiron.bilby.io.api.service.RegistrationService
 import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
 import com.mohiva.play.silhouette.api.LoginInfo
@@ -15,60 +16,28 @@ import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 
 import akka.actor.Actor
 import akka.actor.ActorLogging
-import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.actor.Props
+import akka.actor.actorRef2Scala
 import akka.pattern.pipe
-import akka.pattern.PipeToSupport
-import akka.routing.FromConfig
+import akka.routing.SmallestMailboxPool
+import javax.inject.Singleton
 import play.api.mvc.RequestHeader
 import play.api.mvc.Result
 
-object RegistrationServiceImpl extends RegistrationService {
-
-  def regProps(authEnv: AuthenticationEnvironment): Props = Props(new RegWorker(authEnv))
-
-  def startOn(system: ActorSystem, authEnv: AuthenticationEnvironment) = {
-    //this is counter-intuitive as workers may be created separately, prior 
-    // and on different systems to the parent service
-    //in this scenario (development), they are created on one system.
-    system.actorOf(regProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w1")
-    system.actorOf(regProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w2")
-    system.actorOf(regProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w3")
-    system.actorOf(regProps(authEnv).withDispatcher("dbio-dispatch"), name = "reg_w4")
-    //finally -> interceptor (parent)
-    system.actorOf(Props[RegistrationActor]().withDispatcher("dbio-dispatch"), name = "reg")
-  }
-}
-
-class RegistrationActor extends Actor with ActorLogging {
-
-  private val router: ActorRef = {
-
-    context.actorOf(FromConfig.props(), "reg_router")
-  }
-
-  def receive = {
-    // just route the message to the routees...
-    case msg: Any => router.tell(msg, sender())
-  }
-
-}
-
-class RegWorker(env: AuthenticationEnvironment) extends Actor {
+class RegistrationActor(env: AuthenticationEnvironment) extends Actor with ActorLogging {
 
   import RegistrationServiceImpl._
   import akka.event.Logging;
 
-  val log = Logging(context.system, this)
   implicit val executionContext = context.dispatcher
 
   def receive = {
     case rc: RegistrationRequest => pipe(registerNewUser(rc)) to sender
-    case msg: Any                => sender ! ("yay! " + self.path.name + " is alive!")
+    case msg: Any => sender ! ("yay! " + self.path.name + " is alive!")
   }
 
-  private [this] def registerNewUser(registrationRequest: RegistrationRequest): Future[AuthenticatorResult] = {
+  private[this] def registerNewUser(registrationRequest: RegistrationRequest): Future[AuthenticatorResult] = {
     implicit val requestHeader = registrationRequest.header
     val data = registrationRequest.data
     val user = data.user
@@ -85,9 +54,9 @@ class RegWorker(env: AuthenticationEnvironment) extends Actor {
       //FIXME!
       //avatar <- env.avatarService.retrieveURL(data.email)
       //outcome <- env.userService.create(user, profile.copy(avatarUrl = avatar))
-      authInfo <- env.authInfoService.save(linfo, authInfo) 
+      authInfo <- env.authInfoService.save(linfo, authInfo)
       regOutcome <- env.userService.create(user, profile.copy(avatarUrl = None))
-      
+
     } yield regOutcome
 
     val authPromise = Promise[AuthenticatorResult]()
@@ -109,7 +78,7 @@ class RegWorker(env: AuthenticationEnvironment) extends Actor {
     authPromise.future
   }
 
-  private [this] def registerAndPublishEvents(user: User, linfo: LoginInfo, onSuccess: Result)(implicit rh: RequestHeader) = {
+  private[this] def registerAndPublishEvents(user: User, linfo: LoginInfo, onSuccess: Result)(implicit rh: RequestHeader) = {
     implicit val executionContext = env.executionContext
     for {
       cookieAuth <- env.authenticatorService.create(linfo)
@@ -122,7 +91,20 @@ class RegWorker(env: AuthenticationEnvironment) extends Actor {
       result
     }
   }
+  //FIXME
+  //override def postStop = env.userService.closeDatabase()
+}
 
-  override def postStop = env.userService.shutDown()
+object RegistrationServiceImpl extends RegistrationService with ConfiguredService with BackedByActorService {
 
+  override def actorName = "reg"
+
+  def regProps(authEnv: AuthenticationEnvironment): Props = Props(new RegistrationActor(authEnv))
+
+  def startOn(system: ActorSystem, authEnv: AuthenticationEnvironment) = {
+    system.actorOf(
+      regProps(authEnv)
+        .withDispatcher("dbio-dispatch")
+        .withRouter(SmallestMailboxPool(config.getInt(regWorkersKey))), name = actorName)
+  }
 }

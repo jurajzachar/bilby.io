@@ -18,8 +18,8 @@ import com.blueskiron.bilby.io.api.service.RegistrationService
 import com.blueskiron.bilby.io.api.model.SupportedAuthProviders.CREDENTIALS
 
 @Singleton
-class UserService[T <: PostgresDatabase] @Inject() (override protected val cake: T)
-    extends IdentityService[User] with ClosableDatabase[T] 
+class UserService[T <: PostgresDatabase] @Inject() (protected val cake: T)
+    extends IdentityService[User] 
     with RegistrationService
     with UserDao {
     

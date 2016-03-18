@@ -29,9 +29,9 @@ trait DefaultTestDatabase extends PostgresDatabase with SlickPgJdbcProfileProvid
         //...
       )
     }
-    //clean up users, userprofiles and visitors (unique username constraint may fail next test)
     val tasks = List(
       Tables.Users.filter { u => u.id === u.id }.delete,
+      Tables.PasswordInfo.filter { pi => pi.key === pi.key }.delete,
       Tables.UserProfiles.filter { up => up.provider === up.provider }.delete
       //...  
     )

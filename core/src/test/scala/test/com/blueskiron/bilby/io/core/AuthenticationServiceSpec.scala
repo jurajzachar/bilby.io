@@ -1,31 +1,35 @@
 package test.com.blueskiron.bilby.io.core
 
-import akka.testkit.TestKit
-import akka.testkit.ImplicitSender
-import com.blueskiron.bilby.io.db.testkit.DefaultTestDatabase
-import org.scalatest.mock.MockitoSugar
+import scala.concurrent.Await
+
 import org.scalatest.BeforeAndAfterAll
-import akka.testkit.DefaultTimeout
 import org.scalatest.Matchers
 import org.scalatest.WordSpecLike
-import akka.actor.ActorSystem
-import com.blueskiron.bilby.io.db.service.UserService
-import com.blueskiron.bilby.io.db.PostgresDatabase
-import com.google.inject.Guice
-import com.blueskiron.bilby.io.mock.MockBilbyFixtures
-import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
-import com.blueskiron.bilby.io.core.actors.RegistrationServiceImpl
-import com.blueskiron.bilby.io.core.auth.module.CoreModule
-import play.api.libs.ws.WSClient
-import com.google.inject.util.Modules
+import org.scalatest.mock.MockitoSugar
 import org.slf4j.LoggerFactory
-import com.blueskiron.bilby.io.core.actors.AuthenticationServiceImpl
-import com.mohiva.play.silhouette.api.services.AuthenticatorResult
-import scala.concurrent.Await
-import com.blueskiron.bilby.io.api.model.User
-import com.blueskiron.bilby.io.api.model.SupportedAuthProviders
 
-class CoreServicesSuite(testSystem: ActorSystem) extends TestKit(testSystem)
+import com.blueskiron.bilby.io.core.actors.AuthenticationServiceImpl
+import com.blueskiron.bilby.io.core.actors.RegistrationServiceImpl
+import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
+import com.blueskiron.bilby.io.core.auth.module.CoreModule
+import com.blueskiron.bilby.io.db.PostgresDatabase
+import com.blueskiron.bilby.io.db.service.UserService
+import com.blueskiron.bilby.io.db.testkit.DefaultTestDatabase
+import com.blueskiron.bilby.io.mock.MockBilbyFixtures
+import com.google.inject.Guice
+import com.google.inject.util.Modules
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
+
+import akka.actor.ActorSystem
+import akka.actor.actorRef2Scala
+import akka.testkit.DefaultTimeout
+import akka.testkit.ImplicitSender
+import akka.testkit.TestKit
+import javax.inject.Singleton
+import net.codingwell.scalaguice.InjectorExtensions
+import play.api.libs.ws.WSClient
+
+class AuthenticationServicesSpec(testSystem: ActorSystem) extends TestKit(testSystem)
     with DefaultTestDatabase
     with DefaultTimeout
     with ImplicitSender
@@ -34,7 +38,7 @@ class CoreServicesSuite(testSystem: ActorSystem) extends TestKit(testSystem)
     with MockitoSugar
     with BeforeAndAfterAll {
 
-  def this() = this(ActorSystem("CoreServiceSpec"))
+  def this() = this(ActorSystem("AuthServiceSpec"))
 
   val log = LoggerFactory.getLogger(this.getClass)
   val fixtures = MockBilbyFixtures
@@ -49,10 +53,7 @@ class CoreServicesSuite(testSystem: ActorSystem) extends TestKit(testSystem)
   val userService = injector.instance[UserService[PostgresDatabase]]
   val regService = RegistrationServiceImpl.startOn(testSystem, authEnv)
   val authService = AuthenticationServiceImpl.startOn(testSystem, authEnv)
-  //get some test data
-  val sampleSize = 10
-  val registrations = TestUtils.regRequests(sampleSize)
-  val authentications = TestUtils.authRequests(registrations)
+  val coreTestData = new CoreTestData(0) //take the whole mock size
   
   override def beforeAll {
     cleanUp()
@@ -72,29 +73,29 @@ class CoreServicesSuite(testSystem: ActorSystem) extends TestKit(testSystem)
   "RegistrationService" must {
     "sign up a valid user" in {
       userService.count.map(_ shouldBe 0)
-      registrations foreach { regService ! _ }
-      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, sampleSize) { //max, min, total nr. messages
+      coreTestData.registrationRequests foreach { regService ! _ }
+      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, coreTestData.sampleSize) { //max, min, total nr. messages
         case res: AuthenticatorResult =>
           log.info("received={}", res); res //OK 
         case msg: Any => log.error("received={}", msg)
       }
-      collected.size shouldBe sampleSize
+      collected.size shouldBe coreTestData.sampleSize
     }
   }
 
-//  "AuthenticationService" must {
-//    "authenticate a registered user" in {
-//      authentications foreach { authService ! _ }
-//      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, sampleSize) { //max, min, total nr. messages
-//        case Some(user) =>
-//          log.info("received authenticated user ={}", user); //OK 
-//        case None => log.info("authentication for user {?} failed")
-//        
-//        case msg: Any => log.error("unexpected response={}", msg)
-//      }
-//      collected.size shouldBe sampleSize
-//    }
-//  }
+  "AuthenticationService" must {
+    "authenticate a registered user" in {
+      coreTestData.authenticationRequests foreach { authService ! _ }
+      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, coreTestData.sampleSize) { //max, min, total nr. messages
+        case Some(user) =>
+          log.info("received authenticated user ={}", user); //OK 
+        case None => log.info("authentication for user {?} failed")
+        
+        case msg: Any => log.error("unexpected response={}", msg)
+      }
+      collected.size shouldBe coreTestData.sampleSize
+    }
+  }
 
   override def afterAll {
     Await.ready(closeDatabase(), defaultTimeout)

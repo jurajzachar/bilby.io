@@ -15,26 +15,24 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PasswordInfoService [T <: PostgresDatabase] @Inject() (override val cake: T) extends DelegableAuthInfoDAO[PasswordInfo] with ClosableDatabase[T]
-with PasswordInfoDao {
-  
+class PasswordInfoService[T <: PostgresDatabase] @Inject() (protected val cake: T) extends DelegableAuthInfoDAO[PasswordInfo]
+    with PasswordInfoDao {
+
   private val logger = LoggerFactory.getLogger(getClass)
-  
+
   implicit val executionContext: ExecutionContext = cake.database.executor.executionContext
-  
+
   lazy val dao = initPasswordInfoDao(cake)
-  
+
   override def find(loginInfo: LoginInfo) = dao.findById(loginInfo)
-  
-  override def save(loginInfo: LoginInfo, authInfo: PasswordInfo) = {
-    logger.debug("saving new loginInfo={}", loginInfo)
-    dao.upsert((loginInfo, authInfo, new LocalDateTime()))
-  }
-  
-  override def add(loginInfo: LoginInfo, authInfo: PasswordInfo) = dao.upsert((loginInfo, authInfo, new LocalDateTime()))
-  
-  override def update(loginInfo: LoginInfo, authInfo: PasswordInfo) = dao.upsert((loginInfo, authInfo, new LocalDateTime()))
-  
+
+  //TODO: SILHOUETTE: what is the difference between save and add?
+  override def save(loginInfo: LoginInfo, authInfo: PasswordInfo) = dao.upsert((authInfo, loginInfo, new LocalDateTime()))
+
+  override def add(loginInfo: LoginInfo, authInfo: PasswordInfo) = dao.upsert((authInfo, loginInfo, new LocalDateTime()))
+
+  override def update(loginInfo: LoginInfo, authInfo: PasswordInfo) = dao.upsert((authInfo, loginInfo, new LocalDateTime()))
+
   override def remove(loginInfo: LoginInfo) = dao.removeById(loginInfo).map { x => logger.info("removed {} loginInfo={}", x, loginInfo) }
   
 }

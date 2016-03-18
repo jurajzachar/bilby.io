@@ -13,8 +13,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SessionInfoService[T <: PostgresDatabase] @Inject() (override protected val cake: T)
-    extends AuthenticatorDAO[CookieAuthenticator] with ClosableDatabase[T]
+class SessionInfoService[T <: PostgresDatabase] @Inject() (protected val cake: T)
+    extends AuthenticatorDAO[CookieAuthenticator]
     with SessionInfoDao {
 
   implicit val executionContext: ExecutionContext = cake.database.executor.executionContext

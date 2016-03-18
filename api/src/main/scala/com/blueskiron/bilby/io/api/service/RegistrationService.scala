@@ -5,7 +5,7 @@ import play.api.mvc.RequestHeader
 import com.blueskiron.bilby.io.api.model.UserProfile
 import play.api.mvc.Result
 
-trait RegistrationService {
+trait RegistrationService extends ConfiguredService {
 
   case class RegistrationData(
     user: User,
@@ -74,5 +74,4 @@ trait RegistrationService {
   def outcomeFromUser(user: User) = RegistrationOutcome(Left(user))
 }
 
-//pimp my library
-object RegistrationService extends RegistrationService
+object RegistrationService extends RegistrationService 

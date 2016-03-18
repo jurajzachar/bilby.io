@@ -3,9 +3,10 @@ package test.com.blueskiron.bilby.io.core
 import org.scalatest.FlatSpec
 import com.blueskiron.bilby.io.core.util.MutableLRU
 import org.scalatest._
+import org.slf4j.LoggerFactory
 
 class MutableLRUSpec extends FlatSpec with Matchers {
-
+  val log = LoggerFactory.getLogger(getClass)
   case class Key(x: Int)
   case class Value(x: String)
   implicit val keyOrd: Ordering[Key] = new Ordering[Key] {
@@ -26,7 +27,7 @@ class MutableLRUSpec extends FlatSpec with Matchers {
           Value(java.util.UUID.randomUUID().toString())))
     }
 
-    println("final cahe: " + cache)
+   log.info("final cahe: " + cache)
     cache.size shouldBe maxSize
   }
 
@@ -44,7 +45,7 @@ class MutableLRUSpec extends FlatSpec with Matchers {
         cache.get(Key(i))
       }
     }
-    println("final cahe: " + cache)
+    log.info("final cahe: " + cache)
     cache.mostRecentEntry shouldBe Some(chosenKey)
   }
 
@@ -54,7 +55,7 @@ class MutableLRUSpec extends FlatSpec with Matchers {
       for (i <- 1 to (maxSize * 2)) {
         cache - (Key(i))
       }
-      println("final cahe: " + cache)
+      log.info("final cahe: " + cache)
       cache.size shouldBe 0
     }
 }

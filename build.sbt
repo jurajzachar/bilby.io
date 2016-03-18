@@ -24,7 +24,8 @@ lazy val webapp = (project in file("webapp"))
   	libraryDependencies ++= webappDeps,
   	routesGenerator := InjectedRoutesGenerator,
   	LessKeys.compress in Assets := true,
-  	pipelineStages := Seq(digest, gzip),
+  	pipelineStages := Seq(rjs, digest, gzip),
+  	RjsKeys.mainModule := "main",
   	includeFilter in (Assets, LessKeys.less) := "*.less"))
   .dependsOn(api, core, mock % "test->test")
   .enablePlugins(PlayScala)

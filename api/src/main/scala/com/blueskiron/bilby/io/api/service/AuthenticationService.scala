@@ -10,7 +10,7 @@ import play.api.mvc.Result
  * @author juri
  *
  */
-trait AuthenticationService {
+trait AuthenticationService extends ConfiguredService with BackedByActorService {
   
   abstract class AuthRequest {
     
@@ -39,4 +39,6 @@ trait AuthenticationService {
   }
 }
 
-object AuthenticationService extends AuthenticationService
+object AuthenticationService extends AuthenticationService {
+  override val actorName = "auth"
+}

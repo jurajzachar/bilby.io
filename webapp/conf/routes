@@ -1,15 +1,46 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
+# Home
+GET		/								controllers.Application.index
+GET		/myaccount						controllers.Application.myAccount
+GET		/lang/$lang<(en|de)>			controllers.Application.selectLang(lang: String)
 
-# Home page
-GET     /                           controllers.Application.index
+# Registration
+GET		/register					controllers.Registration.register
+POST	/register					controllers.Registration.handleRegister
+GET		/register/:token			controllers.Registration.signUp(token: String)
+GET		/reset-password				controllers.Registration.forgotPassword
+POST	/reset-password				controllers.Registration.handleForgotPassword
+GET		/reset-password/:token		controllers.Registration.resetPassword(token: String)
+POST	/reset-password/:token		controllers.Registration.handleResetPassword(token: String)
+GET		/change-password			controllers.Registration.changePassword
+POST	/change-password			controllers.Registration.handleChangePassword
+
+# Authentication
+GET		/signin						controllers.Authentication.signIn
+POST	/authenticate				controllers.Authentication.authenticate
+GET		/signout					controllers.Authentication.signOut
+GET		/denied						controllers.Authentication.accessDenied
+
+
+# Search Service	
+GET		/search							controllers.Search.search  	
+GET		/search/tta/:dataset			controllers.Search.typeAhead(dataset: String, token: Option[String])  
+GET		/search/tta/prefetch/:dataset	controllers.Search.prefetchDataset(dataset: String)  	
+GET 	/search/user/:userId			controllers.Search.searchUser(userId: String)
+GET 	/search/tag/:name				controllers.Search.searchTag(name: String)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file               	controllers.Assets.at(path="/public", file)
 
 # Map static resources from the /public folder to the *versioned* /assets URL path
-GET     /vassets/*file              controllers.Assets.versioned(path="/public", file: Asset)
+GET     /vassets/*file              	controllers.Assets.versioned(path="/public", file: Asset)
 
-# WebJars
-GET     /webjars/*file          	controllers.WebJarAssets.at(file)
+GET		/lib/*file						controllers.PublicAssets.lib(path="/public/lib", file: Asset)
+GET		/css/*file						controllers.PublicAssets.css(path="/public/stylesheets", file: Asset)
+GET		/js/*file						controllers.PublicAssets.js(path="/public/javascripts", file: Asset)
+GET		/img/*file						controllers.PublicAssets.img(path="/public/images", file: Asset)
+GET		/common/css/*file				controllers.PublicAssets.commonCss(path="/public/lib/common/stylesheets", file: Asset)
+GET		/common/js/*file				controllers.PublicAssets.commonJs(path="/public/lib/common/javascripts", file: Asset)
+GET		/common/img/*file				controllers.PublicAssets.commonImg(path="/public/lib/common/images", file: Asset)
+
+# javascript routes
+GET		/jsroutes.js				controllers.JsRoutes.getAll

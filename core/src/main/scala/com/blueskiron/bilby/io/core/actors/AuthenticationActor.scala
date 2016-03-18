@@ -1,73 +1,81 @@
 package com.blueskiron.bilby.io.core.actors
 
-import akka.actor.Actor
-import akka.actor.ActorLogging
-import akka.pattern.pipe
-import akka.pattern.PipeToSupport
-import com.mohiva.play.silhouette.api.util.Credentials
-import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
+import scala.concurrent.Promise
+
 import com.blueskiron.bilby.io.api.model.User
+import com.blueskiron.bilby.io.api.service.AuthenticationService
+import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
 import com.blueskiron.bilby.io.core.util.MutableLRU
 import com.mohiva.play.silhouette.api.LoginInfo
-import scala.concurrent.Promise
-import com.blueskiron.bilby.io.api.service.AuthenticationService
-import play.api.mvc.RequestHeader
-import com.mohiva.play.silhouette.api.LoginEvent
+import com.mohiva.play.silhouette.api.util.Credentials
+
+import AuthenticationServiceImpl.FromCache
+import AuthenticationServiceImpl.ToCache
+import akka.actor.Actor
+import akka.actor.ActorLogging
+import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.actor.Props
-import akka.routing.SmallestMailboxPool
-import com.typesafe.config.ConfigFactory
-import akka.routing.SmallestMailboxPool
+import akka.actor.actorRef2Scala
+import akka.pattern.pipe
+import akka.routing.FromConfig
+import javax.inject.Singleton
 
-object AuthenticationServiceImpl extends AuthenticationService {
- val config = ConfigFactory.load().getConfig("bilby.io.core")
-  
- def authProps(authEnv: AuthenticationEnvironment): Props = {
-   Props(new AuthWorker(authEnv, config.getInt("authCacheSize")))
- }
- 
- def startOn(system: ActorSystem, authEnv: AuthenticationEnvironment) = {
-    system.actorOf(
-        authProps(authEnv)
-        .withDispatcher("dbio-dispatch")
-        .withRouter(SmallestMailboxPool(config.getInt("workers"))), name = "auth")
+class AuthenticationActor(cacheSize: Int) extends Actor with ActorLogging {
+
+  import AuthenticationServiceImpl._
+
+  private val router: ActorRef = context.actorOf(FromConfig.props(), "auth_router")
+
+  val cache: MutableLRU[Credentials, User] = MutableLRU(cacheSize)
+
+  def receive = {
+    //handle cache
+    case get: FromCache => {
+      val credentials = get.request.credentials
+      sender ! FromCache(get.request, get.sender, cache.get(credentials))
+    }
+    case put: ToCache => cache + ((put.key, put.value)) //update cache with the database record
+
+    case inv: Invalidate => cache.-(inv.key) //destroy cache value if present
+
+    //forward to auth workers everything else
+    case msg: Any => router.tell(msg, sender())
   }
+
 }
 
-class AuthWorker(env: AuthenticationEnvironment, cacheSize: Int) extends Actor with ActorLogging {
+class AuthWorker(env: AuthenticationEnvironment, parent: ActorRef) extends Actor with ActorLogging {
 
   import AuthenticationServiceImpl._
   implicit val executionContext = context.dispatcher
 
-  val cache: MutableLRU[LoginInfo, User] = MutableLRU(cacheSize)
+  private case class AuthenticatedUser(request: AuthRequest, user: User, loginInfo: LoginInfo)
 
   def receive = {
-    case req: AuthRequest => {
-      log.debug("received authentication request={}", req.credentials)
-      pipe { authenticate(req) } to sender
-    }
+    case req: AuthRequest => parent ! FromCache(req, sender, None)
+    case cached: FromCache => pipe { authenticate(cached) } to cached.sender
+    case msg: Any => sender ! ("yay! " + self.path.name + " is alive!")
   }
 
-  private[this] def authenticate(req: AuthRequest) = {
+  private[this] def authenticate(cachedRequest: FromCache) = {
     val promise = Promise[Option[User]]()
-    env.credentials.authenticate(req.credentials).flatMap { linfo =>
-      log.debug("Found loginifo={}", linfo)
-      if (cache.contains(linfo)) {
-        cache.get(linfo).map { user =>
-          createAndInitCookie(AuthenticatedUser(req, user, linfo))
-          promise.success(Some(user))
-        }
-      } else {
+    val credentials = cachedRequest.request.credentials
+    val maybeUser = cachedRequest.value
+    if (maybeUser.isDefined) {
+      promise.success(maybeUser)
+    } else {
+      env.credentials.authenticate(credentials).flatMap { linfo =>
         env.identityService.retrieve(linfo).map {
           case Some(user) =>
-            createAndInitCookie(AuthenticatedUser(req, user, linfo))
-            cache + ((linfo, user)) //update cache with the database record
+            createAndInitCookie(AuthenticatedUser(cachedRequest.request, user, linfo))
             promise.success(Some(user))
+            parent ! ToCache(credentials, user)
           case None => promise.success(None)
         }
       }
-      promise.future
     }
+    promise.future
   }
 
   private[this] def createAndInitCookie(au: AuthenticatedUser) = {
@@ -79,6 +87,30 @@ class AuthWorker(env: AuthenticationEnvironment, cacheSize: Int) extends Actor w
         }
     }
   }
+}
 
-  private case class AuthenticatedUser(request: AuthRequest, user: User, loginInfo: LoginInfo)
+object AuthenticationServiceImpl extends AuthenticationService {
+
+  case class FromCache(request: AuthRequest, sender: ActorRef, value: Option[User])
+
+  case class ToCache(key: Credentials, value: User)
+
+  case class Invalidate(key: Credentials) //TODO: password change, etc
+
+  override def actorName = "auth"
+
+  def authProps(authEnv: AuthenticationEnvironment, parent: ActorRef): Props = {
+    Props(new AuthWorker(authEnv, parent))
+  }
+
+  def startOn(system: ActorSystem, authEnv: AuthenticationEnvironment) = {
+    val cacheSize = config.getInt("authCacheSize")
+    //(parent that holds common cache)
+    val parent = system.actorOf(Props(new AuthenticationActor(cacheSize)).withDispatcher("dbio-dispatch"), name = actorName)
+    val authWorkers = config.getInt(authWorkersKey)
+    for (i <- 1 to authWorkers) {
+      system.actorOf(authProps(authEnv, parent).withDispatcher("dbio-dispatch"), name = s"auth_w$i")
+    }
+    parent
+  }
 }

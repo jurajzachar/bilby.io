@@ -14,16 +14,26 @@ import com.blueskiron.bilby.io.mock.MockBilbyFixtures
 import com.blueskiron.bilby.io.api.model.SupportedAuthProviders
 import com.blueskiron.bilby.io.api.service.RegistrationService.RegistrationRequest
 
-object TestUtils {
-  val testPassword = java.util.UUID.randomUUID.toString.substring(0, 8)
+//pass 0 to take all mock data (may be a large set)
+class CoreTestData(val sampleSize: Int) {
 
-  val fixtures = MockBilbyFixtures
+  import CoreTestData._
 
-  def regRequests(sampleSize: Int) = fixtures.usersWithProfiles()
+  private val takeAll = if (sampleSize <= 0) true else false
+
+  private lazy val fixtures = MockBilbyFixtures
+
+  lazy val registrationRequests = fixtures.usersWithProfiles()
     .map(x => x._1 -> x._2.filter(profile => profile.loginInfo.providerID.equals(SupportedAuthProviders.CREDENTIALS.id)))
-    .filter(!_._2.isEmpty).map(e => TestUtils.buildFakeRegistrationRequest(e._1, e._2.head)).take(sampleSize)
+    .filter(!_._2.isEmpty).map(e => buildFakeRegistrationRequest(e._1, e._2.head)).take(if (!takeAll) sampleSize else fixtures.mockSize)
 
-  def authRequests(registrations: Iterable[RegistrationRequest]) = registrations.map(regReq => TestUtils.buildFakeAuthenticationRequest(regReq))
+  lazy val authenticationRequests = registrationRequests.map(regReq => buildFakeAuthenticationRequest(regReq))
+
+}
+
+object CoreTestData {
+
+  val testPassword = java.util.UUID.randomUUID.toString.substring(0, 10)
 
   def buildFakeRegistrationRequest(u: User, profile: UserProfile, method: String = "GET", route: String = "/") = {
     new RegistrationRequest {

@@ -31,8 +31,9 @@ sealed trait Role extends Serializable {
 
 object Role {
   def apply(role: String): Role = role match {
-    case Admin.name    => Admin
-    case User.name     => User
+    case Admin.name => Admin
+    case Guest.name => Guest
+    case User.name => User
     case Customer.name => Customer
     case _ => Unknown
   }
@@ -41,6 +42,10 @@ object Role {
 
   object Admin extends Role {
     val name = "administrator"
+  }
+
+  object Guest extends Role {
+    val name = "guest"
   }
 
   object User extends Role {

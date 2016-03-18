@@ -5,10 +5,10 @@ object Dependencies {
   // Versions
   object Version {
     val logback = "1.1.3"
-    val akka = "2.4.2"
+    val akka = "2.3.11"
     val slick = "3.1.1"
     val config = "1.3.0"
-    val play = "2.5.0"
+    val play = "2.4.6"
     val orientDbEmbedded = "0.1.0"
     val playSilhouette = "3.0.4"
   }
@@ -17,9 +17,9 @@ object Dependencies {
   val logbackClassic = "ch.qos.logback" % "logback-classic" % Version.logback
   val config = "com.typesafe" % "config" % Version.config
   
-  val scalaTest = "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test"
+  val scalaTest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+  val scalaTestPlay = "com.typesafe.play" %% "play-test" % Version.play % "test"
   val mockito = "org.mockito" % "mockito-core" % "1.10.19" % "test"
-  val scalaTestPlay = "com.typesafe.play" % "play-test_2.11" % Version.play % "test"
   
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % Version.akka
   val akkaLog = "com.typesafe.akka" %% "akka-slf4j" % Version.akka
@@ -29,7 +29,7 @@ object Dependencies {
   //val inject = "javax.inject" % "javax.inject" % "1"
   val scalaGuice = "net.codingwell" %% "scala-guice" % "4.0.1"
   
-  val postgresql = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41" withJavadoc ()
+  val postgresql = "org.postgresql" % "postgresql" % "9.4.1208" withJavadoc ()
   val slick = "com.typesafe.slick" %% "slick" % Version.slick withJavadoc ()
   
   //suport for additional postgres types with tminglei's PG driver
@@ -47,8 +47,8 @@ object Dependencies {
   //val playSilhouetteTestkit = "com.mohiva" %% "play-silhouette-testkit" % Version.playSilhouette % "test"
   //webapp
   val playDeps = Seq(
-		  		"org.webjars" %% "webjars-play" % "2.4.0-2",
-		  		"org.webjars" % "bootstrap" % "3.3.6",
+		  		"org.webjars" % "requirejs" % "2.1.19",
+		  		"org.webjars" % "bootstrap" % "3.3.5",
 		  		"com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24", // Add bootstrap3 helpers and field constructors (http://play-bootstrap3.herokuapp.com/)
 		  		"com.typesafe.play" %% "play-mailer" % "3.0.1")
 
