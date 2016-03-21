@@ -1,4 +1,4 @@
-package com.blueskiron.bilby.io.api.service
+package com.blueskiron.bilby.io.api
 
 import com.typesafe.config.ConfigFactory
 

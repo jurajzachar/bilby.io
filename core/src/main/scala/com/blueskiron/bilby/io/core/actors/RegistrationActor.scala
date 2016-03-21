@@ -6,9 +6,9 @@ import scala.util.Failure
 import scala.util.Success
 
 import com.blueskiron.bilby.io.api.model.User
-import com.blueskiron.bilby.io.api.service.BackedByActorService
-import com.blueskiron.bilby.io.api.service.ConfiguredService
-import com.blueskiron.bilby.io.api.service.RegistrationService
+import com.blueskiron.bilby.io.api.BackedByActorService
+import com.blueskiron.bilby.io.api.ConfiguredService
+import com.blueskiron.bilby.io.api.RegistrationService
 import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult

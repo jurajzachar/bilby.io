@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 import play.api.UnexpectedException
 import scala.concurrent.Promise
 import com.mohiva.play.silhouette.api.LoginInfo
-import com.blueskiron.bilby.io.api.service.RegistrationService
+import com.blueskiron.bilby.io.api.RegistrationService
 import com.blueskiron.bilby.io.api.model.SupportedAuthProviders.CREDENTIALS
 
 @Singleton

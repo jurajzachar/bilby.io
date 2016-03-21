@@ -5,14 +5,14 @@ import play.api.mvc.Result
 import play.api.mvc.Results
 import com.blueskiron.bilby.io.api.model.User
 import com.blueskiron.bilby.io.api.model.UserProfile
-import com.blueskiron.bilby.io.api.service.RegistrationService.RegistrationRejection
-import com.blueskiron.bilby.io.api.service.RegistrationService.RegistrationData
-import com.blueskiron.bilby.io.api.service.RegistrationService.RegistrationRequest
-import com.blueskiron.bilby.io.api.service.AuthenticationService.AuthRequest
+import com.blueskiron.bilby.io.api.RegistrationService.RegistrationRejection
+import com.blueskiron.bilby.io.api.RegistrationService.RegistrationData
+import com.blueskiron.bilby.io.api.RegistrationService.RegistrationRequest
+import com.blueskiron.bilby.io.api.AuthenticationService.AuthRequest
+import com.blueskiron.bilby.io.api.RegistrationService.RegistrationRequest
 import com.mohiva.play.silhouette.api.util.Credentials
 import com.blueskiron.bilby.io.mock.MockBilbyFixtures
 import com.blueskiron.bilby.io.api.model.SupportedAuthProviders
-import com.blueskiron.bilby.io.api.service.RegistrationService.RegistrationRequest
 
 //pass 0 to take all mock data (may be a large set)
 class CoreTestData(val sampleSize: Int) {

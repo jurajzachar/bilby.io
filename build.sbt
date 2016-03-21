@@ -21,7 +21,7 @@ lazy val commonSettings = Seq(
 lazy val webapp = (project in file("webapp"))
   .settings(commonSettings: _*)
   .settings(Seq(
-  	libraryDependencies ++= webappDeps,
+  	libraryDependencies ++= Seq(filters, cache) ++ webappDeps,
   	routesGenerator := InjectedRoutesGenerator,
   	LessKeys.compress in Assets := true,
   	pipelineStages := Seq(rjs, digest, gzip),

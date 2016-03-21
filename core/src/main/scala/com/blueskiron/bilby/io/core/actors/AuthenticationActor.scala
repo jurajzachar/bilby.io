@@ -3,7 +3,7 @@ package com.blueskiron.bilby.io.core.actors
 import scala.concurrent.Promise
 
 import com.blueskiron.bilby.io.api.model.User
-import com.blueskiron.bilby.io.api.service.AuthenticationService
+import com.blueskiron.bilby.io.api.AuthenticationService
 import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
 import com.blueskiron.bilby.io.core.util.MutableLRU
 import com.mohiva.play.silhouette.api.LoginInfo

@@ -1,9 +1,11 @@
-package com.blueskiron.bilby.io.api.service
+package com.blueskiron.bilby.io.api
 
 import com.blueskiron.bilby.io.api.model.User
 import play.api.mvc.RequestHeader
 import com.blueskiron.bilby.io.api.model.UserProfile
 import play.api.mvc.Result
+import scala.Left
+import scala.Right
 
 trait RegistrationService extends ConfiguredService {
 

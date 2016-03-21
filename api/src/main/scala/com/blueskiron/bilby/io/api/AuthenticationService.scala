@@ -1,4 +1,4 @@
-package com.blueskiron.bilby.io.api.service
+package com.blueskiron.bilby.io.api
 
 import play.api.mvc.RequestHeader
 import com.mohiva.play.silhouette.api.util.Credentials
