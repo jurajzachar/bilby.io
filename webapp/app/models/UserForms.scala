@@ -15,8 +15,8 @@ object UserForms {
   val registrationForm = Form(
     mapping(
       "username" -> nonEmptyText,
-      "email" -> nonEmptyText,
-      "password" -> nonEmptyText
+      "email" -> email.verifying(maxLength(250)),
+      "password" -> nonEmptyText.verifying(minLength(8))
     )(RegistrationData.apply)(RegistrationData.unapply)
   )
 }

@@ -32,25 +32,13 @@ class Registration @Inject() (val env: AuthenticationEnvironment, val messagesAp
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
   // SIGN UP
-
-  val signUpForm = Form(
-    mapping(
-      "id" -> ignored(None: Option[Long]),
-      "email" -> email.verifying(maxLength(250)),
-      "emailConfirmed" -> ignored(false),
-      "password" -> nonEmptyText.verifying(minLength(6)),
-      "nick" -> nonEmptyText,
-      "firstName" -> nonEmptyText,
-      "lastName" -> nonEmptyText,
-      "services" -> list(nonEmptyText))(User.apply)(User.unapply))
-
   /**
    * Starts the sign up mechanism. It shows a form that the user have to fill in and submit.
    */
   def startSignUp = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
       case Some(_) => Redirect(routes.Application.index)
-      case None => Ok(viewsRegistration.signUp(signUpForm))
+      case None => Ok(viewsRegistration.signUp(UserForms.registrationForm))
     })
   }
 
