@@ -18,12 +18,14 @@ import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.blueskiron.bilby.io.db.codegen.Tables
 import com.blueskiron.postgresql.slick.Driver
 import java.util.UUID
+import com.typesafe.config.ConfigFactory
 
 class DatabaseServiceSpec extends FlatSpec with DbSuite {
 
   val log = LoggerFactory.getLogger(getClass)
   val fixtures = MockBilbyFixtures
-  val injector = Guice.createInjector(new DbModule(scala.concurrent.ExecutionContext.global, configPath))
+  log.debug("loaded config={}", config)
+  val injector = Guice.createInjector(new DbModule(scala.concurrent.ExecutionContext.global, config))
   //Wrap the injector in a ScalaInjector for even more rich scala magic
   import net.codingwell.scalaguice.InjectorExtensions._
   val passwordInfoService = injector.instance[PasswordInfoService[PostgresDatabase]]

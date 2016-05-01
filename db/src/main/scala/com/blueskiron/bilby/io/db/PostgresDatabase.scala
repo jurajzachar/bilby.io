@@ -18,11 +18,11 @@ trait PostgresDatabase extends ApplicationDatabase with SlickPgJdbcProfileProvid
   import jdbcProfile.api._
   
   implicit def executionContext: ExecutionContext
-    
-  def configPath: String
+  
+  def config: Config
   
   override def setupDb: jdbcProfile.backend.DatabaseDef = {
-    val db = Database.forConfig(configPath)
+    val db = Database.forConfig(configPath, config)
     db.createSession().conn.setAutoCommit(true)
     db
   }

@@ -4,7 +4,7 @@ object Dependencies {
 
   // Versions
   object Version {
-    val logback = "1.1.3"
+    val logback = "1.1.4"
     val akka = "2.3.11"
     val slick = "3.1.1"
     val config = "1.3.0"
@@ -50,7 +50,8 @@ object Dependencies {
 		  		"org.webjars" % "requirejs" % "2.1.19",
 		  		"org.webjars" % "bootstrap" % "3.3.5",
 		  		"com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24", // Add bootstrap3 helpers and field constructors (http://play-bootstrap3.herokuapp.com/)
-		  		"com.typesafe.play" %% "play-mailer" % "3.0.1")
+		  		"com.typesafe.play" %% "play-mailer" % "3.0.1",
+		  		"net.tanesha.recaptcha4j" % "recaptcha4j" % "0.0.7")
 
   // Project deps
   val baseDeps = Seq(logbackCore, logbackClassic, config, scalaTest, mockito)

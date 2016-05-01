@@ -1,0 +1,106 @@
+@(user: Option[User], nav: String, width: Int)(implicit messages: Messages)
+
+@import helper._
+@import b3.inline.fieldConstructor
+
+<script>
+	//search stuff
+</script>
+
+@register_nav = {
+  @if(nav != Messages("navbar.top.register")){
+    <li><a href="@routes.Registration.startRegistration">@Messages("navbar.top.register")</a></li>
+  }
+}
+@signin_nav = {
+  @if(nav != Messages("navbar.top.signin")){
+    <li><a href="@routes.Auth.signIn">@Messages("navbar.top.signin")</a></li>
+  }
+}
+
+<div class="navbar-wrapper">
+  <nav class="navbar navbar-default navbar-fixed-top ">
+    <div class="@("container container-" + width)">
+    <div class="row">
+      <div class=".col-md-6 .col-md-offset-3">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="@routes.Application.index">Bilby.io</a>
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li>
+              <div class="navbar-bilby">
+                <a href="@routes.Application.index">
+                <img alt="Brand" src="@routes.PublicAssets.img("bilby.png")" type="image/png" />
+                </a>
+              </div>
+            </li>
+            @if(nav.length > 0){
+            <li class="active"><a href="#">@nav<span class="sr-only">(current)</span></a></li>
+            }
+            @if(user.isDefined){
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+              @user.get <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu" role="menu">
+                <li>
+                  <a href="#">Create New</a>
+                </li>
+                <li><a href="#">Manage Existing</a></li>
+                <li><a href="#">Sharing Preferences</a></li>
+                <li class="divider"></li>
+                <li class="@("active".when(nav == "Account"))">
+                <a href="#">Account</a>
+                </li>
+                <li class="@("active".when(nav == "About"))">
+                <a href="#">About</a>
+                </li>	
+                <li><a href="#">Logout</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Logout</a></li>
+            }
+            <!--login -->
+            @if(!user.isDefined){
+            	@register_nav
+            	@signin_nav
+            }
+            @if(nav != "About" && !user.isDefined){
+              <li class="@("active".when(nav == "About"))">
+                <a href="#">About</a>
+              </li>	
+            }
+            
+            @*********************
+            <li>
+	        @import forms.SearchForms.navbarForm
+		        @b3.clear.form(routes.Search.find, 'class -> "navbar-form navbar-center") { implicit cfc =>
+				  @b3.inputWrapped( "search", navbarForm("searchToken"), 'placeholder -> "Search..." ) { input =>
+				    <div class="input-group">
+				      @input
+				      <span class="input-group-btn">
+				        <button class="form-control input-group-addon btn"><span class="glyphicon glyphicon-search"></span></button>
+				      </span>
+				    </div>
+				  }
+				}
+		    </li>
+		    *********************@
+          </ul>
+        </div>
+      </div>
+    </div>
+</div>
+<!-- /.container-fluid -->
+</nav>
+</div>
+

@@ -81,4 +81,5 @@ class AuthenticationEnvironment @Inject() (
       authenticatorIdleTimeout = Option(cfg.getInt("idleTimeout") seconds),
       authenticatorExpiry = (cfg.getInt("expiry") seconds)), Some(sessionInfoService), fingerprintGenerator, idGenerator, clock)
   }
+
 }

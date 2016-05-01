@@ -5,18 +5,19 @@ import net.codingwell.scalaguice.ScalaModule
 import com.blueskiron.bilby.io.db.PostgresDatabase
 import scala.concurrent.ExecutionContext
 import javax.inject.{ Inject, Singleton }
+import com.typesafe.config.Config
 
 @Singleton
-case class DefaultDatabase(override val configPath: String)(override implicit val executionContext: ExecutionContext) extends PostgresDatabase
+case class DefaultDatabase(override val config: Config)(override implicit val executionContext: ExecutionContext) extends PostgresDatabase
 
 /**
  * Bootstrap database services by injecting desired execution context and config path.
  * @author juri
  *
  */
-class DbModule(ec: ExecutionContext, configPath: String) extends AbstractModule with ScalaModule {
+class DbModule(ec: ExecutionContext, config: Config) extends AbstractModule with ScalaModule {
 
-  lazy val database = DefaultDatabase(configPath)(ec)
+  lazy val database = DefaultDatabase(config)(ec)
 
   override def configure {
     bind[ExecutionContext].toInstance(ec)

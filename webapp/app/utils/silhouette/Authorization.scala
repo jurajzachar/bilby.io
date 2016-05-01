@@ -2,10 +2,11 @@ package utils.silhouette
 
 import com.mohiva.play.silhouette.api.Authorization
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import models.User
 import play.api.mvc.Request
 import play.api.i18n.Messages
 import scala.concurrent.Future
+import com.blueskiron.bilby.io.api.model.User
+import com.blueskiron.bilby.io.api.model.Role
 
 /**
  * Only allows those users that have at least a service of the selected.
@@ -19,7 +20,7 @@ case class WithService(anyOf: String*) extends Authorization[User, CookieAuthent
 }
 object WithService {
   def isAuthorized(user: User, anyOf: String*): Boolean =
-    anyOf.intersect(user.services).size > 0 || user.services.contains("master")
+    anyOf.intersect(user.roles.toList).size > 0 || user.roles.contains(Role.Admin)
 }
 
 /**
@@ -34,5 +35,5 @@ case class WithServices(allOf: String*) extends Authorization[User, CookieAuthen
 }
 object WithServices {
   def isAuthorized(user: User, allOf: String*): Boolean =
-    allOf.intersect(user.services).size == allOf.size || user.services.contains("master")
+    allOf.intersect(user.roles.toList).size == allOf.size || user.roles.contains(Role.Admin)
 }

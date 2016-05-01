@@ -1,17 +1,16 @@
 package test.com.blueskiron.bilby.io.core
 
 import scala.concurrent.Await
-
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.Matchers
 import org.scalatest.WordSpecLike
 import org.scalatest.mock.MockitoSugar
 import org.slf4j.LoggerFactory
-
 import com.blueskiron.bilby.io.core.actors.AuthenticationServiceImpl
 import com.blueskiron.bilby.io.core.actors.RegistrationServiceImpl
 import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
-import com.blueskiron.bilby.io.core.auth.module.CoreModule
+import com.blueskiron.bilby.io.core.module.CoreModule
+import com.blueskiron.bilby.io.core.module.WSClientModule
 import com.blueskiron.bilby.io.db.PostgresDatabase
 import com.blueskiron.bilby.io.db.service.UserService
 import com.blueskiron.bilby.io.db.testkit.DefaultTestDatabase
@@ -19,7 +18,6 @@ import com.blueskiron.bilby.io.mock.MockBilbyFixtures
 import com.google.inject.Guice
 import com.google.inject.util.Modules
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult
-
 import akka.actor.ActorSystem
 import akka.actor.actorRef2Scala
 import akka.testkit.DefaultTimeout
@@ -28,6 +26,7 @@ import akka.testkit.TestKit
 import javax.inject.Singleton
 import net.codingwell.scalaguice.InjectorExtensions
 import play.api.libs.ws.WSClient
+import com.typesafe.config.ConfigFactory
 
 class AuthenticationServicesSpec(testSystem: ActorSystem) extends TestKit(testSystem)
     with DefaultTestDatabase
@@ -43,8 +42,8 @@ class AuthenticationServicesSpec(testSystem: ActorSystem) extends TestKit(testSy
   val log = LoggerFactory.getLogger(this.getClass)
   val fixtures = MockBilbyFixtures
   override implicit val executionContext = testSystem.dispatchers.lookup("dbio-dispatch")
-  val coreModule = CoreModule.apply(executionContext, fixtures.dbConfigPath)
-  val wsModule = new WSTestClientModule(mock[WSClient])
+  val coreModule = CoreModule.apply(executionContext, ConfigFactory.defaultApplication())
+  val wsModule = new WSClientModule(mock[WSClient])
   val injector = Guice.createInjector(Modules.combine(wsModule, coreModule))
   //Wrap the injector in a ScalaInjector 
   import net.codingwell.scalaguice.InjectorExtensions._
@@ -53,7 +52,6 @@ class AuthenticationServicesSpec(testSystem: ActorSystem) extends TestKit(testSy
   val userService = injector.instance[UserService[PostgresDatabase]]
   val regService = RegistrationServiceImpl.startOn(testSystem, authEnv)
   val authService = AuthenticationServiceImpl.startOn(testSystem, authEnv)
-  val coreTestData = new CoreTestData(0) //take the whole mock size
   
   override def beforeAll {
     cleanUp()
@@ -73,27 +71,29 @@ class AuthenticationServicesSpec(testSystem: ActorSystem) extends TestKit(testSy
   "RegistrationService" must {
     "sign up a valid user" in {
       userService.count.map(_ shouldBe 0)
-      coreTestData.registrationRequests foreach { regService ! _ }
-      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, coreTestData.sampleSize) { //max, min, total nr. messages
+      val expectedSize = CoreTestData.registrationRequests.size
+      CoreTestData.registrationRequests foreach { regService ! _ }
+      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, expectedSize) { //max, min, total nr. messages
         case res: AuthenticatorResult =>
           log.info("received={}", res); res //OK 
         case msg: Any => log.error("received={}", msg)
       }
-      collected.size shouldBe coreTestData.sampleSize
+      collected.size shouldBe expectedSize
     }
   }
 
   "AuthenticationService" must {
     "authenticate a registered user" in {
-      coreTestData.authenticationRequests foreach { authService ! _ }
-      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, coreTestData.sampleSize) { //max, min, total nr. messages
+      val expectedSize = CoreTestData.authenticationRequests.size
+      CoreTestData.authenticationRequests foreach { authService ! _ }
+      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, expectedSize) { //max, min, total nr. messages
         case Some(user) =>
           log.info("received authenticated user ={}", user); //OK 
         case None => log.info("authentication for user {?} failed")
         
         case msg: Any => log.error("unexpected response={}", msg)
       }
-      collected.size shouldBe coreTestData.sampleSize
+      collected.size shouldBe expectedSize
     }
   }
 

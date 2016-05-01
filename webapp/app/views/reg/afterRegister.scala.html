@@ -1,0 +1,16 @@
+@(result: Boolean, maybeFailure: Option[String])(implicit messages: Messages, request: RequestHeader)
+
+@import controllers.routes
+
+@title = { <h4>@Messages("register.after.title")</h4>  } 
+
+@main(Some(title), nav = Messages("navbar.top.after.register"), user = None) {
+    <div class="well">
+   		@if(result){
+   			"Yay!"
+   		
+   		} else {
+   		    maybeFailure
+   		}
+	<div>    
+}(messages, false, 60)

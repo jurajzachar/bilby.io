@@ -1,6 +1,6 @@
 package utils.silhouette
 
-import models.MailTokenUser
+import utils.silhouette.MailTokenUser;
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 

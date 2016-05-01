@@ -1,36 +1,38 @@
 package test.com.blueskiron.bilby.io.core
 
 import scala.concurrent.Await
-import scala.concurrent.duration._
+import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
-import org.slf4j.LoggerFactory
-import akka.testkit.TestKit
-import akka.testkit.ImplicitSender
 import org.scalatest.BeforeAndAfterAll
-import akka.testkit.DefaultTimeout
-import akka.actor.ActorSystem
 import org.scalatest.Matchers
 import org.scalatest.WordSpecLike
-import play.api.test.WsTestClient
-import scala.concurrent.Promise
-import akka.actor.ActorRef
+import org.scalatest.mock.MockitoSugar
+import org.slf4j.LoggerFactory
+import com.blueskiron.bilby.io.core.actors.RegistrationServiceImpl
 import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
-import com.google.inject.Guice
-import com.google.inject.util.Modules
-import com.blueskiron.bilby.io.core.auth.module.CoreModule
+import com.blueskiron.bilby.io.core.module.CoreModule
+import com.blueskiron.bilby.io.core.module.WSClientModule
+import com.blueskiron.bilby.io.db.PostgresDatabase
+import com.blueskiron.bilby.io.db.service.UserService
 import com.blueskiron.bilby.io.db.testkit.DefaultTestDatabase
 import com.blueskiron.bilby.io.mock.MockBilbyFixtures
-import com.blueskiron.bilby.io.core.actors.RegistrationServiceImpl
-import play.api.libs.ws.WSClient
-import org.scalatest.mock.MockitoSugar
-import org.mockito._
-import com.blueskiron.bilby.io.db.service.UserService
-import com.blueskiron.bilby.io.db.PostgresDatabase
+import com.google.inject.Guice
+import com.google.inject.util.Modules
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult
-import com.blueskiron.bilby.io.db.service.DefaultDatabase
-import com.mohiva.play.silhouette.api.LoginInfo
+import com.typesafe.config.ConfigFactory
+import akka.actor.ActorSystem
+import akka.actor.actorRef2Scala
+import akka.testkit.DefaultTimeout
+import akka.testkit.ImplicitSender
+import akka.testkit.TestKit
+import javax.inject.Singleton
+import net.codingwell.scalaguice.InjectorExtensions
+import play.api.libs.ws.WSClient
 import play.api.libs.json.Json
-import com.blueskiron.bilby.io.api.model.JsonConversions._
+import play.api.libs.iteratee.Enumeratee
+import play.api.libs.iteratee.Iteratee
+import com.blueskiron.bilby.io.api.model.SupportedAuthProviders
+import com.blueskiron.bilby.io.api.model.UserProfile
 
 class RegistrationServiceSpec(testSystem: ActorSystem)
     extends TestKit(testSystem)
@@ -46,8 +48,8 @@ class RegistrationServiceSpec(testSystem: ActorSystem)
   val log = LoggerFactory.getLogger(this.getClass)
   val fixtures = MockBilbyFixtures
   override implicit val executionContext = testSystem.dispatchers.lookup("dbio-dispatch")
-  val coreModule = CoreModule.apply(executionContext, fixtures.dbConfigPath)
-  val wsModule = new WSTestClientModule(mock[WSClient])
+  val coreModule = CoreModule.apply(executionContext, ConfigFactory.defaultApplication())
+  val wsModule = new WSClientModule(mock[WSClient])
   val injector = Guice.createInjector(Modules.combine(wsModule, coreModule))
   //Wrap the injector in a ScalaInjector 
   import net.codingwell.scalaguice.InjectorExtensions._
@@ -76,14 +78,18 @@ class RegistrationServiceSpec(testSystem: ActorSystem)
   "RegistrationService" must {
     "sign up a valid user" in {
       userService.count.map(_ shouldBe 0)
-      val regRequests = fixtures.usersWithProfiles().map(e => CoreTestData.buildFakeRegistrationRequest(e._1, e._2.head))
+      val regRequests = CoreTestData.registrationRequests
+      log.info("number of registration requests with {}: {}", SupportedAuthProviders.CREDENTIALS.id, regRequests.size)
       regRequests foreach { regService ! _ }
-      val collected = receiveWhile(defaultTimeout, defaultTimeout / 10, fixtures.mockSize) { //max, min, total nr. messages
-        case res: AuthenticatorResult =>
-          log.info("received={}", res); res //OK 
+      val collected = receiveWhile(defaultTimeout, defaultTimeout / 10, regRequests.size) { //max, min, total nr. messages
+        case res: AuthenticatorResult => {
+
+          res.body.map { bytes => log.debug("received result body: {}", new String(bytes)) }
+        }
+
         case msg: Any => log.error("received={}", msg)
       }
-      collected.size shouldBe fixtures.mockSize
+      collected.size shouldBe regRequests.size
     }
   }
 

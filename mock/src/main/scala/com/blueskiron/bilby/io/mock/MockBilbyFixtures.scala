@@ -31,7 +31,7 @@ object MockBilbyFixtures extends JsonConversions {
   val srcSeq = Source.fromURL(getClass.getResource("/sample_asset.md")).getLines.take(5).toIndexedSeq
   val assetHeader = AssetHeader(
     srcSeq(0),
-    Some(srcSeq(4)),
+    srcSeq(4),
     Some(srcSeq(3)),
     Set("#test"),
     srcSeq.dropWhile(x => x.contains("---")).mkString)

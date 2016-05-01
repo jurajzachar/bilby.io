@@ -62,6 +62,7 @@ signup.sent=Acabamos de enviarte un email a {0}. Por favor, sigue sus instruccio
 signup.ready=Ya tienes tu nueva cuenta disponible
 
 signin=Entrar
+signin.welcome=Bienvenida
 signin.title=Introduce tus credenciales
 signin.rememberme=Recuérdame
 signin.signup.question=¿No tienes cuenta?

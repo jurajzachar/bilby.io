@@ -14,11 +14,13 @@ import scala.concurrent.Future
 trait ApplicationDatabase extends JdbcProfileProvider {
 
   import jdbcProfile.api._
-
-  def setupDb: jdbcProfile.backend.DatabaseDef
-
+  
+  val configPath = "bilby.io.db"
+  
   lazy val database: jdbcProfile.backend.DatabaseDef = setupDb
-
+  
+  def setupDb: jdbcProfile.backend.DatabaseDef
+    
   def runAction[T](dbAction: DBIO[T])(implicit ex: ExecutionContext): Future[T] = {
     database.run(dbAction)
   }

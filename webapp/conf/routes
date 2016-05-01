@@ -3,39 +3,45 @@
 # ~~~~
 
 # Registration
-GET		/signup									controllers.Registration.startSignUp
-POST	/signup									controllers.Registration.handleStartSignUp
-GET		/signup/:token							controllers.Registration.signUp(token: String)
-GET		/reset-password							controllers.Registration.forgotPassword
-POST	/reset-password							controllers.Registration.handleForgotPassword
-GET		/reset-password/:token					controllers.Registration.resetPassword(token: String)
-POST	/reset-password/:token					controllers.Registration.handleResetPassword(token: String)
-GET		/change-password						controllers.Registration.changePassword
-POST	/change-password						controllers.Registration.handleChangePassword
+GET		/register									controllers.Registration.startRegistration
+POST	/register								controllers.Registration.handleStartRegistration
+#GET		/signup/:token							controllers.Registration.signUp(token: String)
+#GET		/reset-password							controllers.Registration.forgotPassword
+#POST	/reset-password							controllers.Registration.handleForgotPassword
+#GET		/reset-password/:token					controllers.Registration.resetPassword(token: String)
+#POST	/reset-password/:token					controllers.Registration.handleResetPassword(token: String)
+#GET		/change-password						controllers.Registration.changePassword
+#POST	/change-password						controllers.Registration.handleChangePassword
 
 # Auth
 GET		/signin									controllers.Auth.signIn
 POST	/authenticate							controllers.Auth.authenticate
 GET		/signout								controllers.Auth.signOut
-GET		/denied									controllers.Auth.accessDenied
+#GET		/denied									controllers.Auth.accessDenied
 
 # Home page
 GET		/										controllers.Application.index
-GET		/serviceA								controllers.Application.serviceA
-GET		/serviceA_or_ServiceB					controllers.Application.serviceAorServiceB
-GET		/serviceA_and_ServiceB					controllers.Application.serviceAandServiceB
-GET		/settings								controllers.Application.settings
-GET		/myaccount								controllers.Application.myAccount
+#GET		/lang/$lang<(en|es)>					controllers.Application.selectLang(lang: String)
+#GET		/serviceA								controllers.Application.serviceA
+#GET		/serviceA_or_ServiceB					controllers.Application.serviceAorServiceB
+#GET		/serviceA_and_ServiceB					controllers.Application.serviceAandServiceB
+#GET		/settings								controllers.Application.settings
+#GET		/myaccount								controllers.Application.myAccount
 
-GET		/lang/$lang<(en|es)>					controllers.Application.selectLang(lang: String)
-
+#Search 
+GET			/search								  controllers.Search.find  
 
 # Map static resources from the /public folder to the /assets URL path
-GET		/public/*file							controllers.MyAssets.public(path="/public", file: Asset)
-GET		/lib/*file								controllers.MyAssets.lib(path="/public/lib", file: Asset)
-GET		/css/*file								controllers.MyAssets.css(path="/public/stylesheets", file: Asset)
-GET		/js/*file								controllers.MyAssets.js(path="/public/javascripts", file: Asset)
-GET		/img/*file								controllers.MyAssets.img(path="/public/images", file: Asset)
-GET		/common/css/*file						controllers.MyAssets.commonCss(path="/public/lib/common/stylesheets", file: Asset)
-GET		/common/js/*file						controllers.MyAssets.commonJs(path="/public/lib/common/javascripts", file: Asset)
-GET		/common/img/*file						controllers.MyAssets.commonImg(path="/public/lib/common/images", file: Asset)
+GET		/public/*file							controllers.PublicAssets.public(path="/public", file: Asset)
+GET		/css/*file								controllers.PublicAssets.css(path="/public/stylesheets", file: Asset)
+GET		/fonts/*file							controllers.PublicAssets.fonts(path="/public/fonts", file: Asset)
+GET		/js/*file								controllers.PublicAssets.js(path="/public/javascripts", file: Asset)
+GET		/img/*file								controllers.PublicAssets.img(path="/public/images", file: Asset)
+GET		/lib/*file								controllers.PublicAssets.lib(path="/public/lib", file: Asset)
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               		  controllers.Assets.at(path="/public", file)
+
+#DEPRECATED!
+# javascript routes
+#GET     /jsroutes.js                		  controllers.JsRoutes.all

@@ -6,17 +6,19 @@ import com.blueskiron.bilby.io.api.model.UserProfile
 import play.api.mvc.Result
 import scala.Left
 import scala.Right
+import scala.concurrent.Promise
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 
 trait RegistrationService extends ConfiguredService {
 
   case class RegistrationData(
     user: User,
-    password: String,
+    profile: UserProfile,
     email: String,
-    profile: UserProfile)
+    password: String)
     
   /**
-   * Used to pass data to actor that registers new user
+   * Used to pass data to actor that registers a new user
    * @author juri
    *
    */
@@ -42,6 +44,10 @@ trait RegistrationService extends ConfiguredService {
      */
     val onFailure: RegistrationRejection => Result
     
+    /**
+     * @return function that is used to process registration failure
+     */
+    val result = Promise[AuthenticatorResult]()
   }
   
   /**
@@ -65,12 +71,12 @@ trait RegistrationService extends ConfiguredService {
     extends RegistrationRejection("registration.service.email_address_already_registered")
 
   /**
-   * hellper factory call when registration fails
+   * helper factory call when registration fails
    * @param reject
    */
   def outcomeFromRejection(reject: RegistrationRejection) = RegistrationOutcome(Right(reject))
   /**
-   * hellper factory call when registration succeeds
+   * helper factory call when registration succeeds
    * @param reject
    */
   def outcomeFromUser(user: User) = RegistrationOutcome(Left(user))

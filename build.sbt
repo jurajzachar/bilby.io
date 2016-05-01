@@ -6,7 +6,6 @@ scalaVersion := "2.11.7"
 name := "bilby.io"
 organization := "com.blueskiron"
 
-
 lazy val commonSettings = Seq(
   javaOptions += "-Xmx2G",
   fork in Test := false,
@@ -23,9 +22,10 @@ lazy val webapp = (project in file("webapp"))
   .settings(Seq(
   	libraryDependencies ++= Seq(filters, cache) ++ webappDeps,
   	routesGenerator := InjectedRoutesGenerator,
+  	TwirlKeys.templateImports += "com.blueskiron.bilby.io.api.model._",
   	LessKeys.compress in Assets := true,
   	pipelineStages := Seq(rjs, digest, gzip),
-  	RjsKeys.mainModule := "main",
+  	RjsKeys.mainModule := "bilby",
   	includeFilter in (Assets, LessKeys.less) := "*.less"))
   .dependsOn(api, core, mock % "test->test")
   .enablePlugins(PlayScala)
@@ -48,6 +48,7 @@ scalacOptions in ThisBuild ++= Seq(
   "-Ywarn-dead-code"
 )
 
+resolvers += Resolver.mavenLocal
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 parallelExecution in Test := false
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports") //-h is for html reporting, -u is for xml reporting

@@ -59,7 +59,7 @@ class RegistrationActor(env: AuthenticationEnvironment) extends Actor with Actor
 
     } yield regOutcome
 
-    val authPromise = Promise[AuthenticatorResult]()
+    val authPromise = registrationRequest.result
     dbAction.onComplete {
       case Success(outcome) => outcome.result match {
         case Left(user) => authPromise.completeWith(registerAndPublishEvents(user, linfo, registrationRequest.onSuccess))

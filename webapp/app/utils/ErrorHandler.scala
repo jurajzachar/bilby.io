@@ -11,6 +11,7 @@ import scala.concurrent.Future
 import javax.inject._
 import controllers.routes
 
+//TODO!
 class ErrorHandler @Inject() (
     env: Environment,
     config: Configuration,
@@ -21,27 +22,27 @@ class ErrorHandler @Inject() (
   // 401 - Unauthorized
   override def onNotAuthenticated(request: RequestHeader, messages: Messages): Option[Future[Result]] = Some {
     Future.successful {
-      Redirect(routes.Auth.signIn)
+      Redirect(routes.Application.index())
     }
   }
 
   // 403 - Forbidden
   override def onNotAuthorized(request: RequestHeader, messages: Messages): Option[Future[Result]] = Some {
     Future.successful {
-      Redirect(routes.Auth.accessDenied)
+      Redirect(routes.Application.index())
     }
   }
 
   // 404 - page not found error
   override def onNotFound(request: RequestHeader, message: String): Future[Result] = Future.successful {
     NotFound(env.mode match {
-      case Mode.Prod => views.html.errors.notFound(request)(request2Messages(request))
-      case _ => views.html.defaultpages.devNotFound(request.method, request.uri, Some(router.get))
+      case Mode.Prod => "eek!"
+      case _ => "eek!"
     })
   }
 
   // 500 - internal server error
   override def onProdServerError(request: RequestHeader, exception: UsefulException) = Future.successful {
-    InternalServerError(views.html.errors.error(request, exception)(request2Messages(request)))
+    InternalServerError("eek!")
   }
 }

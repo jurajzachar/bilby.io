@@ -1,0 +1,103 @@
+@import forms.UserForms._
+@(signupForm: Form[UserRegistrationForm])(implicit messages: Messages, request: RequestHeader)
+
+@import controllers.routes
+@implicitFieldConstructor = @{ b3.vertical.fieldConstructor }
+
+@title = { <h4>@Messages("register.title")</h4>  } 
+
+@main(Some(title), nav = Messages("navbar.top.register"), user = None) {
+  
+  <div class="row">
+    <div class="col-xs-8 col-md-4">
+      <div class="well">
+        @b3.vertical.form(routes.Registration.handleStartRegistration) { implicit hfc => 
+          <fieldset>
+            @b3.email(
+                signupForm("email"), 
+                '_label -> Messages("register.email"),
+                'placeholder -> "...@example.com",
+                '_error -> signupForm.error("email")
+            )
+            
+            @b3.text(
+                signupForm("username"), 
+                '_label -> Messages("register.username"), 
+                 '_help -> "This is how other users will see you",
+                '_error -> signupForm.globalError
+            )
+            @b3.password(
+                signupForm("password.main"), 
+                '_label -> Messages("register.password.main"),
+                '_help -> "Your password must be at least 8 characters long."
+            )
+            
+            @b3.password(
+                signupForm("password.confirm"), 
+                '_label -> Messages("register.password.confirm"),
+                '_error -> signupForm.error("password")
+            )
+        </fieldset>
+  		
+		<div class="accordion" id="accordion-optional">
+		  <div class="accordion-group">
+		    <div class="accordion-heading">
+		      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-optional" href="#optional-stuff">
+		        <span class="accordion-legend"><h1><small><span class="glyphicon glyphicon-user"></span>  About You (optional)</small></h1></span>
+		        </a>
+		    </div>
+		    <div id="optional-stuff" class="accordion-body collapse">
+		      <div class="accordion-inner">
+		        
+				  <fieldset>
+		           @b3.text(
+		                signupForm("firstName"), 
+		                '_label -> "First Name"
+		            )
+		            
+		            @b3.text(
+		                signupForm("lastName"), 
+		                '_label -> "Last Name"
+		            )
+		            
+		            @b3.select(
+		                signupForm("country"), 
+		                options = Countries.list,
+		                '_default -> "--- What is your country? ---",
+		                '_label -> "Country"
+		                
+		            )
+		            
+		            @b3.text(
+		                signupForm("city"), 
+		                '_label -> "City"
+		            )
+		            
+		            @b3.number(
+		                signupForm("age"), 
+		                '_label -> "Age", 
+		                'min -> 18,
+		                'max -> 100,
+		                'step -> 1,
+		                'class -> "age"
+		            )
+		              
+		        </fieldset>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+		
+        <fieldset>
+          @b3.checkbox(
+            signupForm("termsAgreed"), 
+               '_label -> None, '_text -> "You agree to the terms and conditions",
+               '_showConstraints -> false
+            )
+            @b3.submit('class -> "btn btn-primary col-md-4"){ @Messages("register.btn.submit") } 
+        </fieldset>
+    }
+	<div>
+  </div>
+</div>    
+}(messages, false, 100)

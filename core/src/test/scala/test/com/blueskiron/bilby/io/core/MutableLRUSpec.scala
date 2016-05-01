@@ -4,6 +4,7 @@ import org.scalatest.FlatSpec
 import com.blueskiron.bilby.io.core.util.MutableLRU
 import org.scalatest._
 import org.slf4j.LoggerFactory
+import com.typesafe.config.ConfigFactory
 
 class MutableLRUSpec extends FlatSpec with Matchers {
   val log = LoggerFactory.getLogger(getClass)
@@ -12,8 +13,9 @@ class MutableLRUSpec extends FlatSpec with Matchers {
   implicit val keyOrd: Ordering[Key] = new Ordering[Key] {
     def compare(a: Key, b: Key) = a.x compare b.x
   }
-
-  private val maxSize = 10 * 10 * 10 * 10 *10 * 10 
+  
+  val config = ConfigFactory.defaultApplication()
+  private val maxSize = config.getInt("bilby.io.core.authCacheSize")
 
   private val cache: MutableLRU[Key, Value] = MutableLRU[Key, Value](maxSize);
 
