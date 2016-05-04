@@ -5,6 +5,9 @@ import play.api.data._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
+import com.blueskiron.bilby.io.db.service.UserService
+import com.blueskiron.bilby.io.db.PostgresDatabase
+import scala.concurrent.Await
 
 object UserForms {
 
@@ -19,7 +22,7 @@ object UserForms {
     age: Option[Int],
     termsAgreed: Boolean)
 
-  val registrationForm = Form(mapping(
+  def registrationForm(userService: UserService[PostgresDatabase]) = Form(mapping(
     "username" -> nonEmptyText(6, 10),
     "email" -> email,
     // Create a tuple mapping for the password/confirm

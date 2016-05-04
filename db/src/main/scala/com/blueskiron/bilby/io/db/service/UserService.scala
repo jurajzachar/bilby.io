@@ -19,27 +19,41 @@ import com.blueskiron.bilby.io.api.model.SupportedAuthProviders.CREDENTIALS
 
 @Singleton
 class UserService[T <: PostgresDatabase] @Inject() (protected val cake: T)
-    extends IdentityService[User] 
+    extends IdentityService[User]
     with RegistrationService
     with UserDao {
-    
+
   implicit val executionContext: ExecutionContext = cake.database.executor.executionContext
-  
+
   lazy protected val userDao = initUserDao(cake)
 
   override def retrieve(loginInfo: LoginInfo) = userDao.findOptionUser(loginInfo)
 
-  private def checkNativeProfiles[U >: RegistrationOutcome](u: User, profile: UserProfile): Future[U] = {
+  def checkUniqueEmail[U >: RegistrationOutcome](email: String): Future[Option[U]] = {
+    userDao.findUserProfile(Some(email)).flatMap {
+      case Some(profile) => Future.successful(Some(outcomeFromRejection(EmailAddressAlreadyRegistered(email))))
+      case None          => Future.successful(None)
+    }
+  }
+
+  def checkUniqueUsername[U >: RegistrationOutcome](username: String): Future[Option[U]] = {
+    userDao.findOptionUser(username).flatMap {
+      case Some(user) => Future.successful(Some(outcomeFromRejection(UserNameAlreadyRegistered(username))))
+      case None          => Future.successful(None)
+    }
+  }
+
+  def checkNativeProfiles[U >: RegistrationOutcome](u: User, profile: UserProfile): Future[U] = {
     //check if email was already used in previous registrations
     if (profile.loginInfo.providerID.equals(CREDENTIALS.id)) {
       val nativeChecks = for {
-        checkEmail <- userDao.findUserProfile(profile.email)
-        checkUserName <- userDao.findOptionUser(u.username)
+        checkEmail <- checkUniqueEmail(profile.email.get)
+        checkUserName <- checkUniqueUsername(u.username)
       } yield (checkEmail, checkUserName)
       nativeChecks.flatMap {
-        case (Some(profile), _) => Future.successful(outcomeFromRejection(EmailAddressAlreadyRegistered(profile.email.get)))
-        case (_, Some(user))    => Future.successful(outcomeFromRejection(UserNameAlreadyRegistered(user.username)))
-        case (None, None)       => Future.successful(outcomeFromUser(u))
+        case (Some(rejection), _) => Future.successful(rejection)
+        case (_, Some(rejection))      => Future.successful(rejection)
+        case (None, None)         => Future.successful(outcomeFromUser(u))
       }
     } else {
       Future.successful(outcomeFromUser(u))
@@ -53,7 +67,7 @@ class UserService[T <: PostgresDatabase] @Inject() (protected val cake: T)
 
   /**
    * Creation of a new user
-   * @param u
+   * @param user
    * @param profile
    * @return
    */

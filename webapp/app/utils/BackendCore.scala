@@ -17,6 +17,7 @@ import com.blueskiron.bilby.io.core.actors.AuthenticationServiceImpl
 import com.blueskiron.bilby.io.core.module.WSClientModule
 import com.blueskiron.bilby.io.core.module.CoreModule
 import com.blueskiron.bilby.io.db.PostgresDatabase
+import com.blueskiron.bilby.io.db.service.UserService
 
 @Singleton
 class BackendCore @Inject() (
@@ -33,12 +34,15 @@ class BackendCore @Inject() (
   val coreModule = CoreModule(actorSystem.dispatchers.lookup("dbio-dispatch"), config)
   //Wrap the injector in a ScalaInjector 
   import net.codingwell.scalaguice.InjectorExtensions._
-  val injector = Guice.createInjector(Modules.combine(wsModule, coreModule))
+  private val injector = Guice.createInjector(Modules.combine(wsModule, coreModule))
   val authEnv = injector.instance[AuthenticationEnvironment]
   
   //BackedByActor core services
   val regService = RegistrationServiceImpl.startOn(actorSystem, authEnv)
   val authService = AuthenticationServiceImpl.startOn(actorSystem, authEnv)
+  
+  //standalone services
+  val userService = injector.instance[UserService[PostgresDatabase]]
   
   //inject db instance so that we can shutdown gracefully
   private val appDB = injector.instance[PostgresDatabase]

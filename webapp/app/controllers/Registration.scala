@@ -38,12 +38,12 @@ class Registration @Inject() (val core: BackendCore, val messagesApi: MessagesAp
   def startRegistration = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
       case Some(_) => Redirect(routes.Application.index)
-      case None    => Ok(viewsReg.register(registrationForm))
+      case None    => Ok(viewsReg.register(registrationForm(core.userService)))
     })
   }
 
   def handleStartRegistration = Action.async { implicit request =>
-    registrationForm.bindFromRequest.fold(
+    registrationForm(core.userService).bindFromRequest.fold(
       withErrors => Future.successful(BadRequest(viewsReg.register(withErrors))),
       data => {
         val registrationRequest = buildRegistrationRequest(data)
