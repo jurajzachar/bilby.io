@@ -24,12 +24,18 @@ import com.blueskiron.bilby.io.api.RegistrationService.RegistrationData
 import com.blueskiron.bilby.io.api.RegistrationService.RegistrationRejection
 import play.api.mvc.Result
 import scala.concurrent.Promise
+import play.api.i18n.Messages
 
 class Registration @Inject() (val core: BackendCore, val messagesApi: MessagesApi) extends SilhouetteController {
 
   import forms.UserForms.registrationForm
   override val env = core.authEnv
-
+  implicit val ec = core.executionContext
+  
+  def i18nErrors(messageKey: String) = {
+    Messages(messageKey)
+  }
+  
   def notFoundDefault(implicit request: RequestHeader) = Future.successful(NotFound(views.html.errors.notFound(request)))
 
   /**
@@ -38,12 +44,12 @@ class Registration @Inject() (val core: BackendCore, val messagesApi: MessagesAp
   def startRegistration = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
       case Some(_) => Redirect(routes.Application.index)
-      case None    => Ok(viewsReg.register(registrationForm(core.userService)))
+      case None    => Ok(viewsReg.register(registrationForm(core.userService, i18nErrors) ))
     })
   }
 
   def handleStartRegistration = Action.async { implicit request =>
-    registrationForm(core.userService).bindFromRequest.fold(
+    registrationForm(core.userService, i18nErrors).bindFromRequest.fold(
       withErrors => Future.successful(BadRequest(viewsReg.register(withErrors))),
       data => {
         val registrationRequest = buildRegistrationRequest(data)
@@ -69,7 +75,7 @@ class Registration @Inject() (val core: BackendCore, val messagesApi: MessagesAp
 
       override val onSuccess = Ok(viewsReg.afterRegister(true, None))
 
-      override val onFailure = (r: RegistrationRejection) => Ok(viewsReg.afterRegister(false, None))
+      override val onFailure = (r: RegistrationRejection) => Ok(viewsReg.afterRegister(false, Some(Messages(r.messageKey)) ))
     }
   }
 }

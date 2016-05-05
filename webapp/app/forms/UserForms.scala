@@ -8,6 +8,10 @@ import play.api.data.validation.Constraints._
 import com.blueskiron.bilby.io.db.service.UserService
 import com.blueskiron.bilby.io.db.PostgresDatabase
 import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
+import play.api.i18n.Messages
+import scala.concurrent.ExecutionContext
 
 object UserForms {
 
@@ -22,9 +26,13 @@ object UserForms {
     age: Option[Int],
     termsAgreed: Boolean)
 
-  def registrationForm(userService: UserService[PostgresDatabase]) = Form(mapping(
-    "username" -> nonEmptyText(6, 10),
-    "email" -> email,
+  def registrationForm(userService: UserService[PostgresDatabase], i18nErrors: String => String)(implicit ec: ExecutionContext) = Form(mapping(
+    "username" -> nonEmptyText(6, 32).verifying(i18nErrors("registration.service.username.taken"), username => {
+      awaitBlocking(userService.checkUniqueUsername(username).map { case Some(profile) => false case None => true })
+    }),
+    "email" -> email.verifying(i18nErrors("registration.service.email.registered"), email => {
+      awaitBlocking(userService.checkUniqueEmail(email).map { case Some(profile) => false case None => true })
+    }),
     // Create a tuple mapping for the password/confirm
     "password" -> tuple(
       "main" -> nonEmptyText(8, 32),
@@ -47,4 +55,9 @@ object UserForms {
   object Countries {
     val list = java.util.Locale.getISOCountries().map(cc => cc -> (new java.util.Locale("", cc).getDisplayCountry()))
   }
+
+  //TODO: configure me!
+  def defaultTimeout = FiniteDuration(2, "seconds")
+  def awaitBlocking[T](dbAction: Future[T]): T =
+    Await.result(dbAction, defaultTimeout)
 }

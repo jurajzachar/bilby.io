@@ -13,19 +13,21 @@
       <div class="well">
         @b3.vertical.form(routes.Registration.handleStartRegistration) { implicit hfc => 
           <fieldset>
-            @b3.email(
-                signupForm("email"), 
-                '_label -> Messages("register.email"),
-                'placeholder -> "...@example.com",
-                '_error -> signupForm.error("email")
-            )
-            
             @b3.text(
                 signupForm("username"), 
                 '_label -> Messages("register.username"), 
                  '_help -> "This is how other users will see you",
-                '_error -> signupForm.globalError
+                '_error -> signupForm.error("username")
             )
+            
+            @b3.email(
+                signupForm("email"), 
+                '_label -> Messages("register.email"),
+                '_help -> "Where we can contact you",
+                'placeholder -> "...@example.com",
+                '_error -> signupForm.error("email")
+            )
+            
             @b3.password(
                 signupForm("password.main"), 
                 '_label -> Messages("register.password.main"),

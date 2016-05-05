@@ -59,16 +59,16 @@ trait RegistrationService extends ConfiguredService {
 
   case class RegistrationOutcome(result: Either[User, RegistrationRejection]) extends RegistrationResponse
 
-  abstract class RegistrationRejection(messageKey: String)
+  abstract class RegistrationRejection(val messageKey: String)
 
   case class UserAlreadyRegistered(user: User) 
-    extends RegistrationRejection("registration.service.user_already_registered")
+    extends RegistrationRejection("registration.service.user.already.registered")
 
   case class UserNameAlreadyRegistered(username: String) 
-    extends RegistrationRejection("registration.service.username_already_taken")
+    extends RegistrationRejection("registration.service.username.taken")
 
   case class EmailAddressAlreadyRegistered(email: String) 
-    extends RegistrationRejection("registration.service.email_address_already_registered")
+    extends RegistrationRejection("registration.service.email.registered")
 
   /**
    * helper factory call when registration fails

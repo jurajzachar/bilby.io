@@ -31,7 +31,8 @@ class BackendCore @Inject() (
   Logger.debug(s"underlying config=$config")
   //init core modules
   val wsModule = new WSClientModule(ws)
-  val coreModule = CoreModule(actorSystem.dispatchers.lookup("dbio-dispatch"), config)
+  val executionContext = actorSystem.dispatchers.lookup("dbio-dispatch")
+  val coreModule = CoreModule(executionContext, config)
   //Wrap the injector in a ScalaInjector 
   import net.codingwell.scalaguice.InjectorExtensions._
   private val injector = Guice.createInjector(Modules.combine(wsModule, coreModule))
@@ -44,6 +45,7 @@ class BackendCore @Inject() (
   //standalone services
   val userService = injector.instance[UserService[PostgresDatabase]]
   
+
   //inject db instance so that we can shutdown gracefully
   private val appDB = injector.instance[PostgresDatabase]
   lifecycle.addStopHook { () => appDB.closeDatabase() }

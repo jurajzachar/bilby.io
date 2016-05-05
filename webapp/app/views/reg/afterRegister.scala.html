@@ -5,12 +5,16 @@
 @title = { <h4>@Messages("register.after.title")</h4>  } 
 
 @main(Some(title), nav = Messages("navbar.top.after.register"), user = None) {
-    <div class="well">
+  <div class="row">
+    <div class="col-xs-8 col-md-4">
+      <div class="well">
    		@if(result){
-   			"Yay!"
+   			Please confirm your account by acting on email we have sent to you.
    		
    		} else {
-   		    maybeFailure
+   		    @maybeFailure.fold("Something went wrong, please try again.")(present => "Registration failed: " + Messages(present))
    		}
-	<div>    
-}(messages, false, 60)
+      </div>
+    </div>
+  </div>    
+}(messages, false, 100)

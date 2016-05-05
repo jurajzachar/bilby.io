@@ -7,9 +7,9 @@ register.password.main=Password
 register.password.confirm=Confirm Password
 register.btn.submit=Register Now!
 ### REGISTRATION REJECTION ###
-registration.service.user_already_registered=You already seem to have an account. Have you forgotten your password?
-registration.service.username_already_taken=This username is already taken
-registration.service.email_address_already_registered=This email address is already linked to an account.
+registration.service.username.taken=This username is already taken!
+registration.service.email.registered=You already seem to have an account. Forgot password?
+
 
 ### SIGN IN ### 
 signin.welcome=Welcome
@@ -19,3 +19,4 @@ signin.btn.submit=Sign In
 navbar.top.signin=Sign In
 navbar.top.register=Register
 navbar.top.after.register=Almost Done!
+
