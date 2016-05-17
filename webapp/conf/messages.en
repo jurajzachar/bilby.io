@@ -14,6 +14,13 @@ registration.service.email.registered=You already seem to have an account. Forgo
 ### SIGN IN ### 
 signin.welcome=Welcome
 signin.btn.submit=Sign In
+signin.field.email=Email Address
+signin.field.password=Password
+signin.auth.erorr=Credentials Error!
+signin.new.user=Register now!
+signin.new.user.question=Don't have account yet?
+signin.forgot.password=Reset it here.
+signin.forgot.password.question=Forgot password?
 
 ### NAVBAR TOP ###
 navbar.top.signin=Sign In

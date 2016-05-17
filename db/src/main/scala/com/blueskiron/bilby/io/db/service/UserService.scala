@@ -31,14 +31,14 @@ class UserService[T <: PostgresDatabase] @Inject() (protected val cake: T)
 
   def checkUniqueEmail[U >: RegistrationOutcome](email: String): Future[Option[U]] = {
     userDao.findUserProfile(Some(email)).flatMap {
-      case Some(profile) => Future.successful(Some(outcomeFromRejection(EmailAddressAlreadyRegistered(email))))
+      case Some(profile) => Future.successful(Some(outcomeFromException(EmailAddressAlreadyRegistered(email))))
       case None          => Future.successful(None)
     }
   }
 
   def checkUniqueUsername[U >: RegistrationOutcome](username: String): Future[Option[U]] = {
     userDao.findOptionUser(username).flatMap {
-      case Some(user) => Future.successful(Some(outcomeFromRejection(UserNameAlreadyRegistered(username))))
+      case Some(user) => Future.successful(Some(outcomeFromException(UserNameAlreadyRegistered(username))))
       case None          => Future.successful(None)
     }
   }
@@ -75,7 +75,7 @@ class UserService[T <: PostgresDatabase] @Inject() (protected val cake: T)
     //check if username exists
     userDao.findOptionUser(u.username) flatMap {
       case Some(existingUser) => {
-        Future.successful(outcomeFromRejection(UserAlreadyRegistered(u)))
+        Future.successful(outcomeFromException(UserAlreadyRegistered(u)))
       }
       case None => {
         //if NATIVE, check if email or username was already used in previous registrations

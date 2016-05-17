@@ -20,6 +20,10 @@ import akka.actor.actorRef2Scala
 import akka.pattern.pipe
 import akka.routing.FromConfig
 import javax.inject.Singleton
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
+import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
+import scala.concurrent.Future
+import com.mohiva.play.silhouette.api.exceptions.ProviderException
 
 class AuthenticationActor(cacheSize: Int) extends Actor with ActorLogging {
 
@@ -27,7 +31,7 @@ class AuthenticationActor(cacheSize: Int) extends Actor with ActorLogging {
 
   private val router: ActorRef = context.actorOf(FromConfig.props(), "auth_router")
 
-  val cache: MutableLRU[Credentials, User] = MutableLRU(cacheSize)
+  val cache: MutableLRU[Credentials, (User, LoginInfo)] = MutableLRU(cacheSize)
 
   def receive = {
     //handle cache
@@ -35,12 +39,12 @@ class AuthenticationActor(cacheSize: Int) extends Actor with ActorLogging {
       val credentials = get.request.credentials
       sender ! FromCache(get.request, get.sender, cache.get(credentials))
     }
-    case put: ToCache => cache + ((put.key, put.value)) //update cache with the database record
+    case put: ToCache    => cache + ((put.key, put.value)) //update cache with the database record
 
     case inv: Invalidate => cache.-(inv.key) //destroy cache value if present
 
     //forward to auth workers everything else
-    case msg: Any => router.tell(msg, sender())
+    case msg: Any        => router.tell(msg, sender())
   }
 
 }
@@ -53,29 +57,40 @@ class AuthWorker(env: AuthenticationEnvironment, parent: ActorRef) extends Actor
   private case class AuthenticatedUser(request: AuthRequest, user: User, loginInfo: LoginInfo)
 
   def receive = {
-    case req: AuthRequest => parent ! FromCache(req, sender, None)
+    case req: AuthRequest  => parent ! FromCache(req, sender, None)
     case cached: FromCache => pipe { authenticate(cached) } to cached.sender
-    case msg: Any => sender ! ("yay! " + self.path.name + " is alive!")
+    case msg: Any          => sender ! ("yay! " + self.path.name + " is alive!")
   }
 
   private[this] def authenticate(cachedRequest: FromCache) = {
-    val promise = Promise[Option[User]]()
+    val authResult = Promise[AuthenticatorResult]()
     val credentials = cachedRequest.request.credentials
     val maybeUser = cachedRequest.value
-    if (maybeUser.isDefined) {
-      promise.success(maybeUser)
-    } else {
-      env.credentials.authenticate(credentials).flatMap { linfo =>
-        env.identityService.retrieve(linfo).map {
-          case Some(user) =>
-            createAndInitCookie(AuthenticatedUser(cachedRequest.request, user, linfo))
-            promise.success(Some(user))
-            parent ! ToCache(credentials, user)
-          case None => promise.success(None)
+    maybeUser match {
+
+      case Some((user, linfo)) => {
+        log.debug("Found warm cache entry => {},{}", user, linfo)
+        authResult.completeWith(createAndInitCookie(AuthenticatedUser(cachedRequest.request, user, linfo)))
+      }
+
+      case None => {
+        log.debug("Authentication {} entry cold. Querying system database...", cachedRequest.request.credentials.identifier)
+        env.credentials.authenticate(credentials).flatMap { linfo =>
+          env.identityService.retrieve(linfo).map {
+            case Some(user) => {
+              log.debug("Found: {} with {}", user, linfo)
+              authResult.completeWith(createAndInitCookie(AuthenticatedUser(cachedRequest.request, user, linfo)))
+              parent ! ToCache(credentials, (user, linfo))
+            }
+            case None => {
+              log.debug("IdentityNotFound: {}", credentials)
+              authResult.completeWith(Future.failed(new IdentityNotFoundException("signin.auth.erorr")))
+            }
+          }
         }
       }
     }
-    promise.future
+    authResult.future
   }
 
   private[this] def createAndInitCookie(au: AuthenticatedUser) = {
@@ -91,9 +106,9 @@ class AuthWorker(env: AuthenticationEnvironment, parent: ActorRef) extends Actor
 
 object AuthenticationServiceImpl extends AuthenticationService {
 
-  case class FromCache(request: AuthRequest, sender: ActorRef, value: Option[User])
+  case class FromCache(request: AuthRequest, sender: ActorRef, value: Option[(User, LoginInfo)])
 
-  case class ToCache(key: Credentials, value: User)
+  case class ToCache(key: Credentials, value: (User, LoginInfo))
 
   case class Invalidate(key: Credentials) //TODO: password change, etc
 

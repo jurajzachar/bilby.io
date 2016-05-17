@@ -6,7 +6,7 @@ import play.api.mvc.Result
 import play.api.mvc.Results
 import com.blueskiron.bilby.io.api.model.User
 import com.blueskiron.bilby.io.api.model.UserProfile
-import com.blueskiron.bilby.io.api.RegistrationService.RegistrationRejection
+import com.blueskiron.bilby.io.api.RegistrationService.RegistrationException
 import com.blueskiron.bilby.io.api.RegistrationService.RegistrationData
 import com.blueskiron.bilby.io.api.RegistrationService.RegistrationRequest
 import com.blueskiron.bilby.io.api.AuthenticationService.AuthRequest
@@ -37,8 +37,6 @@ object CoreTestData {
 
       override val onSuccess = Results.Ok("registration onSuccess called")
 
-      override val onFailure = (r: RegistrationRejection) => Results.BadRequest("denied because: " + r)
-
     }
   }
 
@@ -50,7 +48,6 @@ object CoreTestData {
 
       override val onSuccess = Results.Ok("authentication onSuccess called")
 
-      override val onFailure = () => Results.Ok("access denied")
     }
   }
 }

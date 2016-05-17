@@ -2,14 +2,14 @@ import Dependencies._
 import Build._
 import Tests._
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 name := "bilby.io"
 organization := "com.blueskiron"
 
 lazy val commonSettings = Seq(
   javaOptions += "-Xmx2G",
   fork in Test := false,
-  scalaVersion in ThisBuild := "2.11.7",
+  scalaVersion in ThisBuild := "2.11.8",
   version in ThisBuild := "1.0.0",
   resolvers ++=Seq(
     "Atlassian Releases" at "https://maven.atlassian.com/public",

@@ -52,7 +52,7 @@ class AuthenticationServicesSpec(testSystem: ActorSystem) extends TestKit(testSy
   val userService = injector.instance[UserService[PostgresDatabase]]
   val regService = RegistrationServiceImpl.startOn(testSystem, authEnv)
   val authService = AuthenticationServiceImpl.startOn(testSystem, authEnv)
-  
+
   override def beforeAll {
     cleanUp()
   }
@@ -73,7 +73,7 @@ class AuthenticationServicesSpec(testSystem: ActorSystem) extends TestKit(testSy
       userService.count.map(_ shouldBe 0)
       val expectedSize = CoreTestData.registrationRequests.size
       CoreTestData.registrationRequests foreach { regService ! _ }
-      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, expectedSize) { //max, min, total nr. messages
+      val collected = receiveWhile(defaultTimeout * 10, defaultTimeout, expectedSize) { //max, min, total nr. messages
         case res: AuthenticatorResult =>
           log.info("received={}", res); res //OK 
         case msg: Any => log.error("received={}", msg)
@@ -86,12 +86,10 @@ class AuthenticationServicesSpec(testSystem: ActorSystem) extends TestKit(testSy
     "authenticate a registered user" in {
       val expectedSize = CoreTestData.authenticationRequests.size
       CoreTestData.authenticationRequests foreach { authService ! _ }
-      val collected = receiveWhile(defaultTimeout*10, defaultTimeout, expectedSize) { //max, min, total nr. messages
-        case Some(user) =>
-          log.info("received authenticated user ={}", user); //OK 
-        case None => log.info("authentication for user {?} failed")
-        
-        case msg: Any => log.error("unexpected response={}", msg)
+      val collected = receiveWhile(defaultTimeout * 100, defaultTimeout * 10, expectedSize) { //max, min, total nr. messages
+        case res: AuthenticatorResult =>
+          log.info("received={}", res); res //OK 
+        case msg: Any => log.error("received={}", msg)
       }
       collected.size shouldBe expectedSize
     }

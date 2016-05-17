@@ -64,10 +64,7 @@ class RegistrationActor(env: AuthenticationEnvironment) extends Actor with Actor
       case Success(outcome) => outcome.result match {
         case Left(user) => authPromise.completeWith(registerAndPublishEvents(user, linfo, registrationRequest.onSuccess))
         case Right(rejection) => {
-          authPromise.success(
-            AuthenticatorResult(
-              registrationRequest.onFailure(
-                rejection.asInstanceOf[RegistrationRejection])))
+          authPromise.failure(rejection)
         }
       }
       case Failure(t) => {

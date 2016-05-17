@@ -9,8 +9,7 @@
     <div class="col-xs-8 col-md-4">
       <div class="well">
    		@if(result){
-   			Please confirm your account by acting on email we have sent to you.
-   		
+   			Please confirm your account by click on the link we have sent to your email address.
    		} else {
    		    @maybeFailure.fold("Something went wrong, please try again.")(present => "Registration failed: " + Messages(present))
    		}

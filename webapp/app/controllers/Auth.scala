@@ -11,13 +11,16 @@ import com.mohiva.play.silhouette.impl.exceptions.{ IdentityNotFoundException, I
 import scala.concurrent.Future
 import views.html.{ auth => viewsAuth }
 import utils.BackendCore
+import play.api.mvc.Request
+import play.api.mvc.AnyContent
+import com.blueskiron.bilby.io.api.AuthenticationService.AuthRequest
+import org.slf4j.LoggerFactory
 
+class Auth @Inject() (override val core: BackendCore, val messagesApi: MessagesApi) extends BaseController(core) {
 
-class Auth @Inject() (val core: BackendCore, val messagesApi: MessagesApi) extends SilhouetteController {
-  
   import forms.UserForms.signInForm
   
-  override val env = core.authEnv
+  val log = LoggerFactory.getLogger(this.getClass)
   
   /**
    * Starts the sign in mechanism. It shows the login form.
@@ -38,6 +41,10 @@ class Auth @Inject() (val core: BackendCore, val messagesApi: MessagesApi) exten
       formWithErrors => Future.successful(BadRequest(viewsAuth.signIn(formWithErrors))),
       formData => {
         val (identifier, password) = formData
+//        val authRequest = buildAuthRequest(Credentials(identifier, password))
+//        core.authService ! authRequest
+//        authRequest.result.future
+        
         env.credentials.authenticate(Credentials(identifier, password)).flatMap { loginInfo =>
           env.identityService.retrieve(loginInfo).flatMap {
             case Some(user) => for {
@@ -50,8 +57,13 @@ class Auth @Inject() (val core: BackendCore, val messagesApi: MessagesApi) exten
             }
             case None => Future.failed(new IdentityNotFoundException("Couldn't find user"))
           }
-        }.recover {
-          case e: ProviderException => Redirect(routes.Auth.signIn).flashing("error" -> Messages("auth.credentials.incorrect"))
+        }
+        
+        .recover {
+          case e: ProviderException => {
+            log.debug(s"provider error: $e")
+            Redirect(routes.Auth.signIn).flashing("error" -> Messages("signin.auth.erorr"))
+          }
         }
       })
   }
@@ -65,5 +77,14 @@ class Auth @Inject() (val core: BackendCore, val messagesApi: MessagesApi) exten
   def signOut = SecuredAction.async { implicit request =>
     env.eventBus.publish(LogoutEvent(request.identity, request, request2Messages))
     env.authenticatorService.discard(request.authenticator, Redirect(routes.Application.index))
+  }
+
+  private def buildAuthRequest(creds: Credentials)(implicit request: Request[AnyContent]): AuthRequest = {
+
+    new AuthRequest {
+      override val credentials = creds
+      override val header = request
+      override val onSuccess = Redirect(routes.Application.index)
+    }
   }
 }

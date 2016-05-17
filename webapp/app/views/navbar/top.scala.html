@@ -12,10 +12,41 @@
     <li><a href="@routes.Registration.startRegistration">@Messages("navbar.top.register")</a></li>
   }
 }
+
 @signin_nav = {
   @if(nav != Messages("navbar.top.signin")){
     <li><a href="@routes.Auth.signIn">@Messages("navbar.top.signin")</a></li>
   }
+}
+
+@user_nav = {
+	
+	@if(user.isDefined){
+	    <li class="dropdown">
+	      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+	      @user.get.username<span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+	        <li>
+	          <a href="#">Create New</a>
+	        </li>
+	        <li><a href="#">Manage Existing</a></li>
+	        <li><a href="#">Sharing Preferences</a></li>
+	        <li class="divider"></li>
+	        <li class="@("active".when(nav == "Account"))">
+	        <a href="#">Account</a>
+	        </li>
+	        <li class="@("active".when(nav == "About"))">
+	        <a href="#">About</a>
+	        </li>	
+	        <li><a href="#">Logout</a></li>
+	      </ul>
+	    </li>
+	    <li><a href="#">Logout</a></li>
+	    } else {
+	     	@register_nav
+            @signin_nav
+	    }
 }
 
 <div class="navbar-wrapper">
@@ -46,34 +77,9 @@
             @if(nav.length > 0){
             <li class="active"><a href="#">@nav<span class="sr-only">(current)</span></a></li>
             }
-            @if(user.isDefined){
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-              @user.get <span class="caret"></span>
-              </a>
-              <ul class="dropdown-menu" role="menu">
-                <li>
-                  <a href="#">Create New</a>
-                </li>
-                <li><a href="#">Manage Existing</a></li>
-                <li><a href="#">Sharing Preferences</a></li>
-                <li class="divider"></li>
-                <li class="@("active".when(nav == "Account"))">
-                <a href="#">Account</a>
-                </li>
-                <li class="@("active".when(nav == "About"))">
-                <a href="#">About</a>
-                </li>	
-                <li><a href="#">Logout</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Logout</a></li>
-            }
-            <!--login -->
-            @if(!user.isDefined){
-            	@register_nav
-            	@signin_nav
-            }
+            
+            <!--main user nav -->
+            @user_nav
             @if(nav != "About" && !user.isDefined){
               <li class="@("active".when(nav == "About"))">
                 <a href="#">About</a>

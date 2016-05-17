@@ -1,7 +1,7 @@
 <configuration>
 
 	<!-- filters -->
-	<logger name="com.zaxxer.hikari" level="INFO" />
+	<logger name="com.zaxxer.hikari" level="WARN" />
 	<logger name="com.google.inject.internal" level="INFO" />
 	<logger name="com.ning.http.client.providers.netty.channel.pool" level="INFO" />
 	<logger name="slick" level="INFO" />

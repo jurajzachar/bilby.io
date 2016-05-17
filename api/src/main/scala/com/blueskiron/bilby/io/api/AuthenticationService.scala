@@ -3,6 +3,8 @@ package com.blueskiron.bilby.io.api
 import play.api.mvc.RequestHeader
 import com.mohiva.play.silhouette.api.util.Credentials
 import play.api.mvc.Result
+import scala.concurrent.Promise
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 
 /**
  * 
@@ -32,10 +34,9 @@ trait AuthenticationService extends ConfiguredService with BackedByActorService 
     val onSuccess: Result
     
     /**
-     * Action to take when authentication fails
-     * @return
+     * 
      */
-    val onFailure: () => Result
+    val result = Promise[AuthenticatorResult]()
   }
 }
 

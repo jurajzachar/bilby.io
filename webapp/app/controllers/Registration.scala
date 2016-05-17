@@ -21,7 +21,7 @@ import com.blueskiron.bilby.io.api.model.UserProfile
 import play.api.mvc.Request
 import play.api.mvc.AnyContent
 import com.blueskiron.bilby.io.api.RegistrationService.RegistrationData
-import com.blueskiron.bilby.io.api.RegistrationService.RegistrationRejection
+import com.blueskiron.bilby.io.api.RegistrationService.RegistrationException
 import play.api.mvc.Result
 import scala.concurrent.Promise
 import play.api.i18n.Messages
@@ -31,11 +31,11 @@ class Registration @Inject() (val core: BackendCore, val messagesApi: MessagesAp
   import forms.UserForms.registrationForm
   override val env = core.authEnv
   implicit val ec = core.executionContext
-  
+
   def i18nErrors(messageKey: String) = {
     Messages(messageKey)
   }
-  
+
   def notFoundDefault(implicit request: RequestHeader) = Future.successful(NotFound(views.html.errors.notFound(request)))
 
   /**
@@ -44,7 +44,7 @@ class Registration @Inject() (val core: BackendCore, val messagesApi: MessagesAp
   def startRegistration = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
       case Some(_) => Redirect(routes.Application.index)
-      case None    => Ok(viewsReg.register(registrationForm(core.userService, i18nErrors) ))
+      case None    => Ok(viewsReg.register(registrationForm(core.userService, i18nErrors)))
     })
   }
 
@@ -53,12 +53,14 @@ class Registration @Inject() (val core: BackendCore, val messagesApi: MessagesAp
       withErrors => Future.successful(BadRequest(viewsReg.register(withErrors))),
       data => {
         val registrationRequest = buildRegistrationRequest(data)
-          core.regService ! registrationRequest
-          registrationRequest.result.future
+        core.regService ! registrationRequest
+        registrationRequest.result.future
+      }.recover {
+        case e: Exception => Ok(viewsReg.afterRegister(false, Some(e.getMessage)))
       })
   }
 
-  private def buildRegistrationRequest(form: UserRegistrationForm)(implicit request: Request[AnyContent]): RegistrationRequest = { 
+  private def buildRegistrationRequest(form: UserRegistrationForm)(implicit request: Request[AnyContent]): RegistrationRequest = {
     val created = new LocalDateTime()
     val linfo = LoginInfo(SupportedAuthProviders.CREDENTIALS.id, form.email)
     val profiles = Seq(linfo)
@@ -66,16 +68,15 @@ class Registration @Inject() (val core: BackendCore, val messagesApi: MessagesAp
     val user: User = User(None, form.username, profiles, roles, false, created)
     val fullName = (form.firstName, form.lastName) match { case (Some(x), Some(y)) => Some(x + " " + y) case _ => None }
     val userProfile: UserProfile = UserProfile(linfo, Some(form.email), form.firstName, form.lastName, fullName, None, false, created)
-    
+
     new RegistrationRequest {
-      
+
       override val header = request
-      
+
       override val data = RegistrationData(user, userProfile, userProfile.email.getOrElse("noemail@bilby.io"), form.password._1)
 
       override val onSuccess = Ok(viewsReg.afterRegister(true, None))
 
-      override val onFailure = (r: RegistrationRejection) => Ok(viewsReg.afterRegister(false, Some(Messages(r.messageKey)) ))
     }
   }
 }

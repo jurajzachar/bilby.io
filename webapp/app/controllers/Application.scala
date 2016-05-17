@@ -10,14 +10,14 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
 import javax.inject.Inject
 import com.blueskiron.bilby.io.core.auth.AuthenticationEnvironment
+import utils.BackendCore
 
-//class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi: MessagesApi) extends SilhouetteController {
-class Application @Inject() (val messagesApi: MessagesApi) extends BaseController {
+class Application @Inject() (override val core: BackendCore, val messagesApi: MessagesApi) extends BaseController(core) {
   
-  def index = Action { implicit request =>
-    Ok(views.html.index(Nil, None))
+  def index = UserAwareAction.async { implicit request =>
+    Future.successful( Ok(views.html.index(Nil) ))
   }
-
+   
 //  def selectLang(lang: String) = Action { implicit request =>
 //    Logger.logger.debug("Change user lang to : " + lang)
 //    request.headers.get(REFERER).map { referer =>

@@ -8,9 +8,9 @@ object Build extends Build {
   lazy val api = Project(
     id = "api",
     base = file("api"),
-    settings = Project.defaultSettings 
+    settings = Project.defaultSettings
       ++ Seq(
-      scalaVersion := "2.11.7",
+      scalaVersion := "2.11.8",
       resolvers ++= Seq(
         "Atlassian Releases" at "https://maven.atlassian.com/public",
         "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
@@ -21,22 +21,22 @@ object Build extends Build {
     id = "mock",
     base = file("mock"),
     settings = Project.defaultSettings ++ Seq(
-      scalaVersion := "2.11.7",
+      scalaVersion := "2.11.8",
       libraryDependencies ++= apiDeps)).dependsOn(api % "compile->compile")
-  
+
   lazy val codegen = Project(
     id = "codegen",
     base = file("db/codegen"),
     settings = Project.defaultSettings ++ Seq(
-      scalaVersion := "2.11.7",
+      scalaVersion := "2.11.8",
       libraryDependencies ++= dbDeps
       ))
-      
+
   lazy val db = Project(
     id = "db",
     base = file("db"),
     settings = Project.defaultSettings ++ Seq(
-      scalaVersion := "2.11.7",
+      scalaVersion := "2.11.8",
       libraryDependencies ++= dbDeps,
       unmanagedResourceDirectories in Compile += baseDirectory.value / "target/scala-2.11/src_managed",
       unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources",
@@ -60,7 +60,7 @@ object Build extends Build {
     id = "graph",
     base = file("graph"),
     settings = Project.defaultSettings ++ Seq(
-      scalaVersion := "2.11.7",
+      scalaVersion := "2.11.8",
       libraryDependencies ++= graphDeps,
       unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources")).dependsOn(api, mock % "test->test")
 
@@ -68,7 +68,7 @@ object Build extends Build {
     id = "core",
     base = file("core"),
     settings = Project.defaultSettings ++ Seq(
-      scalaVersion := "2.11.7",
+      scalaVersion := "2.11.8",
       libraryDependencies ++= coreDeps,
       unmanagedResourceDirectories in Test += baseDirectory.value / "../mock/src/test/resources")).dependsOn(api, db, mock % "test->test")
 

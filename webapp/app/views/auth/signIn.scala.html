@@ -1,4 +1,4 @@
-@(signInForm: Form[(String, String)])(implicit messages: Messages, request: RequestHeader)
+@(signInform: Form[(String, String)])(implicit messages: Messages, request: RequestHeader)
 @import b3.vertical.fieldConstructor
 @import controllers.routes
 @import helper._
@@ -13,13 +13,26 @@
     <div class="row">
       <div class="col-xs-6 col-md-2">
 	    <fieldset>
-	      @b3.text( signInForm("identifier"), '_hiddenLabel -> Messages("field.email"), 'placeholder -> "your@email.com", 'autofocus -> true )
-		  @b3.password( signInForm("password"), '_hiddenLabel -> Messages("field.password"), 'placeholder -> Messages("field.password") )
-		  @b3.submit('class -> "btn btn-primary btn-block"){ @Messages("signin.btn.submit") }
-		  <div class="post-form-opts">
-		    <p>@Messages("signin.forgot.question") <a href="#">@Messages("signin.forgot")</a></p>
-		  </div>
+	      @b3.text( signInform("email"), 
+	      	'_label -> Messages("signin.field.email"),
+	      	 '_error -> signInform.error("email"), 
+	      	'autofocus -> true )
+		  @b3.password( signInform("password"), 
+		  	 '_error -> signInform.error("password"), 
+		  	'_label -> Messages("signin.field.password")) 
+		   @b3.submit('class -> "btn btn-primary btn-block form-control"){ @Messages("signin.btn.submit") }
 		</fieldset>
+	  
+	  <div class="post-form-opts">
+	  	<p>
+	    @Messages("signin.forgot.password.question") <a href="#">@Messages("signin.forgot.password")</a>
+	  	</p>
+	  	<p>
+	  	@Messages("signin.new.user.question") <a href="#">@Messages("signin.new.user")</a>
+	  	</p>
+	  </div>
+	  
+	  </div>
 	  </div>
     </div>
 	}

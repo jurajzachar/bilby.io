@@ -7,8 +7,11 @@ import forms.SearchForms.{ navbarForm => searchForm }
 import play.api.mvc.Action
 import com.google.inject.Inject
 import play.api.i18n.MessagesApi
+import utils.BackendCore
 
-class Search @Inject() (val messagesApi: MessagesApi) extends BaseController {
+class Search @Inject() (override val core: BackendCore, val messagesApi: MessagesApi) extends BaseController(core) {
+  
+  //TODO...
   val genericUserMsg = "Found %d %s for user %s";
   val genericTagsMsg = "Found %d %s for tag '%s'";
   val genericSourceMsg = "Found %d %s for '%s'";

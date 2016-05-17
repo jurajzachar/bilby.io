@@ -42,11 +42,6 @@ trait RegistrationService extends ConfiguredService {
     /**
      * @return function that is used to process registration failure
      */
-    val onFailure: RegistrationRejection => Result
-    
-    /**
-     * @return function that is used to process registration failure
-     */
     val result = Promise[AuthenticatorResult]()
   }
   
@@ -55,26 +50,24 @@ trait RegistrationService extends ConfiguredService {
    * @author juri
    *
    */
-  abstract class RegistrationResponse
+  abstract class RegistrationException(msg: String, cause: Throwable = null) extends Exception(msg, cause)
 
-  case class RegistrationOutcome(result: Either[User, RegistrationRejection]) extends RegistrationResponse
-
-  abstract class RegistrationRejection(val messageKey: String)
+  case class RegistrationOutcome(result: Either[User, RegistrationException])
 
   case class UserAlreadyRegistered(user: User) 
-    extends RegistrationRejection("registration.service.user.already.registered")
+    extends RegistrationException("registration.service.user.already.registered")
 
   case class UserNameAlreadyRegistered(username: String) 
-    extends RegistrationRejection("registration.service.username.taken")
+    extends RegistrationException("registration.service.username.taken")
 
   case class EmailAddressAlreadyRegistered(email: String) 
-    extends RegistrationRejection("registration.service.email.registered")
+    extends RegistrationException("registration.service.email.registered")
 
   /**
    * helper factory call when registration fails
    * @param reject
    */
-  def outcomeFromRejection(reject: RegistrationRejection) = RegistrationOutcome(Right(reject))
+  def outcomeFromException(reject: RegistrationException) = RegistrationOutcome(Right(reject))
   /**
    * helper factory call when registration succeeds
    * @param reject
