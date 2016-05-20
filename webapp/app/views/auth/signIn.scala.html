@@ -1,5 +1,5 @@
 @(signInform: Form[(String, String)])(implicit messages: Messages, request: RequestHeader)
-@import b3.vertical.fieldConstructor
+@import b3.inline.fieldConstructor
 @import controllers.routes
 @import helper._
 
@@ -9,31 +9,32 @@
 
 @main(Some(title), nav = Messages("navbar.top.signin"), user = None)  {
   @tags.alertFromRequest(request, "error")
-    @b3.form(routes.Auth.authenticate) {
-    <div class="row">
-      <div class="col-xs-6 col-md-2">
-	    <fieldset>
-	      @b3.text( signInform("email"), 
-	      	'_label -> Messages("signin.field.email"),
-	      	 '_error -> signInform.error("email"), 
-	      	'autofocus -> true )
-		  @b3.password( signInform("password"), 
-		  	 '_error -> signInform.error("password"), 
-		  	'_label -> Messages("signin.field.password")) 
-		   @b3.submit('class -> "btn btn-primary btn-block form-control"){ @Messages("signin.btn.submit") }
-		</fieldset>
-	  
-	  <div class="post-form-opts">
-	  	<p>
-	    @Messages("signin.forgot.password.question") <a href="#">@Messages("signin.forgot.password")</a>
-	  	</p>
-	  	<p>
-	  	@Messages("signin.new.user.question") <a href="#">@Messages("signin.new.user")</a>
-	  	</p>
-	  </div>
-	  
-	  </div>
-	  </div>
-    </div>
+  @b3.form(routes.Auth.authenticate) { 
+   
+   <div class="spacer-right form-group">
+		@b3.email( signInform("email"), 
+			'_hiddenLabel -> Messages("signin.field.email"), 
+			'placeholder -> "example@mail.com", 
+			'autofocus -> true )
+		</div>
+		<div class="spacer-right form-group">
+	    @b3.password( signInform("password"), 
+	    		'_hiddenLabel -> Messages("signin.field.password"),
+	    		'placeholder -> Messages("signin.field.password") 
+  		)
+  		
+		@if(request.flash.get("error").isDefined){
+			@b3.static(){
+				<a href="#">@Messages("signin.forgot.password.question")</a>
+			}  	
+		}  		
+		</div>
+		@b3.submit('class -> "btn btn-default"){ Sign in }
 	}
+	@b3.static(){ 
+			<a href="@routes.Registration.startRegistration"> @Messages("signin.new.user.question") @Messages("signin.new.user")</a> 
+	} 
+ 
+	
+
 }(messages, false, 100)

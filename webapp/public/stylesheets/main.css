@@ -7,6 +7,11 @@ body {
     padding-top: 15px;
     text-rendering: optimizeLegibility;
 }
+
+.spacer-right {
+	margin-right: 15px;
+}
+
 /* Navbar --> mostly size control */
 
 .navbar-brand {
